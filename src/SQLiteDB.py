@@ -42,54 +42,66 @@ class SQLiteDB(EliteDB.EliteDB):
 
   def _createDB(self):
     cur = self.conn.cursor()
-    cur.execute("""CREATE TABLE "Planets" (
+    cur.execute("""CREATE TABLE "planets" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "systemId" INTEGER NOT NULL,
     "distance" REAL,
-    "name" TEXT NOT NULL
-)""")
+    "name" TEXT NOT NULL UNIQUE
+    )""")
     cur.execute("""CREATE INDEX "planetIDIndex" on planets (id ASC)""")
     cur.execute("""CREATE INDEX "planetSystemIdIndex" on planets (systemId ASC)""")
+
     cur.execute("""CREATE TABLE systems (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-    "name" TEXT NOT NULL
-, "x" REAL, "y" REAL, "z" REAL)""")
+    "name" TEXT NOT NULL UNIQUE,
+    "x" REAL, "y" REAL, "z" REAL
+    )""")
     cur.execute("""CREATE INDEX "systemsIdIndex" on systems (id ASC)""")
     cur.execute("""CREATE INDEX "systemsNameIndex" on systems (name ASC)""")
     cur.execute("""CREATE INDEX "systemsXIndex" on systems (x ASC)""")
     cur.execute("""CREATE INDEX "systemsYIndex" on systems (y ASC)""")
     cur.execute("""CREATE INDEX "systemsZIndex" on systems (z ASC)""")
-    cur.execute("""CREATE TABLE "BaseInfo" (
+
+    cur.execute("""CREATE TABLE "baseInfo" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "baseId" INTEGER NOT NULL,
+    "baseId" INTEGER NOT NULL UNIQUE,
     "blackMarket" INTEGER,
     "landingPadSize" INTEGER
-)""")
+    )""")
     cur.execute("""CREATE INDEX "baseInfoIdIndex" on baseinfo (id ASC)""")
     cur.execute("""CREATE INDEX "baseInfoBaseIdIndex" on baseinfo (baseId ASC)""")
     cur.execute("""CREATE INDEX "baseInfoBlackMarketIndex" on baseinfo (blackMarket ASC)""")
     cur.execute("""CREATE INDEX "baseInfoLandingPadSize" on baseinfo (landingPadSize ASC)""")
-    cur.execute("""CREATE TABLE "Commonity" (
+
+    cur.execute("""CREATE TABLE "commodities" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "name" TEXT
-)""")
-    cur.execute("""CREATE INDEX "commonityIdIndex" on commonity (id ASC)""")
-    cur.execute("""CREATE INDEX "commonityNameIndex" on commonity (name ASC)""")
-    cur.execute("""CREATE TABLE "commonityPrices" (
+    "name" TEXT UNIQUE
+    )""")
+    cur.execute("""CREATE INDEX "commoditiesIdIndex" on commodities (id ASC)""")
+    cur.execute("""CREATE INDEX "commoditiesNameIndex" on commodities (name ASC)""")
+
+    cur.execute("""CREATE TABLE "commodityPrices" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "commonityId" INTEGER NOT NULL,
+    "commodityId" INTEGER NOT NULL,
     "baseId" INTEGER NOT NULL,
-    "price" INTEGER NOT NULL,
-    "lastUpdated" TEXT
-)""")
-    cur.execute("""CREATE INDEX "commonityPricesIdIndex" on commonityprices (id ASC)""")
-    cur.execute("""CREATE INDEX "commonityPricesCommonitIdIndex" on commonityprices (commonityId ASC)""")
-    cur.execute("""CREATE INDEX "commonityPricesBaseIdIndex" on commonityprices (baseId ASC)""")
+    "supply" INTEGER NOT NULL,
+    "demand" INTEGER NOT NULL,
+    "import_price" INTEGER NOT NULL,
+    "export_price" INTEGER NOT NULL,
+    "lastUpdated" INTEGER,
+    UNIQUE (baseId, commodityId)
+    )""")
+    cur.execute("""CREATE INDEX "commodityPricesIdIndex" on commodityPrices (id ASC)""")
+    cur.execute("""CREATE INDEX "commodityPricesCommonitIdIndex" on commodityPrices (commodityId ASC)""")
+    cur.execute("""CREATE INDEX "commodityPricesBaseIdIndex" on commodityPrices (baseId ASC)""")
+
     cur.execute("""CREATE TABLE bases (
-    "id" INTEGER NOT NULL,
-    "name" TEXT NOT NULL,
-    "planetId" INTEGER
-, "systemId" INTEGER, "distance" REAL)""")
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "name" TEXT NOT NULL UNIQUE,
+    "planetId" INTEGER,
+    "systemId" INTEGER,
+    "distance" REAL
+    )""")
     cur.execute("""CREATE INDEX "basesIdIndex" on bases (id ASC)""")
     cur.execute("""CREATE INDEX "basesPlanetId" on bases (planetId ASC)""")
     cur.execute("""CREATE INDEX "basesNameIndex" on bases (name ASC)""")
@@ -98,3 +110,40 @@ class SQLiteDB(EliteDB.EliteDB):
     self.conn.commit()
 
 
+  def importCommodities(self,commoditylist):
+    cur = self.conn.cursor()
+    cur.executemany("INSERT OR IGNORE INTO commodities(name) VALUES(?)",commoditylist)
+
+    self.conn.commit()
+
+    return list(cur.execute('SELECT id,name FROM commodities'))
+
+  def importSystems(self,systemlist):
+    cur = self.conn.cursor()
+    cur.executemany("INSERT OR IGNORE INTO systems(name,x,y,z) VALUES(?,?,?,?)",systemlist)
+
+    self.conn.commit()
+
+    return list(cur.execute('SELECT id,name FROM systems'))
+
+  def importBases(self,baselist):
+    cur = self.conn.cursor()
+    cur.executemany("INSERT OR IGNORE INTO bases(name,planetId,systemId,distance) VALUES(?,?,?,?)",baselist)
+
+    self.conn.commit()
+
+    return list(cur.execute('SELECT id,name FROM bases'))
+
+  def importBaseInfos(self,baselist):
+    cur = self.conn.cursor()
+    cur.executemany("INSERT OR IGNORE INTO baseInfo(baseId,blackMarket,landingPadSize) VALUES(?,?,?)",baselist)
+
+    self.conn.commit()
+    #return cur.execute('SELECT id,name FROM baseInfo') # no need for ids here
+
+  def importCommodityPrices(self,marketlist):
+    cur = self.conn.cursor()
+    cur.executemany("INSERT OR REPLACE INTO commodityPrices( commodityId, baseId, import_price, export_price, lastUpdated, demand, supply ) VALUES(?,?,?,?,?,?,?)",marketlist)
+    # todo: timestamp comparison
+
+    self.conn.commit()
