@@ -1,6 +1,13 @@
+from SQLiteDB import SQLiteDB
+
+
+
+def updatePrices(db):
+  pass
 
 def main():
-  SQLiteDB("main.sqlite")
+  with SQLiteDB("main.sqlite") as db:
+    updatePrices(db)
 
 
 
