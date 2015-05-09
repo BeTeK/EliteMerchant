@@ -10,7 +10,13 @@ class SQLiteDB(EliteDB.EliteDB):
     self.filename = filename
     self.forceInit = forceInit
 
+  
+
   def __enter__(self):
+    self._init()
+    return self
+
+  def _init(self):
     exists = os.path.exists(self.filename)
     if exists and self.forceInit:
       os.remove(self.filename)
@@ -19,9 +25,20 @@ class SQLiteDB(EliteDB.EliteDB):
     if not exists or self.forceInit:
       self._createDB()
 
+    
   def __exit__(self, type, value, traceback):
     if self.conn is not None:
       self.conn.close()
+
+  def addSystem(self, name, pos = None):
+    cur = self.conn.cursor()
+
+    if pos is None:
+      cur.execute('INSERT INTO systems (name, x, y, z) VALUES (?, NULL, NULL, NULL)', (name,))
+    else:
+      cur.execute('INSERT INTO systems (name, x, y, z) VALUES (?, ?, ?, ?)', (name, pos[0], pos[1], pos[2]))
+
+    self.conn.commit()
 
   def _createDB(self):
     cur = self.conn.cursor()
@@ -34,7 +51,7 @@ class SQLiteDB(EliteDB.EliteDB):
     cur.execute("""CREATE INDEX "planetIDIndex" on planets (id ASC)""")
     cur.execute("""CREATE INDEX "planetSystemIdIndex" on planets (systemId ASC)""")
     cur.execute("""CREATE TABLE systems (
-    "id" INTEGER NOT NULL,
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL
 , "x" REAL, "y" REAL, "z" REAL)""")
     cur.execute("""CREATE INDEX "systemsIdIndex" on systems (id ASC)""")
