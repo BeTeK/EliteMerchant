@@ -25,7 +25,6 @@ class SQLiteDB(EliteDB.EliteDB):
 
   def _createDB(self):
     cur = self.conn.cursor()
-
     cur.execute("""CREATE TABLE "Planets" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "systemId" INTEGER NOT NULL,
@@ -34,10 +33,6 @@ class SQLiteDB(EliteDB.EliteDB):
 )""")
     cur.execute("""CREATE INDEX "planetIDIndex" on planets (id ASC)""")
     cur.execute("""CREATE INDEX "planetSystemIdIndex" on planets (systemId ASC)""")
-    cur.execute("""CREATE TABLE "bases" (
-    "id" INTEGER PRIMARY KEY NOT NULL,
-    "name" TEXT NOT NULL
-)""")
     cur.execute("""CREATE TABLE systems (
     "id" INTEGER NOT NULL,
     "name" TEXT NOT NULL
@@ -73,6 +68,15 @@ class SQLiteDB(EliteDB.EliteDB):
     cur.execute("""CREATE INDEX "commonityPricesIdIndex" on commonityprices (id ASC)""")
     cur.execute("""CREATE INDEX "commonityPricesCommonitIdIndex" on commonityprices (commonityId ASC)""")
     cur.execute("""CREATE INDEX "commonityPricesBaseIdIndex" on commonityprices (baseId ASC)""")
+    cur.execute("""CREATE TABLE bases (
+    "id" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "planetId" INTEGER
+, "systemId" INTEGER, "distance" REAL)""")
+    cur.execute("""CREATE INDEX "basesIdIndex" on bases (id ASC)""")
+    cur.execute("""CREATE INDEX "basesPlanetId" on bases (planetId ASC)""")
+    cur.execute("""CREATE INDEX "basesNameIndex" on bases (name ASC)""")
+    cur.execute("""CREATE INDEX "basesSystemIndex" on bases (systemId ASC)""")
 
     self.conn.commit()
 

@@ -6,7 +6,7 @@ def updatePrices(db):
   pass
 
 def main():
-  with SQLiteDB("main.sqlite") as db:
+  with SQLiteDB("main.sqlite", True) as db:
     updatePrices(db)
 
 
