@@ -7,6 +7,15 @@ class EDDB:
   def __init__(self):
     pass
 
+  def readJSON(self,filename):
+    try:
+      with open(filename, "r") as file:
+        return json.loads(file.read())
+    except Exception as ex:
+      print(ex)
+      return None
+
+
   def update(self,db):
     # todo: download
     self.importDownloaded(db)
@@ -19,10 +28,8 @@ class EDDB:
     # -- commodities --
 
     print("improting eddb commodities")
-    json_data=open("commodities.json").read()
-    try:
-      commoditiesdata = json.loads(json_data)
-    except:
+    commoditiesdata = self.readJSON("commodities.json")
+    if commoditiesdata is None:
       print("parsing commodities.json failed")
       return False
 
@@ -30,7 +37,7 @@ class EDDB:
     importedCommodities=db.importCommodities([[o["name"],o["average_price"]] for o in commoditiesdata])
 
     # name to id map
-    importedCommoditiesMap=dict( (y,x) for x,y in importedCommodities )
+    importedCommoditiesMap=dict( (o["name"],o["id"]) for o in importedCommodities )
 
     # eddb to EliteDB id map
     commodities_importmap=dict( (o["id"],importedCommoditiesMap[o["name"]]) for o in commoditiesdata )
@@ -38,10 +45,8 @@ class EDDB:
     # -- systems --
 
     print("               systems")
-    json_data=open("systems.json").read()
-    try:
-      systemsdata = json.loads(json_data)
-    except:
+    systemsdata = self.readJSON("systems.json")
+    if systemsdata is None:
       print("parsing systems.json failed")
       return False
 
@@ -49,7 +54,7 @@ class EDDB:
     importedSystems=db.importSystems([[o["name"],o["x"],o["y"],o["z"]] for o in systemsdata])
 
     # name to id map
-    importedSystemsMap=dict( (y,x) for x,y in importedSystems )
+    importedSystemsMap=dict( (o["name"],o["id"]) for o in importedSystems )
 
     # eddb to EliteDB id map
     systems_importmap=dict( (o["id"],importedSystemsMap[o["name"]]) for o in systemsdata )
@@ -57,10 +62,8 @@ class EDDB:
     # -- stations --
 
     print("               stations")
-    json_data=open("stations.json").read()
-    try:
-      stationsdata = json.loads(json_data)
-    except:
+    stationsdata = self.readJSON("stations.json")
+    if stationsdata is None:
       print("parsing stations.json failed")
       return False
 
@@ -72,7 +75,7 @@ class EDDB:
     importedStations=db.importBases([[o["name"],None,o["system_id"],o["distance_to_star"]] for o in stationsdata])
 
     # name to id map
-    importedStationsMap=dict( (y,x) for x,y in importedStations )
+    importedStationsMap=dict( (o["name"],o["id"]) for o in importedStations )
 
     # eddb to EliteDB id map
     stations_importmap=dict( (o["id"],importedStationsMap[o["name"]]) for o in stationsdata )
