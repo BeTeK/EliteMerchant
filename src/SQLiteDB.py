@@ -65,7 +65,7 @@ class SQLiteDB(EliteDB.EliteDB):
     cur.execute("""CREATE TABLE "baseInfo" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "baseId" INTEGER NOT NULL UNIQUE,
-    "blackMarket" INTEGER,
+    "blackMarket" BIT,
     "landingPadSize" INTEGER
     )""")
     cur.execute("""CREATE INDEX "baseInfoIdIndex" on baseinfo (id ASC)""")
@@ -75,7 +75,8 @@ class SQLiteDB(EliteDB.EliteDB):
 
     cur.execute("""CREATE TABLE "commodities" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "name" TEXT UNIQUE
+    "name" TEXT UNIQUE,
+    "average" INTEGER
     )""")
     cur.execute("""CREATE INDEX "commoditiesIdIndex" on commodities (id ASC)""")
     cur.execute("""CREATE INDEX "commoditiesNameIndex" on commodities (name ASC)""")
@@ -86,8 +87,8 @@ class SQLiteDB(EliteDB.EliteDB):
     "baseId" INTEGER NOT NULL,
     "supply" INTEGER NOT NULL,
     "demand" INTEGER NOT NULL,
-    "import_price" INTEGER NOT NULL,
-    "export_price" INTEGER NOT NULL,
+    "importPrice" INTEGER NOT NULL,
+    "exportPrice" INTEGER NOT NULL,
     "lastUpdated" INTEGER,
     UNIQUE (baseId, commodityId)
     )""")
@@ -112,7 +113,7 @@ class SQLiteDB(EliteDB.EliteDB):
 
   def importCommodities(self,commoditylist):
     cur = self.conn.cursor()
-    cur.executemany("INSERT OR IGNORE INTO commodities(name) VALUES(?)",commoditylist)
+    cur.executemany("INSERT OR IGNORE INTO commodities(name,average) VALUES(?,?)",commoditylist)
 
     self.conn.commit()
 
@@ -143,7 +144,90 @@ class SQLiteDB(EliteDB.EliteDB):
 
   def importCommodityPrices(self,marketlist):
     cur = self.conn.cursor()
-    cur.executemany("INSERT OR REPLACE INTO commodityPrices( commodityId, baseId, import_price, export_price, lastUpdated, demand, supply ) VALUES(?,?,?,?,?,?,?)",marketlist)
+    cur.executemany("INSERT OR REPLACE INTO commodityPrices( commodityId, baseId, importPrice, exportPrice, lastUpdated, demand, supply ) VALUES(?,?,?,?,?,?,?)",marketlist)
     # todo: timestamp comparison
 
     self.conn.commit()
+
+
+  # todo: move elsewhere
+  def queryProfitWindow(self,x,y,z,windowsize,maxdistance,minprofit):
+    cur = self.conn.cursor()
+    queryvals=dict()
+    queryvals['x']=x
+    queryvals['y']=y
+    queryvals['z']=z
+    queryvals['window']=windowsize
+    queryvals['maxdistance']=maxdistance
+    queryvals['minprofit']=minprofit
+
+    profitlist=cur.execute("""
+    SELECT AbaseId, AsystemId, AexportPrice, AcommodityId AS commodityId, BbaseId, BsystemId, BimportPrice,
+        BimportPrice-AexportPrice AS profit,
+        (
+            (Ax - Bx)*(Ax - Bx)
+            +
+            (Ay - By)*(Ay - By)
+            +
+            (Az - Bz)*(Az - Bz)
+        ) AS DistanceSq,
+        Asystemname,Abasename,Bsystemname,Bbasename,commodityname
+        FROM (
+        (
+            SELECT systems.name AS Asystemname, bases.name AS Abasename, baseId AS AbaseId, systemId AS AsystemId, commodityId AS AcommodityId, exportPrice AS AexportPrice, supply AS Asupply, commodities.name AS commodityname, x AS Ax, y AS Ay, z AS Az FROM (
+                (
+                    SELECT * FROM commodities WHERE average>:minprofit*6
+                ) AS commodities
+                JOIN
+                (
+                    SELECT * FROM commodityPrices WHERE exportPrice>0
+                ) AS CommodityPrices
+                ON commodityPrices.commodityId=commodities.id
+                JOIN
+                bases
+                ON commodityPrices.baseId=bases.id
+                JOIN
+                systems
+                ON bases.systemId=systems.id
+
+            )
+            WHERE
+            exportPrice<average
+            AND
+            :x-:window<x AND x<:x+:window AND :y-:window<y AND y<:y+:window AND :z-:window<z AND z<:z+:window
+        )
+        JOIN
+        (
+            SELECT systems.name AS Bsystemname, bases.name AS Bbasename, baseId AS BbaseId, systemId AS BsystemId, commodityId AS BcommodityId, importPrice AS BimportPrice, demand AS Bdemand, x AS Bx, y AS By, z AS Bz FROM (
+                (
+                    SELECT * FROM commodities WHERE average>:minprofit*6
+                ) AS commodities
+                JOIN
+                commodityPrices
+                --(
+                --    SELECT * FROM commodityPrices WHERE importPrice>0
+                --) AS CommodityPrices
+                ON commodityPrices.commodityId=commodities.id
+                JOIN
+                bases
+                ON commodityPrices.baseId=bases.id
+                JOIN
+                systems
+                ON bases.systemId=systems.id
+            )
+            WHERE
+            importPrice>average
+            AND
+            :x-:window<x AND x<:x+:window AND :y-:window<y AND y<:y+:window AND :z-:window<z AND z<:z+:window
+        )
+        ON AcommodityId=BcommodityId
+    )
+    WHERE
+        profit > :minprofit
+        AND
+        distanceSQ < :maxdistance*:maxdistance
+    ORDER BY profit DESC
+    --LIMIT 0,10
+    """,queryvals)
+
+    return list(profitlist)
