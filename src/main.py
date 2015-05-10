@@ -7,6 +7,14 @@ import json
 def updatePrices(db):
   pass
   
+def readJSON(filename):
+  try:
+    with open(filename, "r") as file:
+      return json.loads(file.read())
+  except Exception as ex:
+    print(ex)
+    return None
+
 def importEDDB(db):
   if not os.path.exists('systems.json') or not os.path.exists('commodities.json') or not os.path.exists('stations.json'):
     print("eddb json files missing! - required: systems.json, commodities.json, stations.json")
@@ -15,10 +23,8 @@ def importEDDB(db):
   # -- commodities --
 
   print("improting eddb commodities")
-  json_data=open("commodities.json").read()
-  try:
-    commoditiesdata = json.loads(json_data)
-  except:
+  commoditiesdata = readJSON("commodities.json")
+  if commoditiesdata is None:
     print("parsing commodities.json failed")
     return False
 
@@ -34,10 +40,8 @@ def importEDDB(db):
   # -- systems --
 
   print("improting eddb systems")
-  json_data=open("systems.json").read()
-  try:
-    systemsdata = json.loads(json_data)
-  except:
+  systemsdata = readJSON("systems.json")
+  if systemsdata is None:
     print("parsing systems.json failed")
     return False
 
@@ -53,10 +57,8 @@ def importEDDB(db):
   # -- stations --
 
   print("improting eddb stations")
-  json_data=open("stations.json").read()
-  try:
-    stationsdata = json.loads(json_data)
-  except:
+  stationsdata = readJSON("stations.json")
+  if stationsdata is None:
     print("parsing stations.json failed")
     return False
 
@@ -109,9 +111,14 @@ def importEDDB(db):
 def addSystem(db):
   db.addSystem("foobar2")
 
+def fetchSystem(db):
+  systems = db.getSystemByName("sol")
+  systems[0].getStations()
+
 def main():
   with SQLiteDB("main.sqlite") as db:
-    importEDDB(db)
+    #importEDDB(db)
+    fetchSystem(db)
 
 
 

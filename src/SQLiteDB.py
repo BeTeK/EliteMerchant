@@ -2,6 +2,8 @@ import sqlite3
 import EliteDB
 import os.path
 import os
+import System
+import Base
 
 class SQLiteDB(EliteDB.EliteDB):
   
@@ -22,6 +24,7 @@ class SQLiteDB(EliteDB.EliteDB):
       os.remove(self.filename)
 
     self.conn = sqlite3.connect(self.filename)
+    self.conn.row_factory = sqlite3.Row
     if not exists or self.forceInit:
       self._createDB()
 
@@ -29,6 +32,37 @@ class SQLiteDB(EliteDB.EliteDB):
   def __exit__(self, type, value, traceback):
     if self.conn is not None:
       self.conn.close()
+
+  def getBasesOfSystem(self, id):
+    cur = self.conn.cursor()
+
+    cur.execute("SELECT bases.id, bases.name, bases.planetId, bases.distance, baseInfo.blackMarket, baseInfo.landingPadSize FROM bases, baseInfo WHERE bases.id = baseInfo.baseId AND bases.systemId = ?", (id, ))
+
+    print([self._dictToBase(self._rowToDict(i)) for i in cur.fetchall()])
+
+  def _dictToBase(self, info):
+    return Base.Base(self, info["id"], info["name"], info["blackMarket"], info["landingPadSize"], info["distance"])
+
+  def getSystemByName(self, name, limit = 20):
+    cur = self.conn.cursor()
+    cur.execute("SELECT id, name, x, y, z FROM systems WHERE systems.name LIKE ?", (name, ))
+
+    return [self._dictToSystem(self._rowToDict(i)) for i in cur.fetchmany(limit)]
+
+  def _dictToSystem(self, info):
+    if info["x"] is not None and info["y"] is not None and info["z"] is not None:
+      pos = (info["x"], info["y"], info["z"])
+    else:
+      pos = None
+
+    return System.System(self, info["id"], info["name"], pos)
+
+  def _rowToDict(self, row):
+    out = {}
+    for index, value in enumerate(row.keys()):
+      out[value] = row[index]
+
+    return out
 
   def addSystem(self, name, pos = None):
     cur = self.conn.cursor()
