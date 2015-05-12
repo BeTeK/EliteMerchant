@@ -5,7 +5,7 @@ from pprint import pprint # lets make debugging beautiful
 from PyQt5 import QtCore, QtGui, QtWidgets
 import ui.MainWindow
 
-def updatePrices(db):
+def loadEDDB(db, options):
   EDDB().update(db)
 
 def addSystem(db):
@@ -42,6 +42,8 @@ def main():
         options["eraseDb"] = True
       elif sys.argv[index] in ["--UI"]:
         options["operation"] = showUI
+      elif sys.argv[index] in ["--load-eddb"]:
+        options["operation"] = loadEDDB
         
       index += 1
   except Exception as ex:

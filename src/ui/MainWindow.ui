@@ -106,6 +106,15 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>currentSystemTxt</tabstop>
+  <tabstop>windowSizeTxt</tabstop>
+  <tabstop>maxDistanceTxt</tabstop>
+  <tabstop>minProfitTxt</tabstop>
+  <tabstop>searchBtn</tabstop>
+  <tabstop>SearchResultTable</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

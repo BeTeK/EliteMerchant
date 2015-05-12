@@ -49,6 +49,17 @@ class SQLiteDB(EliteDB.EliteDB):
 
     return [self._dictToSystem(self._rowToDict(i)) for i in cur.fetchmany(limit)]
 
+  def getSystemById(self, id):
+    cur = self.conn.cursor()
+    cur.execute("SELECT id, name, x, y, z FROM systems WHERE systems.id", (id, ))
+
+    result = cur.fetch()
+    if result is None:
+      return None
+    else:
+      return self._dictToSystem(self._rowToDict(result))
+    
+
   def _dictToSystem(self, info):
     if info["x"] is not None and info["y"] is not None and info["z"] is not None:
       pos = (info["x"], info["y"], info["z"])

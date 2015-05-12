@@ -75,6 +75,12 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.tabWidget, self.currentSystemTxt)
+        MainWindow.setTabOrder(self.currentSystemTxt, self.windowSizeTxt)
+        MainWindow.setTabOrder(self.windowSizeTxt, self.maxDistanceTxt)
+        MainWindow.setTabOrder(self.maxDistanceTxt, self.minProfitTxt)
+        MainWindow.setTabOrder(self.minProfitTxt, self.searchBtn)
+        MainWindow.setTabOrder(self.searchBtn, self.SearchResultTable)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
