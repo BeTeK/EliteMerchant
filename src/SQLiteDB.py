@@ -4,6 +4,7 @@ import os.path
 import os
 import System
 import Base
+import time
 
 class SQLiteDB(EliteDB.EliteDB):
   
@@ -24,6 +25,11 @@ class SQLiteDB(EliteDB.EliteDB):
       os.remove(self.filename)
 
     self.conn = sqlite3.connect(self.filename)
+
+    # database settings
+    cur=self.conn.cursor()
+    cur.execute("""PRAGMA cache_size = 1000000""")
+
     self.conn.row_factory = sqlite3.Row
     if not exists or self.forceInit:
       self._createDB()
@@ -203,11 +209,12 @@ class SQLiteDB(EliteDB.EliteDB):
     queryvals['x']=x
     queryvals['y']=y
     queryvals['z']=z
-    queryvals['window']=windowsize
-    queryvals['maxdistance']=maxdistance
-    queryvals['minprofit']=minprofit
+    queryvals['maxdistance']=maxdistance # min(maxdistance,100)
+    queryvals['window']=windowsize # max(queryvals['maxdistance']/2,windowsize)
+    queryvals['minprofit']=minprofit # max(1000,minprofit)
 
-    cur.execute("""
+    querystart=time.time()
+    result=cur.execute("""
     SELECT AbaseId, AsystemId, AexportPrice, AcommodityId AS commodityId, BbaseId, BsystemId, BimportPrice,
         BimportPrice-AexportPrice AS profit,
         (
@@ -274,6 +281,10 @@ class SQLiteDB(EliteDB.EliteDB):
         distanceSQ < :maxdistance*:maxdistance
     ORDER BY profit DESC
     --LIMIT 0,10
-    """,queryvals)
+    """,queryvals).fetchall()
 
-    return [self._rowToDict(o) for o in cur.fetchall()]
+    querytime=time.time()-querystart
+
+    print("queryProfitWindow, "+str(len(result))+" values, "+str(querytime)+" seconds")
+
+    return [self._rowToDict(o) for o in result]
