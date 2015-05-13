@@ -57,7 +57,7 @@ class SQLiteDB(EliteDB.EliteDB):
 
   def getSystemById(self, id):
     cur = self.conn.cursor()
-    cur.execute("SELECT id, name, x, y, z FROM systems WHERE systems.id", (id, ))
+    cur.execute("SELECT id, name, x, y, z FROM systems WHERE systems.id=?", (id, ))
 
     result = cur.fetch()
     if result is None:
@@ -164,7 +164,7 @@ class SQLiteDB(EliteDB.EliteDB):
 
   def importCommodities(self,commoditylist):
     cur = self.conn.cursor()
-    cur.executemany("INSERT OR IGNORE INTO commodities(name,average) VALUES(?,?)",commoditylist)
+    cur.executemany("INSERT OR IGNORE INTO commodities(name,average) VALUES(:name,:average)",commoditylist)
 
     self.conn.commit()
 
@@ -173,7 +173,7 @@ class SQLiteDB(EliteDB.EliteDB):
 
   def importSystems(self,systemlist):
     cur = self.conn.cursor()
-    cur.executemany("INSERT OR IGNORE INTO systems(name,x,y,z) VALUES(?,?,?,?)",systemlist)
+    cur.executemany("INSERT OR IGNORE INTO systems(name,x,y,z) VALUES(:name,:x,:y,:z)",systemlist)
 
     self.conn.commit()
 
@@ -182,7 +182,7 @@ class SQLiteDB(EliteDB.EliteDB):
 
   def importBases(self,baselist):
     cur = self.conn.cursor()
-    cur.executemany("INSERT OR IGNORE INTO bases(name,planetId,systemId,distance) VALUES(?,?,?,?)",baselist)
+    cur.executemany("INSERT OR IGNORE INTO bases(name,systemId,distance) VALUES(:name,:systemId,:distance)",baselist)
 
     self.conn.commit()
     cur.execute('SELECT id,name FROM bases')
@@ -190,14 +190,23 @@ class SQLiteDB(EliteDB.EliteDB):
 
   def importBaseInfos(self,baselist):
     cur = self.conn.cursor()
-    cur.executemany("INSERT OR IGNORE INTO baseInfo(baseId,blackMarket,landingPadSize) VALUES(?,?,?)",baselist)
+    cur.executemany("INSERT OR IGNORE INTO baseInfo(baseId,blackMarket,landingPadSize) VALUES(:id,:blackMarket,:landingPadSize)",baselist)
 
     self.conn.commit()
 
   def importCommodityPrices(self,marketlist):
     cur = self.conn.cursor()
-    cur.executemany("INSERT OR REPLACE INTO commodityPrices( commodityId, baseId, importPrice, exportPrice, lastUpdated, demand, supply ) VALUES(?,?,?,?,?,?,?)",marketlist)
-    # todo: timestamp comparison
+    # insert if new, skip if old
+    cur.executemany("INSERT OR IGNORE INTO commodityPrices( commodityId, baseId, importPrice, exportPrice, lastUpdated, demand, supply ) VALUES(:commodityId,:baseId,:importPrice,:exportPrice,:lastUpdated,:demand,:supply)",marketlist)
+
+    # reorder data for update call
+    #marketlist=[ [ importPrice, exportPrice, lastUpdated, demand, supply, baseId, commodityId, lastUpdated] for [commodityId, baseId, importPrice, exportPrice, lastUpdated, demand, supply] in marketlist ]
+    # update value if newer than db
+    cur.executemany("""
+    UPDATE commodityPrices
+    SET importPrice=:importPrice, exportPrice=exportPrice, lastUpdated=:lastUpdated, demand=:demand, supply=:supply
+    WHERE baseId=:baseId AND commodityId=:commodityId AND lastUpdated<:lastUpdated
+    """, marketlist)
 
     self.conn.commit()
 
