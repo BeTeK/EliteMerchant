@@ -5,6 +5,7 @@ from pprint import pprint # lets make debugging beautiful
 from PyQt5 import QtCore, QtGui, QtWidgets
 import ui.MainWindow
 import time
+import Options
 
 def loadEDDB(db, options):
   EDDB().update(db)
@@ -55,9 +56,9 @@ def main():
       index += 1
   except Exception as ex:
     pprint("Not known param")
-
-  with SQLiteDB(options["dbPath"], options["eraseDb"]) as db:
-    options["operation"](db, options)
+  if options["operation"] is not None:
+    with SQLiteDB(options["dbPath"], options["eraseDb"]) as db:
+      options["operation"](db, options)
 
 if __name__ == "__main__":
   main()

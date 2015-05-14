@@ -103,8 +103,26 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="editMenu">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="optionsMenu"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="editMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="optionsMenu">
+   <property name="text">
+    <string>Options</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>tabWidget</tabstop>

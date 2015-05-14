@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'src\ui\MainWindow.ui'
+# Form implementation generated from reading ui file 'src/ui/MainWindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.4.1
 #
@@ -67,10 +67,19 @@ class Ui_MainWindow(object):
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1075, 21))
         self.menubar.setObjectName("menubar")
+        self.menuFile = QtWidgets.QMenu(self.menubar)
+        self.menuFile.setObjectName("menuFile")
+        self.editMenu = QtWidgets.QMenu(self.menubar)
+        self.editMenu.setObjectName("editMenu")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
+        self.optionsMenu = QtWidgets.QAction(MainWindow)
+        self.optionsMenu.setObjectName("optionsMenu")
+        self.editMenu.addAction(self.optionsMenu)
+        self.menubar.addAction(self.menuFile.menuAction())
+        self.menubar.addAction(self.editMenu.menuAction())
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
@@ -92,4 +101,7 @@ class Ui_MainWindow(object):
         self.searchBtn.setText(_translate("MainWindow", "Search"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Tab 1"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Tab 2"))
+        self.menuFile.setTitle(_translate("MainWindow", "File"))
+        self.editMenu.setTitle(_translate("MainWindow", "Edit"))
+        self.optionsMenu.setText(_translate("MainWindow", "Options"))
 

@@ -2,6 +2,7 @@
 import ui.MainWindowUI
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QVariant
+import Options
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def __init__(self, db):
@@ -13,7 +14,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.db = db
     self.model = MainWindow.TableModel(None, self)
     self.SearchResultTable.setModel(self.model)
-
+    self._readSettings()
+    
   def searchBtnPressed(self):
     currentSystem = self.currentSystemTxt.text()
     windowSize = float(self.windowSizeTxt.text())
@@ -30,6 +32,14 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.result = self.db.queryProfitWindow(pos[0], pos[1], pos[2], windowSize, maxDistance, minProfit)
     self.model.refeshData()
 
+  def _readSettings(self):
+    self.restoreGeometry(Options.get("MainWindow-geometry", QtCore.QByteArray()))
+    self.restoreState(Options.get("MainWindow-state", QtCore.QByteArray()))
+
+  def closeEvent(self, event):
+    Options.set("MainWindow-geometry", self.saveGeometry())
+    Options.set("MainWindow-state", self.saveState())
+    
   class TableModel(QtCore.QAbstractTableModel):
     def __init__(self, parent, mw):
       super().__init__(parent)
