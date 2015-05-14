@@ -17,14 +17,13 @@ def fetchSystem(db):
   systems = db.getSystemByName("sol")
   systems[0].getStations()
 
-def testfunction():
-  with SQLiteDB("main.sqlite") as db:
+def testfunction(db,options):
     #updatePrices(db)
-    querystart=time.time()
+    #querystart=time.time()
     queryresult=db.queryProfitWindow(0,0,0,30,30,1600)
-    querytime=time.time()-querystart
+    #querytime=time.time()-querystart
     #pprint(queryresult)
-    pprint(str(len(queryresult))+" values time="+str(querytime))
+    #pprint(str(len(queryresult))+" values time="+str(querytime))
     #fetchSystem(db)
 
 def showUI(db, options):
@@ -51,7 +50,7 @@ def main():
       elif sys.argv[index] in ["--load-eddb"]:
         options["operation"] = loadEDDB
       elif sys.argv[index] in ["--testfunction"]: # devhax
-        return testfunction()
+        options["operation"] = testfunction
         
       index += 1
   except Exception as ex:
