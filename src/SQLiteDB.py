@@ -5,6 +5,9 @@ import os
 import System
 import Base
 import time
+import datetime
+import CommonityPrice
+import Commonity
 
 class SQLiteDB(EliteDB.EliteDB):
   
@@ -12,7 +15,7 @@ class SQLiteDB(EliteDB.EliteDB):
     super().__init__()
     self.filename = filename
     self.forceInit = forceInit
-
+    self.commonityCache = {}
   
 
   def __enter__(self):
@@ -44,7 +47,7 @@ class SQLiteDB(EliteDB.EliteDB):
 
     cur.execute("SELECT bases.id, bases.name, bases.planetId, bases.distance, baseInfo.blackMarket, baseInfo.landingPadSize FROM bases, baseInfo WHERE bases.id = baseInfo.baseId AND bases.systemId = ?", (id, ))
 
-    print([self._dictToBase(self._rowToDict(i)) for i in cur.fetchall()])
+    return [self._dictToBase(self._rowToDict(i)) for i in cur.fetchall()]
 
   def _dictToBase(self, info):
     return Base.Base(self, info["id"], info["name"], info["blackMarket"], info["landingPadSize"], info["distance"])
@@ -64,8 +67,34 @@ class SQLiteDB(EliteDB.EliteDB):
       return None
     else:
       return self._dictToSystem(self._rowToDict(result))
-    
 
+  def getCommonity(self, id):
+    if id not in self.commonityCache:
+      cur = self.conn.cursor()
+
+      cur.execute("SELECT id, name, average FROM commodities WHERE commodities.id = ?", (id, ))
+      rows = cur.fetchall()
+      if len(rows) != 1:
+        return None
+      
+      data = self._rowToDict(rows[0])
+
+      self.commonityCache[id] = self._dictToCommonity(data)
+
+    return self.commonityCache[id]
+  
+  def _dictToCommonity(self, data):
+    return Commonity.Commonity(self, data["id"], data["name"], data["average"])
+
+  def getPricesOfCommonitiesInBase(self, baseId):
+    cur = self.conn.cursor()
+    cur.execute("SELECT id, baseId, supply, commodityId, demand, importPrice, exportPrice, lastUpdated FROM commodityPrices WHERE commodityPrices.baseId = ?", (baseId, ))
+
+    return [self._dictToPriceData(self._rowToDict(i)) for i in cur.fetchall()]
+
+  def _dictToPriceData(self, data):
+    return CommonityPrice.CommonityPrice(self, data["id"], data["commodityId"], data["importPrice"], data["exportPrice"], data["demand"], datetime.date.fromtimestamp(data['lastUpdated']))
+  
   def _dictToSystem(self, info):
     if info["x"] is not None and info["y"] is not None and info["z"] is not None:
       pos = (info["x"], info["y"], info["z"])

@@ -17,6 +17,15 @@ def fetchSystem(db):
   systems = db.getSystemByName("sol")
   systems[0].getStations()
 
+def testfn(db, options):
+  systems = db.getSystemByName("sol")
+  stations = systems[0].getStations()
+  abe = stations[0]
+  price = abe.getPrices()[0]
+  
+  print(price)
+  
+
 def testfunction(db,options):
     #updatePrices(db)
     #querystart=time.time()
@@ -51,6 +60,8 @@ def main():
         options["operation"] = loadEDDB
       elif sys.argv[index] in ["--testfunction"]: # devhax
         options["operation"] = testfunction
+      elif sys.argv[index] in ["--test"]: # devhax
+        options["operation"] = testfn
         
       index += 1
   except Exception as ex:

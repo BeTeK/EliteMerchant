@@ -17,7 +17,7 @@ class System:
     return self.id
 
   def getStations(self):
-    self.conn.getBasesOfSystem(self.id)
+    return self.conn.getBasesOfSystem(self.id)
 
   def __str__(self):
     return self.__repr__()
