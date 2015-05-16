@@ -52,6 +52,19 @@ class SQLiteDB(EliteDB.EliteDB):
   def _dictToBase(self, info):
     return Base.Base(self, info["id"], info["name"], info["blackMarket"], info["landingPadSize"], info["distance"])
 
+  def getSystemByWindow(self, pos, windowSize):
+    cur = self.conn.cursor()
+    params = {"x" : pos[0],
+              "y" : pos[1],
+              "z" : pos[2],
+              "window" : windowSize}
+
+    cur.execute("""SELECT id, name, x, y, z  FROM systems WHERE :x - :window < systems.x AND systems.x <= :x + :window AND
+                                                                :y - :window < systems.Y AND systems.Y <= :y + :window AND
+                                                                :z - :window < systems.Z AND systems.Z <= :z + :window""", params)
+
+    return [self._dictToSystem(self._rowToDict(i)) for i in cur.fetchall()]
+
   def getSystemByName(self, name, limit = 20):
     cur = self.conn.cursor()
     cur.execute("SELECT id, name, x, y, z FROM systems WHERE systems.name LIKE ?", (name, ))

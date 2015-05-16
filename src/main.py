@@ -18,12 +18,8 @@ def fetchSystem(db):
   systems[0].getStations()
 
 def testfn(db, options):
-  systems = db.getSystemByName("sol")
-  stations = systems[0].getStations()
-  abe = stations[0]
-  price = abe.getPrices()[0]
-  
-  print(price)
+  systems = db.getSystemByWindow((0, 0, 0), 10)
+  print(systems)
   
 
 def testfunction(db,options):
