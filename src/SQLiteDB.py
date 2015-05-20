@@ -259,7 +259,7 @@ class SQLiteDB(EliteDB.EliteDB):
     queryvals['y']=y
     queryvals['z']=z
     queryvals['maxdistance']=maxdistance # min(maxdistance,100)
-    queryvals['window']=windowsize # max(queryvals['maxdistance']/2,windowsize)
+    queryvals['window']=windowsize/2 # max(queryvals['maxdistance']/2,windowsize)
     queryvals['minprofit']=minprofit # max(1000,minprofit)
     queryvals['landingPadSize']=landingPadSize
 
@@ -299,8 +299,10 @@ class SQLiteDB(EliteDB.EliteDB):
         A.commodityname AS commodityname,
         A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.commodityId AS AcommodityId,
         A.exportPrice AS AexportPrice, A.supply AS Asupply,
+          A.x AS Ax, A.y AS Ay, A.z AS Az,
         B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.commodityId AS BcommodityId,
-        B.importPrice AS BimportPrice, B.demand AS Bdemand
+        B.importPrice AS BimportPrice, B.demand AS Bdemand,
+          B.x AS Bx, B.y AS By, B.z AS Bz
       FROM
         systemwindow AS A,
         systemwindow AS B
@@ -349,8 +351,10 @@ class SQLiteDB(EliteDB.EliteDB):
           A.commodityname AS commodityname,
           A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.commodityId AS AcommodityId,
           A.exportPrice AS AexportPrice, A.supply AS Asupply,
+          A.x AS Ax, A.y AS Ay, A.z AS Az,
           B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.commodityId AS BcommodityId,
-          B.importPrice AS BimportPrice, B.demand AS Bdemand
+          B.importPrice AS BimportPrice, B.demand AS Bdemand,
+          B.x AS Bx, B.y AS By, B.z AS Bz
         FROM
           systemwindow AS A,
           systemwindow AS B
