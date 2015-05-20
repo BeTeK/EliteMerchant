@@ -65,6 +65,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       if not index.isValid():
         return None
 
+      # roles:  http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
+
       if role == QtCore.Qt.BackgroundRole:
         section=index.column()
         if section in [1, 2, 6, 7]:
@@ -75,14 +77,66 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           return QtGui.QBrush(QtGui.QColor(255,230,255))
 
 
-      if role != QtCore.Qt.DisplayRole:
-        return None
 
 
       if index.row() >= len(self.mw.result):
         return None
 
       data = self.mw.result[index.row()]
+
+      if role == QtCore.Qt.ToolTipRole:
+        section=index.column()
+        if section == 0:
+          if self.mw.currentSystem is None:
+            return
+          else:
+            curname=self.mw.currentSystem.getName()
+            pos=self.mw.currentSystem.getPosition()
+            dist=( (pos[0]-data["Ax"])**2 + (pos[1]-data["Ay"])**2 + (pos[2]-data["Az"])**2 ) ** 0.5
+            return "Distance from "+curname+" (current system)\nto "+data["Asystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly"
+        elif section in [1,2]:
+          padsize={
+            None:"unknown",
+            0:'S',
+            1:'M',
+            2:'L'
+          }
+          returnstring=""
+          returnstring+="System: "+data["Asystemname"]+"\n"
+          returnstring+="Coordinates: "+str(data["Ax"])+", "+str(data["Ay"])+", "+str(data["Az"])+"\n"
+          returnstring+="Station: "+data["Abasename"]+"\n"
+          returnstring+="Distance to star: "+str(data["Adistance"])+"\n"
+          returnstring+="Landing pad size: "+padsize[data["AlandingPadSize"]]
+          return returnstring
+        elif section == 3:
+          return "Export sales price: "+str(data["AexportPrice"])+"\nSupply: "+str(data["Asupply"])
+        elif section == 4:
+          return "Commodity "+data["commodityname"]+ "\nGalactic average price: "+str(data["average"])
+        elif section == 5:
+          return "Import buy price: "+str(data["BimportPrice"])+"\nDemand: "+str(data["Bdemand"])
+        elif section in [6,7]:
+          padsize={
+            None:"unknown",
+            0:'S',
+            1:'M',
+            2:'L'
+          }
+          returnstring=""
+          returnstring+="System: "+data["Bsystemname"]+"\n"
+          returnstring+="Coordinates: "+str(data["Bx"])+", "+str(data["By"])+", "+str(data["Bz"])+"\n"
+          returnstring+="Station: "+data["Bbasename"]+"\n"
+          returnstring+="Distance to star: "+str(data["Bdistance"])+"\n"
+          returnstring+="Landing pad size: "+padsize[data["BlandingPadSize"]]
+          return returnstring
+        elif section == 8:
+          return "Travel distance "+str(data["DistanceSq"]**0.5)+"ly + "+str(data["Bdistance"])+"ls from star to station"
+        elif section == 9:
+          return "Buy for "+str(data["AexportPrice"])+"\nSell for "+str(data["BimportPrice"])+"\nProfit:  "+str(data["profit"])
+        else:
+          return None
+
+      if role != QtCore.Qt.DisplayRole:
+        return None
 
       # copypasteable column defs
       section=index.column()

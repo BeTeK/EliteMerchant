@@ -263,10 +263,15 @@ class SQLiteDB(EliteDB.EliteDB):
     queryvals['minprofit']=minprofit # max(1000,minprofit)
     queryvals['landingPadSize']=landingPadSize
 
+    # TODO: distance from star limit
+
     # full querystring
     querystring="""
     WITH systemwindow AS (
-      SELECT systems.name AS systemname, bases.name AS basename, commodityPrices.baseId AS baseId, systemId, commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, x, y, z FROM
+      SELECT
+        systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
+        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average
+      FROM
         commodities,
         commodityPrices,
         bases,
@@ -297,12 +302,13 @@ class SQLiteDB(EliteDB.EliteDB):
             (A.z - B.z)*(A.z - B.z)
         ) AS DistanceSq,
         A.commodityname AS commodityname,
-        A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.commodityId AS AcommodityId,
-        A.exportPrice AS AexportPrice, A.supply AS Asupply,
-          A.x AS Ax, A.y AS Ay, A.z AS Az,
-        B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.commodityId AS BcommodityId,
-        B.importPrice AS BimportPrice, B.demand AS Bdemand,
-          B.x AS Bx, B.y AS By, B.z AS Bz
+        A.average AS average,
+        A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
+        A.commodityId AS AcommodityId, A.exportPrice AS AexportPrice, A.supply AS Asupply,
+        A.x AS Ax, A.y AS Ay, A.z AS Az,
+        B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
+        B.commodityId AS BcommodityId, B.importPrice AS BimportPrice, B.demand AS Bdemand,
+        B.x AS Bx, B.y AS By, B.z AS Bz
       FROM
         systemwindow AS A,
         systemwindow AS B
@@ -323,10 +329,14 @@ class SQLiteDB(EliteDB.EliteDB):
     if not landingPadSize>0: # query without landingpads
       querystring="""
       WITH systemwindow AS (
-        SELECT systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, x, y, z FROM
+        SELECT
+          systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
+          commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average
+        FROM
           commodities,
           commodityPrices,
           bases,
+          baseInfo,
           systems
         WHERE
           average>:minprofit*6
@@ -338,6 +348,8 @@ class SQLiteDB(EliteDB.EliteDB):
           bases.systemId=systems.id
           AND
           :x-:window<x AND x<:x+:window AND :y-:window<y AND y<:y+:window AND :z-:window<z AND z<:z+:window
+          AND
+          baseInfo.baseId=bases.id
       )
       SELECT
           B.importPrice-A.exportPrice AS profit,
@@ -349,11 +361,12 @@ class SQLiteDB(EliteDB.EliteDB):
               (A.z - B.z)*(A.z - B.z)
           ) AS DistanceSq,
           A.commodityname AS commodityname,
-          A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.commodityId AS AcommodityId,
-          A.exportPrice AS AexportPrice, A.supply AS Asupply,
+          A.average AS average,
+          A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
+          A.commodityId AS AcommodityId, A.exportPrice AS AexportPrice, A.supply AS Asupply,
           A.x AS Ax, A.y AS Ay, A.z AS Az,
-          B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.commodityId AS BcommodityId,
-          B.importPrice AS BimportPrice, B.demand AS Bdemand,
+          B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
+          B.commodityId AS BcommodityId, B.importPrice AS BimportPrice, B.demand AS Bdemand,
           B.x AS Bx, B.y AS By, B.z AS Bz
         FROM
           systemwindow AS A,
