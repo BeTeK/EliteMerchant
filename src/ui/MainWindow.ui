@@ -22,30 +22,73 @@
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string>Tab 1</string>
+        <string>2 System Window</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <layout class="QGridLayout" name="gridLayout">
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_2">
+            <item row="3" column="5">
+             <widget class="QCheckBox" name="twoWayBool">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="text">
-               <string>Window size</string>
+               <string>Two-way</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
-             <widget class="QLineEdit" name="windowSizeTxt"/>
+            <item row="1" column="5">
+             <widget class="QComboBox" name="minPadSize">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <item>
+               <property name="text">
+                <string>any</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>M</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>L</string>
+               </property>
+              </item>
+             </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="currentSystemTxt"/>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_4">
+            <item row="3" column="3">
+             <widget class="QLineEdit" name="minProfitTxt">
               <property name="text">
-               <string>Min profit</string>
+               <string>1600</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="4">
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Min pad size</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="maxDistanceTxt">
+              <property name="text">
+               <string>30</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Max distance</string>
               </property>
              </widget>
             </item>
@@ -56,16 +99,31 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
-             <widget class="QLineEdit" name="maxDistanceTxt"/>
-            </item>
-            <item row="4" column="1">
-             <widget class="QLineEdit" name="minProfitTxt"/>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_3">
+            <item row="3" column="2">
+             <widget class="QLabel" name="label_4">
               <property name="text">
-               <string>Max distance</string>
+               <string>Min profit</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="currentSystemTxt">
+              <property name="text">
+               <string>Sol</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Window size</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="3">
+             <widget class="QLineEdit" name="windowSizeTxt">
+              <property name="text">
+               <string>60</string>
               </property>
              </widget>
             </item>
@@ -76,10 +134,59 @@
             <property name="text">
              <string>Search</string>
             </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+            <property name="default">
+             <bool>false</bool>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QTableView" name="SearchResultTable"/>
+           <widget class="QTableView" name="SearchResultTable">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTipDuration">
+             <number>1</number>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
+            <property name="sortingEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="cornerButtonEnabled">
+             <bool>false</bool>
+            </property>
+            <attribute name="horizontalHeaderCascadingSectionResizes">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="horizontalHeaderHighlightSections">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="horizontalHeaderMinimumSectionSize">
+             <number>10</number>
+            </attribute>
+            <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="verticalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="verticalHeaderCascadingSectionResizes">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="verticalHeaderHighlightSections">
+             <bool>false</bool>
+            </attribute>
+           </widget>
           </item>
          </layout>
         </item>
@@ -127,9 +234,7 @@
  <tabstops>
   <tabstop>tabWidget</tabstop>
   <tabstop>currentSystemTxt</tabstop>
-  <tabstop>windowSizeTxt</tabstop>
   <tabstop>maxDistanceTxt</tabstop>
-  <tabstop>minProfitTxt</tabstop>
   <tabstop>searchBtn</tabstop>
   <tabstop>SearchResultTable</tabstop>
  </tabstops>
