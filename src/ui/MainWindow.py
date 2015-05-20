@@ -53,40 +53,48 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     def __init__(self, parent, mw):
       super().__init__(parent)
       self.mw = mw
+      self.columnorder=[
+        "_curdist",
+        "Asystemname",
+        "Abasename",
+        "AexportPrice",
+        "commodityname",
+        "BimportPrice",
+        "Bsystemname",
+        "Bbasename",
+        "DistanceSq",
+        "profit"
+      ]
+
 
     def rowCount(self, parent):
       rows = len(self.mw.result)
       return rows
 
     def columnCount(self, parent):
-      return 10
+      return len(self.columnorder)
+
 
     def data(self, index, role):
       if not index.isValid():
         return None
+      if index.row() >= len(self.mw.result):
+        return None
+      data = self.mw.result[index.row()]
+      section=index.column()
 
       # roles:  http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
 
-      if role == QtCore.Qt.BackgroundRole:
-        section=index.column()
-        if section in [1, 2, 6, 7]:
+      if role == QtCore.Qt.BackgroundRole: # background colors
+        if self.columnorder[section] in ["Asystemname","Abasename","Bsystemname","Bbasename"]:
           return QtGui.QBrush(QtGui.QColor(255,255,230))
-        if section in [9]:
+        if self.columnorder[section] in ["commodityname"]:
           return QtGui.QBrush(QtGui.QColor(230,255,255))
-        if section in [4]:
+        if self.columnorder[section] in ["profit"]:
           return QtGui.QBrush(QtGui.QColor(255,230,255))
 
-
-
-
-      if index.row() >= len(self.mw.result):
-        return None
-
-      data = self.mw.result[index.row()]
-
-      if role == QtCore.Qt.ToolTipRole:
-        section=index.column()
-        if section == 0:
+      if role == QtCore.Qt.ToolTipRole: # tooltips
+        if self.columnorder[section] == "_curdist":
           if self.mw.currentSystem is None:
             return
           else:
@@ -94,7 +102,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
             pos=self.mw.currentSystem.getPosition()
             dist=( (pos[0]-data["Ax"])**2 + (pos[1]-data["Ay"])**2 + (pos[2]-data["Az"])**2 ) ** 0.5
             return "Distance from "+curname+" (current system)\nto "+data["Asystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly"
-        elif section in [1,2]:
+        elif self.columnorder[section] in ["Asystemname","Abasename"]:
           padsize={
             None:"unknown",
             0:'S',
@@ -105,16 +113,16 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           returnstring+="System: "+data["Asystemname"]+"\n"
           returnstring+="Coordinates: "+str(data["Ax"])+", "+str(data["Ay"])+", "+str(data["Az"])+"\n"
           returnstring+="Station: "+data["Abasename"]+"\n"
-          returnstring+="Distance to star: "+str(data["Adistance"])+"\n"
+          returnstring+="Distance to star: "+str(data["Adistance"] is not None and data["Adistance"] or "unknown")+"\n"
           returnstring+="Landing pad size: "+padsize[data["AlandingPadSize"]]
           return returnstring
-        elif section == 3:
+        elif self.columnorder[section] == "AexportPrice":
           return "Export sales price: "+str(data["AexportPrice"])+"\nSupply: "+str(data["Asupply"])
-        elif section == 4:
+        elif self.columnorder[section] == "commodityname":
           return "Commodity "+data["commodityname"]+ "\nGalactic average price: "+str(data["average"])
-        elif section == 5:
+        elif self.columnorder[section] == "BimportPrice":
           return "Import buy price: "+str(data["BimportPrice"])+"\nDemand: "+str(data["Bdemand"])
-        elif section in [6,7]:
+        elif self.columnorder[section] in ["Bsystemname","Bbasename"]:
           padsize={
             None:"unknown",
             0:'S',
@@ -125,89 +133,74 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           returnstring+="System: "+data["Bsystemname"]+"\n"
           returnstring+="Coordinates: "+str(data["Bx"])+", "+str(data["By"])+", "+str(data["Bz"])+"\n"
           returnstring+="Station: "+data["Bbasename"]+"\n"
-          returnstring+="Distance to star: "+str(data["Bdistance"])+"\n"
+          returnstring+="Distance to star: "+str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"\n"
           returnstring+="Landing pad size: "+padsize[data["BlandingPadSize"]]
           return returnstring
-        elif section == 8:
-          return "Travel distance "+str(data["DistanceSq"]**0.5)+"ly + "+str(data["Bdistance"])+"ls from star to station"
-        elif section == 9:
+        elif self.columnorder[section] == "DistanceSq":
+          return "Travel distance "+str(data["DistanceSq"]**0.5)+"ly + "+str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"ls from star to station"
+        elif self.columnorder[section] == "profit":
           return "Buy for "+str(data["AexportPrice"])+"\nSell for "+str(data["BimportPrice"])+"\nProfit:  "+str(data["profit"])
         else:
           return None
 
-      if role != QtCore.Qt.DisplayRole:
-        return None
+      if role == QtCore.Qt.DisplayRole: # visible text data
+        if section >=len(self.columnorder):
+            return None
 
-      # copypasteable column defs
-      section=index.column()
-      if section == 0:
-        if self.mw.currentSystem is None:
-          return '?'
+        if self.columnorder[section] == "_curdist":
+          if self.mw.currentSystem is None:
+            return '?'
+          else:
+            pos=self.mw.currentSystem.getPosition()
+            dist=( (pos[0]-data["Ax"])**2 + (pos[1]-data["Ay"])**2 + (pos[2]-data["Az"])**2 ) ** 0.5
+            return "%.2f" % dist # two decimals
+        elif self.columnorder[section] == "DistanceSq":
+          return data["DistanceSq"] ** 0.5
         else:
-          pos=self.mw.currentSystem.getPosition()
-          dist=( (pos[0]-data["Ax"])**2 + (pos[1]-data["Ay"])**2 + (pos[2]-data["Az"])**2 ) ** 0.5
-          return "%.2f" % dist # two decimals
-      elif section == 1:
-        field="Asystemname"
-      elif section == 2:
-        field="Abasename"
-      elif section == 3:
-        field="AexportPrice"
-      elif section == 4:
-        field="commodityname"
-      elif section == 5:
-        field="BimportPrice"
-      elif section == 6:
-        field="Bsystemname"
-      elif section == 7:
-        field="Bbasename"
-      elif section == 8:
-        return data["DistanceSq"] ** 0.5
-      elif section == 9:
-        field="profit"
-      else:
-        return None
+          return data[self.columnorder[section]]
 
-      return data[field]
+      return None # default when nothing matches
+
+
 
     def headerData(self, section, orientation, role):
-      if role != QtCore.Qt.DisplayRole:
-        return None
-      
-      if orientation != QtCore.Qt.Horizontal:
-        return None
-      
-      # copypasteable column defs
-      if section == 0:
-        #field="Curr.Dist."
-        if self.mw.currentSystem is None:
-          sysname = 'here'
+      if role == QtCore.Qt.DisplayRole: # visible text data
+
+        if orientation != QtCore.Qt.Horizontal:
+          return None
+
+        if self.columnorder[section] == "_curdist":
+          #field="Curr.Dist."
+          if self.mw.currentSystem is None:
+            sysname = 'here'
+          else:
+            sysname = self.mw.currentSystem.getName()
+          field="Dist.from "+sysname
+        elif self.columnorder[section] == "Asystemname":
+          field="From System"
+        elif self.columnorder[section] == "Abasename":
+          field="From Station"
+        elif self.columnorder[section] == "AexportPrice":
+          field="Export Cr"
+        elif self.columnorder[section] == "commodityname":
+          field="Commodity"
+        elif self.columnorder[section] == "BimportPrice":
+          field="Import Cr"
+        elif self.columnorder[section] == "Bsystemname":
+          field="To System"
+        elif self.columnorder[section] == "Bbasename":
+          field="To Station"
+        elif self.columnorder[section] == "DistanceSq":
+          field="Distance"
+        elif self.columnorder[section] == "profit":
+          field="Profit Cr"
         else:
-          sysname = self.mw.currentSystem.getName()
-        field="Dist.from "+sysname
+          return None
 
-      elif section == 1:
-        field="From System"
-      elif section == 2:
-        field="From Station"
-      elif section == 3:
-        field="Export Cr"
-      elif section == 4:
-        field="Commodity"
-      elif section == 5:
-        field="Import Cr"
-      elif section == 6:
-        field="To System"
-      elif section == 7:
-        field="To Station"
-      elif section == 8:
-        field="Distance"
-      elif section == 9:
-        field="Profit Cr"
-      else:
-        return None
+        return field
 
-      return field
+      return None # default when nothing matches
+
 
     def refeshData(self):
       self.beginResetModel()
