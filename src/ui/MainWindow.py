@@ -11,6 +11,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.retranslateUi(self)
     self.result = []
     self.currentSystem = None
+    self.twowaySearch = False
     self.searchBtn.clicked.connect(self.searchBtnPressed)
     self.db = db
     self.model = MainWindow.TableModel(None, self)
@@ -23,21 +24,28 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
     currentSystem = self.currentSystemTxt.text()
     windowSize = float(self.windowSizeTxt.text())
+    windows = int(self.windowCountTxt.text())
     maxDistance = float(self.maxDistanceTxt.text())
     minProfit = int(self.minProfitTxt.text())
     minPadSize = int(self.minPadSize.currentIndex())
-    #twoway = bool(self.twoWayBool.????)
-    systems = self.db.getSystemByName(currentSystem)
+    twoway = bool(self.twoWayBool.isChecked())
 
+    systems = self.db.getSystemByName(currentSystem)
     if len(systems) == 0:
       return
-
     system = systems[0]
     pos = system.getPosition()
 
     self.currentSystem=system
-    self.result = self.db.queryProfitWindow(pos[0], pos[1], pos[2], windowSize, maxDistance, minProfit,minPadSize)
+    self.twowaySearch=twoway
+
+    print("Querying database...")
+    if twoway:
+      self.result = self.db.queryProfitRoundtrip(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
+    else:
+      self.result = self.db.queryProfit(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
     self.model.refeshData()
+    print("Done!")
 
     #self.searchBtn.setText('Search')
 
@@ -65,6 +73,20 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
         "DistanceSq",
         "profit"
       ]
+      self.columnorderTwoway=[
+        "_curdist",
+        "Asystemname",
+        "Abasename",
+        "commodityname",
+        "profit",
+        "_Bcurdist",
+        "Bsystemname",
+        "Bbasename",
+        "Ccommodityname",
+        "Cprofit",
+        "DistanceSq",
+        "totalprofit"
+      ]
 
 
     def rowCount(self, parent):
@@ -72,7 +94,11 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       return rows
 
     def columnCount(self, parent):
-      return len(self.columnorder)
+      if self.mw.twowaySearch:
+        columns=len(self.columnorderTwoway)
+      else:
+        columns=len(self.columnorder)
+      return columns
 
 
     def data(self, index, role):
@@ -83,18 +109,26 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       data = self.mw.result[index.row()]
       section=index.column()
 
+      if self.mw.twowaySearch:
+        columnorder=self.columnorderTwoway
+      else:
+        columnorder=self.columnorder
+
+      if section >= len(columnorder):
+        return None
+
       # roles:  http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
 
       if role == QtCore.Qt.BackgroundRole: # background colors
-        if self.columnorder[section] in ["Asystemname","Abasename","Bsystemname","Bbasename"]:
+        if columnorder[section] in ["Asystemname","Abasename","Bsystemname","Bbasename"]:
           return QtGui.QBrush(QtGui.QColor(255,255,230))
-        if self.columnorder[section] in ["commodityname"]:
+        if columnorder[section] in ["commodityname","Ccommodityname"]:
           return QtGui.QBrush(QtGui.QColor(230,255,255))
-        if self.columnorder[section] in ["profit"]:
+        if columnorder[section] in ["profit","Cprofit","totalprofit"]:
           return QtGui.QBrush(QtGui.QColor(255,230,255))
 
       if role == QtCore.Qt.ToolTipRole: # tooltips
-        if self.columnorder[section] == "_curdist":
+        if columnorder[section] == "_curdist":
           if self.mw.currentSystem is None:
             return
           else:
@@ -102,7 +136,15 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
             pos=self.mw.currentSystem.getPosition()
             dist=( (pos[0]-data["Ax"])**2 + (pos[1]-data["Ay"])**2 + (pos[2]-data["Az"])**2 ) ** 0.5
             return "Distance from "+curname+" (current system)\nto "+data["Asystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly"
-        elif self.columnorder[section] in ["Asystemname","Abasename"]:
+        elif columnorder[section] == "_Bcurdist":
+          if self.mw.currentSystem is None:
+            return
+          else:
+            curname=self.mw.currentSystem.getName()
+            pos=self.mw.currentSystem.getPosition()
+            dist=( (pos[0]-data["Bx"])**2 + (pos[1]-data["By"])**2 + (pos[2]-data["Bz"])**2 ) ** 0.5
+            return "Distance from "+curname+" (current system)\nto "+data["Bsystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly"
+        elif columnorder[section] in ["Asystemname","Abasename"]:
           padsize={
             None:"unknown",
             0:'S',
@@ -116,13 +158,19 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           returnstring+="Distance to star: "+str(data["Adistance"] is not None and data["Adistance"] or "unknown")+"\n"
           returnstring+="Landing pad size: "+padsize[data["AlandingPadSize"]]
           return returnstring
-        elif self.columnorder[section] == "AexportPrice":
+        elif columnorder[section] == "AexportPrice":
           return "Export sales price: "+str(data["AexportPrice"])+"\nSupply: "+str(data["Asupply"])
-        elif self.columnorder[section] == "commodityname":
-          return "Commodity "+data["commodityname"]+ "\nGalactic average price: "+str(data["average"])
-        elif self.columnorder[section] == "BimportPrice":
+        elif columnorder[section] == "BexportPrice":
+          return "Export sales price: "+str(data["BexportPrice"])+"\nSupply: "+str(data["Bsupply"])
+        elif columnorder[section] == "commodityname":
+          return "Commodity "+data["commodityname"]+ "\nBuy for "+str(data["AexportPrice"])+"\nSell for "+str(data["BimportPrice"])+"\nProfit:  "+str(data["profit"])+"\nGalactic average price: "+str(data["average"])
+        elif columnorder[section] == "Ccommodityname":
+          return "Commodity "+data["Ccommodityname"]+ "\nBuy for "+str(data["BexportPrice"])+"\nSell for "+str(data["CimportPrice"])+"\nProfit:  "+str(data["Cprofit"])+"\nGalactic average price: "+str(data["Caverage"])
+        elif columnorder[section] == "BimportPrice":
           return "Import buy price: "+str(data["BimportPrice"])+"\nDemand: "+str(data["Bdemand"])
-        elif self.columnorder[section] in ["Bsystemname","Bbasename"]:
+        elif columnorder[section] == "CimportPrice":
+          return "Import buy price: "+str(data["CimportPrice"])+"\nDemand: "+str(data["Cdemand"])
+        elif columnorder[section] in ["Bsystemname","Bbasename"]:
           padsize={
             None:"unknown",
             0:'S',
@@ -136,28 +184,37 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           returnstring+="Distance to star: "+str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"\n"
           returnstring+="Landing pad size: "+padsize[data["BlandingPadSize"]]
           return returnstring
-        elif self.columnorder[section] == "DistanceSq":
+        elif columnorder[section] == "DistanceSq":
           return "Travel distance "+str(data["DistanceSq"]**0.5)+"ly + "+str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"ls from star to station"
-        elif self.columnorder[section] == "profit":
+        elif columnorder[section] == "profit":
           return "Buy for "+str(data["AexportPrice"])+"\nSell for "+str(data["BimportPrice"])+"\nProfit:  "+str(data["profit"])
+        elif columnorder[section] == "Cprofit":
+          return "Buy for "+str(data["BexportPrice"])+"\nSell for "+str(data["CimportPrice"])+"\nProfit:  "+str(data["Cprofit"])
         else:
           return None
 
       if role == QtCore.Qt.DisplayRole: # visible text data
-        if section >=len(self.columnorder):
+        if section >=len(columnorder):
             return None
 
-        if self.columnorder[section] == "_curdist":
+        if columnorder[section] == "_curdist":
           if self.mw.currentSystem is None:
             return '?'
           else:
             pos=self.mw.currentSystem.getPosition()
             dist=( (pos[0]-data["Ax"])**2 + (pos[1]-data["Ay"])**2 + (pos[2]-data["Az"])**2 ) ** 0.5
             return "%.2f" % dist # two decimals
-        elif self.columnorder[section] == "DistanceSq":
+        elif columnorder[section] == "_Bcurdist":
+          if self.mw.currentSystem is None:
+            return '?'
+          else:
+            pos=self.mw.currentSystem.getPosition()
+            dist=( (pos[0]-data["Bx"])**2 + (pos[1]-data["By"])**2 + (pos[2]-data["Bz"])**2 ) ** 0.5
+            return "%.2f" % dist # two decimals
+        elif columnorder[section] == "DistanceSq":
           return data["DistanceSq"] ** 0.5
         else:
-          return data[self.columnorder[section]]
+          return data[columnorder[section]]
 
       return None # default when nothing matches
 
@@ -169,31 +226,40 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
         if orientation != QtCore.Qt.Horizontal:
           return None
 
-        if self.columnorder[section] == "_curdist":
+        if self.mw.twowaySearch:
+          columnorder=self.columnorderTwoway
+        else:
+          columnorder=self.columnorder
+
+        if columnorder[section] in ["_curdist","_Bcurdist"]:
           #field="Curr.Dist."
           if self.mw.currentSystem is None:
             sysname = 'here'
           else:
             sysname = self.mw.currentSystem.getName()
           field="Dist.from "+sysname
-        elif self.columnorder[section] == "Asystemname":
+        elif columnorder[section] == "Asystemname":
           field="From System"
-        elif self.columnorder[section] == "Abasename":
+        elif columnorder[section] == "Abasename":
           field="From Station"
-        elif self.columnorder[section] == "AexportPrice":
+        elif columnorder[section] == "AexportPrice":
           field="Export Cr"
-        elif self.columnorder[section] == "commodityname":
+        elif columnorder[section] in ["commodityname","Ccommodityname"]:
           field="Commodity"
-        elif self.columnorder[section] == "BimportPrice":
+        elif columnorder[section] == "BimportPrice":
           field="Import Cr"
-        elif self.columnorder[section] == "Bsystemname":
+        elif columnorder[section] == "Bsystemname":
           field="To System"
-        elif self.columnorder[section] == "Bbasename":
+        elif columnorder[section] == "Bbasename":
           field="To Station"
-        elif self.columnorder[section] == "DistanceSq":
+        elif columnorder[section] == "DistanceSq":
           field="Distance"
-        elif self.columnorder[section] == "profit":
+        elif columnorder[section] == "profit":
           field="Profit Cr"
+        elif columnorder[section] == "Cprofit":
+          field="Return Profit Cr"
+        elif columnorder[section] == "totalprofit":
+          field="Total Profit Cr"
         else:
           return None
 
@@ -205,4 +271,5 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     def refeshData(self):
       self.beginResetModel()
       self.endResetModel()
+      #self.dataChanged.emit(self.createIndex(0,0), self.createIndex(self.columnCount(1), len(self.mw.result)), [])
       self.dataChanged.emit(self.createIndex(0,0), self.createIndex(8, len(self.mw.result)), [])

@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -29,17 +32,70 @@
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <layout class="QGridLayout" name="gridLayout">
-            <item row="3" column="5">
-             <widget class="QCheckBox" name="twoWayBool">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="currentSystemTxt">
               <property name="text">
-               <string>Two-way</string>
+               <string>Sol</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Max distance</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Current system</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="maxDistanceTxt">
+              <property name="text">
+               <string>30</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>Min profit</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QLineEdit" name="minProfitTxt">
+              <property name="text">
+               <string>1000</string>
               </property>
              </widget>
             </item>
             <item row="1" column="5">
+             <widget class="QLineEdit" name="windowSizeTxt">
+              <property name="text">
+               <string>60</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="4">
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Search window size</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Min pad size</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="3">
              <widget class="QComboBox" name="minPadSize">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -64,66 +120,27 @@
               </item>
              </widget>
             </item>
-            <item row="3" column="3">
-             <widget class="QLineEdit" name="minProfitTxt">
+            <item row="3" column="5">
+             <widget class="QLineEdit" name="windowCountTxt">
               <property name="text">
-               <string>1600</string>
+               <string>1</string>
               </property>
              </widget>
             </item>
-            <item row="1" column="4">
-             <widget class="QLabel" name="label_5">
+            <item row="3" column="4">
+             <widget class="QLabel" name="label_6">
               <property name="text">
-               <string>Min pad size</string>
+               <string>Window iterations</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
-             <widget class="QLineEdit" name="maxDistanceTxt">
-              <property name="text">
-               <string>30</string>
+            <item row="4" column="2">
+             <widget class="QCheckBox" name="twoWayBool">
+              <property name="enabled">
+               <bool>true</bool>
               </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_3">
               <property name="text">
-               <string>Max distance</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Current system</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="2">
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>Min profit</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="currentSystemTxt">
-              <property name="text">
-               <string>Sol</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Window size</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="3">
-             <widget class="QLineEdit" name="windowSizeTxt">
-              <property name="text">
-               <string>60</string>
+               <string>Roundtrip</string>
               </property>
              </widget>
             </item>
@@ -175,7 +192,7 @@
              <bool>false</bool>
             </attribute>
             <attribute name="horizontalHeaderStretchLastSection">
-             <bool>true</bool>
+             <bool>false</bool>
             </attribute>
             <attribute name="verticalHeaderVisible">
              <bool>false</bool>

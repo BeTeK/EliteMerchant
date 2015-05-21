@@ -2,6 +2,7 @@ import sqlite3
 import EliteDB
 import os.path
 import os
+import operator
 import System
 import Base
 import time
@@ -250,6 +251,95 @@ class SQLiteDB(EliteDB.EliteDB):
 
     self.conn.commit()
 
+  def generateQueryWindows(self,x,y,z,windowsize=30,windows=1):
+    # generate buckets
+
+    # sort buckets
+
+    # limit buckets
+    return [[x,y,z]]
+
+  def queryProfitRoundtrip(self,x,y,z,windowsize=30,windows=1,maxdistance=30,minprofit=1000,landingPadSize=0):
+    oneway=self.queryProfit(x,y,z,windowsize,windows,maxdistance,minprofit,landingPadSize)
+    twoway=[]
+
+    print("Finding two way routes...")
+
+    querystart=time.time()
+
+    prune=dict() # hierarchize
+    for way in oneway:
+      if not way['AsystemId'] in prune:
+        prune[way['AsystemId']]=dict()
+      if not way["AbaseId"]in prune[way['AsystemId']]:
+        prune[way['AsystemId']][way["AbaseId"]]=dict()
+      if not way['BsystemId'] in prune[way['AsystemId']][way["AbaseId"]]:
+        prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']]=dict()
+      if not way["BbaseId"] in prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']]:
+        prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']][way["BbaseId"]]=[way]
+      else:
+        prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']][way["BbaseId"]].append(way)
+
+    for Abases in prune.values(): # walk the hierarchy
+      for Bsystems in Abases.values():
+        for Bbases in Bsystems.values():
+          for routes in Bbases.values():
+            for way in routes:
+              if way['BsystemId'] in prune: # look for reverse system
+                if way["BbaseId"] in prune[way['BsystemId']]:
+                  if way['AsystemId'] in prune[way['BsystemId']][way["BbaseId"]]:
+                    if way["AbaseId"] in prune[way['BsystemId']][way["BbaseId"]][way['AsystemId']]:
+                      for yaw in prune[way['BsystemId']][way["BbaseId"]][way['AsystemId']][way["AbaseId"]]:
+                        twowayroute=dict(way)
+                        twowayroute["BexportPrice"]=yaw["AexportPrice"] # for sake of simplicity we call A station C for return trip
+                        twowayroute["CimportPrice"]=yaw["BimportPrice"]
+                        twowayroute["Cdemand"]=yaw["Bdemand"]
+                        twowayroute["Bsupply"]=yaw["Asupply"]
+                        twowayroute["Ccommodityname"]=yaw["commodityname"]
+                        twowayroute["CcommodityId"]=yaw["commodityId"]
+                        twowayroute["Caverage"]=yaw["average"]
+                        twowayroute["Cprofit"]=yaw["profit"]
+                        twowayroute["totalprofit"]=way["profit"]+yaw["profit"]
+                        twoway.append(twowayroute)
+
+    print("Found "+str(len(twoway))+" roundtrip trade routes in "+str(time.time()-querystart)+" seconds")
+    return sorted(twoway,key=operator.itemgetter("totalprofit"), reverse=True)
+
+  def queryProfitRoundtrip_naiveunoptimized(self,x,y,z,windowsize=30,windows=1,maxdistance=30,minprofit=1000,landingPadSize=0):
+    oneway=self.queryProfit(x,y,z,windowsize,windows,maxdistance,minprofit,landingPadSize)
+    twoway=[]
+
+    print("Finding two way routes...")
+
+    querystart=time.time()
+    for way in oneway: #     A->B  C
+      for yaw in oneway: #   A  B->C
+        if way['AsystemId']==yaw['BsystemId'] and yaw['AsystemId']==way['BsystemId']: # system twoway
+          if way["AbaseId"]==yaw['BbaseId'] and yaw['AbaseId']==way['BbaseId']: # base twoway
+            #print("two way route: "+way["Asystemname"]+" <-> "+way["Bsystemname"])
+            twowayroute=dict(way)
+            twowayroute["BexportPrice"]=yaw["AexportPrice"] # for sake of simplicity we call A station C for return trip
+            twowayroute["CimportPrice"]=yaw["BimportPrice"]
+            twowayroute["Cdemand"]=yaw["Bdemand"]
+            twowayroute["Bsupply"]=yaw["Asupply"]
+            twowayroute["Ccommodityname"]=yaw["commodityname"]
+            twowayroute["CcommodityId"]=yaw["commodityId"]
+            twowayroute["Caverage"]=yaw["average"]
+            twowayroute["Cprofit"]=yaw["profit"]
+            twowayroute["totalprofit"]=way["profit"]+yaw["profit"]
+            twoway.append(twowayroute)
+
+    print("Found "+str(len(twoway))+" roundtrip trade routes in "+str(time.time()-querystart)+" seconds")
+    return sorted(twoway,key=operator.itemgetter("totalprofit"), reverse=True)
+
+  def queryProfit(self,x,y,z,windowsize=30,windows=1,maxdistance=30,minprofit=1000,landingPadSize=0):
+    windows=self.generateQueryWindows(x,y,z,windowsize,windows)
+    combined=[]
+    for w in windows:
+      results=self.queryProfitWindow(w[0],w[1],w[2],windowsize,maxdistance,minprofit,landingPadSize)
+      # combine buckets
+      combined=results
+    return combined
 
   def queryProfitWindow(self,x,y,z,windowsize=30,maxdistance=30,minprofit=1000,landingPadSize=0):
 
@@ -302,12 +392,13 @@ class SQLiteDB(EliteDB.EliteDB):
             (A.z - B.z)*(A.z - B.z)
         ) AS DistanceSq,
         A.commodityname AS commodityname,
+        A.commodityId AS commodityId,
         A.average AS average,
         A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
-        A.commodityId AS AcommodityId, A.exportPrice AS AexportPrice, A.supply AS Asupply,
+        A.exportPrice AS AexportPrice, A.supply AS Asupply,
         A.x AS Ax, A.y AS Ay, A.z AS Az,
         B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
-        B.commodityId AS BcommodityId, B.importPrice AS BimportPrice, B.demand AS Bdemand,
+        B.importPrice AS BimportPrice, B.demand AS Bdemand,
         B.x AS Bx, B.y AS By, B.z AS Bz
       FROM
         systemwindow AS A,
@@ -361,12 +452,13 @@ class SQLiteDB(EliteDB.EliteDB):
               (A.z - B.z)*(A.z - B.z)
           ) AS DistanceSq,
           A.commodityname AS commodityname,
+          A.commodityId AS commodityId,
           A.average AS average,
           A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
-          A.commodityId AS AcommodityId, A.exportPrice AS AexportPrice, A.supply AS Asupply,
+          A.exportPrice AS AexportPrice, A.supply AS Asupply,
           A.x AS Ax, A.y AS Ay, A.z AS Az,
           B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
-          B.commodityId AS BcommodityId, B.importPrice AS BimportPrice, B.demand AS Bdemand,
+          B.importPrice AS BimportPrice, B.demand AS Bdemand,
           B.x AS Bx, B.y AS By, B.z AS Bz
         FROM
           systemwindow AS A,
