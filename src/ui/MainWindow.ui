@@ -77,7 +77,7 @@
             <item row="1" column="5">
              <widget class="QLineEdit" name="windowSizeTxt">
               <property name="text">
-               <string>60</string>
+               <string>100</string>
               </property>
              </widget>
             </item>
@@ -103,6 +103,9 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="currentIndex">
+               <number>2</number>
+              </property>
               <item>
                <property name="text">
                 <string>any</string>
@@ -123,7 +126,7 @@
             <item row="3" column="5">
              <widget class="QLineEdit" name="windowCountTxt">
               <property name="text">
-               <string>1</string>
+               <string>7</string>
               </property>
              </widget>
             </item>
@@ -141,6 +144,9 @@
               </property>
               <property name="text">
                <string>Roundtrip</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
               </property>
              </widget>
             </item>

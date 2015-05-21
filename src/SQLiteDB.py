@@ -248,16 +248,101 @@ class SQLiteDB(EliteDB.EliteDB):
     SET importPrice=:importPrice, exportPrice=exportPrice, lastUpdated=:lastUpdated, demand=:demand, supply=:supply
     WHERE baseId=:baseId AND commodityId=:commodityId AND lastUpdated<:lastUpdated
     """, marketlist)
-
     self.conn.commit()
 
-  def generateQueryWindows(self,x,y,z,windowsize=30,windows=1):
-    # generate buckets
+  def getGalaxyExtents(self):
+    cur = self.conn.cursor()
 
-    # sort buckets
+    cur.execute("""
+    SELECT MAX(x) AS maxX, MIN(x) AS minX, MAX(y) AS maxY, MIN(y) AS minY, MAX(z) AS maxZ, MIN(z) AS minZ
+    FROM
+    systems,bases
+    WHERE
+    bases.systemId=systems.id --we only want systems with stations on them
+    """)
 
-    # limit buckets
-    return [[x,y,z]]
+    return self._rowToDict(cur.fetchone())
+
+  def generateQueryWindows(self,x,y,z,windowsize=60,distance=30,windows=1):
+
+    extents=self.getGalaxyExtents()
+
+    windowlist=[]
+
+    blocksize=windowsize-distance # overlap search windows by maxdistance
+
+    # todo: this code is terrible - be ashamed and make everything about this smarter
+
+    i,j,k=0,0,0
+
+    # run to the min-edge
+    while x+i*blocksize-windowsize/2 > extents["minX"]: # actual window will go +- window/2 from center coordinate
+      i-=1
+    while y+j*blocksize-windowsize/2 > extents["minY"]:
+      j-=1
+    while z+k*blocksize-windowsize/2 > extents["minZ"]:
+      k-=1
+
+    minI,minJ,minK=i,j,k
+    i,j,k=0,0,0
+
+    # run to the min-edge
+    while x+i*blocksize+windowsize/2 < extents["maxX"]: # actual window will go +- window/2 from center coordinate
+      i+=1
+    while y+j*blocksize+windowsize/2 < extents["maxY"]:
+      j+=1
+    while z+k*blocksize+windowsize/2 < extents["maxZ"]:
+      k+=1
+    maxI,maxJ,maxK=i,j,k
+
+    for i in range(minI,maxI):
+      for j in range(minJ,maxJ):
+        for k in range(minK,maxK):
+          windowlist.append([i*blocksize,j*blocksize,k*blocksize])
+
+    def sortdistance(a):
+      return ( (x-a[0])**2 + (y-a[1])**2 + (z-a[2])**2 ) ** 0.5
+    windowlist=sorted(windowlist,key=sortdistance)
+    print("The scale the habitated galaxy is "+str(len(windowlist))+ " windows")
+    windowlist=windowlist[:windows]
+    return windowlist
+
+  def ProfitHierarchyToArray(self,prune=None):
+    if prune is None:
+      return []
+    asarray=[]
+    for AB in prune.values(): # walk the hierarchy
+      for routes in AB.values():
+        for way in routes.values():
+          asarray.append(way)
+    return asarray
+
+  def ProfitArrayToHierarchy(self,oneway,prune=None): # add old hierarchy as second parameter to add to it
+    # hierarchy follows this simple structure:
+    """
+    fromId
+      toId
+        commodId=traderow
+      toId
+        commodId=traderow
+    fromId
+      toId
+        commodId=traderow
+      toId
+        commodId=traderow
+    """
+    if prune is None:
+      prune=dict()
+    for way in oneway:
+      if way["AbaseId"] == way["BbaseId"]: # anomalous data discard
+        continue
+      if not way["AbaseId"] in prune:
+        prune[way["AbaseId"]]=dict()
+      if not way["BbaseId"] in prune[way["AbaseId"]]:
+        prune[way["AbaseId"]][way["BbaseId"]]=dict()
+      if not way["commodityId"] in prune[way["AbaseId"]][way["BbaseId"]]:
+        prune[way["AbaseId"]][way["BbaseId"]][way["commodityId"]]=way
+    return prune
 
   def queryProfitRoundtrip(self,x,y,z,windowsize=30,windows=1,maxdistance=30,minprofit=1000,landingPadSize=0):
     oneway=self.queryProfit(x,y,z,windowsize,windows,maxdistance,minprofit,landingPadSize)
@@ -267,79 +352,39 @@ class SQLiteDB(EliteDB.EliteDB):
 
     querystart=time.time()
 
-    prune=dict() # hierarchize
-    for way in oneway:
-      if not way['AsystemId'] in prune:
-        prune[way['AsystemId']]=dict()
-      if not way["AbaseId"]in prune[way['AsystemId']]:
-        prune[way['AsystemId']][way["AbaseId"]]=dict()
-      if not way['BsystemId'] in prune[way['AsystemId']][way["AbaseId"]]:
-        prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']]=dict()
-      if not way["BbaseId"] in prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']]:
-        prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']][way["BbaseId"]]=[way]
-      else:
-        prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']][way["BbaseId"]].append(way)
+    prune=self.ProfitArrayToHierarchy(oneway)
 
-    for Abases in prune.values(): # walk the hierarchy
-      for Bsystems in Abases.values():
-        for Bbases in Bsystems.values():
-          for routes in Bbases.values():
-            for way in routes:
-              if way['BsystemId'] in prune: # look for reverse system
-                if way["BbaseId"] in prune[way['BsystemId']]:
-                  if way['AsystemId'] in prune[way['BsystemId']][way["BbaseId"]]:
-                    if way["AbaseId"] in prune[way['BsystemId']][way["BbaseId"]][way['AsystemId']]:
-                      for yaw in prune[way['BsystemId']][way["BbaseId"]][way['AsystemId']][way["AbaseId"]]:
-                        twowayroute=dict(way)
-                        twowayroute["BexportPrice"]=yaw["AexportPrice"] # for sake of simplicity we call A station C for return trip
-                        twowayroute["CimportPrice"]=yaw["BimportPrice"]
-                        twowayroute["Cdemand"]=yaw["Bdemand"]
-                        twowayroute["Bsupply"]=yaw["Asupply"]
-                        twowayroute["Ccommodityname"]=yaw["commodityname"]
-                        twowayroute["CcommodityId"]=yaw["commodityId"]
-                        twowayroute["Caverage"]=yaw["average"]
-                        twowayroute["Cprofit"]=yaw["profit"]
-                        twowayroute["totalprofit"]=way["profit"]+yaw["profit"]
-                        twoway.append(twowayroute)
+    for AB in prune.values(): # walk the hierarchy
+      for routes in AB.values():
+        for way in routes.values():
+          if way["BbaseId"] in prune: # look for reverse system
+            if way["AbaseId"] in prune[way["BbaseId"]]:
+              for yaw in prune[way["BbaseId"]][way["AbaseId"]].values(): # any commodity
+                twowayroute=dict(way)
+                twowayroute["BexportPrice"]=yaw["AexportPrice"] # for sake of simplicity we call A station C for return trip
+                twowayroute["CimportPrice"]=yaw["BimportPrice"]
+                twowayroute["Cdemand"]=yaw["Bdemand"]
+                twowayroute["Bsupply"]=yaw["Asupply"]
+                twowayroute["Ccommodityname"]=yaw["commodityname"]
+                twowayroute["CcommodityId"]=yaw["commodityId"]
+                twowayroute["Caverage"]=yaw["average"]
+                twowayroute["Cprofit"]=yaw["profit"]
+                twowayroute["totalprofit"]=way["profit"]+yaw["profit"]
+                twoway.append(twowayroute)
 
-    print("Found "+str(len(twoway))+" roundtrip trade routes in "+str(time.time()-querystart)+" seconds")
-    return sorted(twoway,key=operator.itemgetter("totalprofit"), reverse=True)
-
-  def queryProfitRoundtrip_naiveunoptimized(self,x,y,z,windowsize=30,windows=1,maxdistance=30,minprofit=1000,landingPadSize=0):
-    oneway=self.queryProfit(x,y,z,windowsize,windows,maxdistance,minprofit,landingPadSize)
-    twoway=[]
-
-    print("Finding two way routes...")
-
-    querystart=time.time()
-    for way in oneway: #     A->B  C
-      for yaw in oneway: #   A  B->C
-        if way['AsystemId']==yaw['BsystemId'] and yaw['AsystemId']==way['BsystemId']: # system twoway
-          if way["AbaseId"]==yaw['BbaseId'] and yaw['AbaseId']==way['BbaseId']: # base twoway
-            #print("two way route: "+way["Asystemname"]+" <-> "+way["Bsystemname"])
-            twowayroute=dict(way)
-            twowayroute["BexportPrice"]=yaw["AexportPrice"] # for sake of simplicity we call A station C for return trip
-            twowayroute["CimportPrice"]=yaw["BimportPrice"]
-            twowayroute["Cdemand"]=yaw["Bdemand"]
-            twowayroute["Bsupply"]=yaw["Asupply"]
-            twowayroute["Ccommodityname"]=yaw["commodityname"]
-            twowayroute["CcommodityId"]=yaw["commodityId"]
-            twowayroute["Caverage"]=yaw["average"]
-            twowayroute["Cprofit"]=yaw["profit"]
-            twowayroute["totalprofit"]=way["profit"]+yaw["profit"]
-            twoway.append(twowayroute)
-
-    print("Found "+str(len(twoway))+" roundtrip trade routes in "+str(time.time()-querystart)+" seconds")
+    print("Found "+str(len(twoway))+" roundtrip trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
     return sorted(twoway,key=operator.itemgetter("totalprofit"), reverse=True)
 
   def queryProfit(self,x,y,z,windowsize=30,windows=1,maxdistance=30,minprofit=1000,landingPadSize=0):
-    windows=self.generateQueryWindows(x,y,z,windowsize,windows)
-    combined=[]
-    for w in windows:
+    windows=self.generateQueryWindows(x,y,z,windowsize,maxdistance,windows)
+    combined=dict()
+    for wi in range(len(windows)):
+      w=windows[wi]
       results=self.queryProfitWindow(w[0],w[1],w[2],windowsize,maxdistance,minprofit,landingPadSize)
-      # combine buckets
-      combined=results
-    return combined
+      combined=self.ProfitArrayToHierarchy(results,combined)
+      print("Window " + str(wi+1) + " of " + str(len(windows)) + " (" + str("%.2f"%( (wi+1)/len(windows) *100 )) + "%)")
+    combinedAr=self.ProfitHierarchyToArray(combined)
+    return sorted(combinedAr,key=operator.itemgetter("profit"),reverse=True)
 
   def queryProfitWindow(self,x,y,z,windowsize=30,maxdistance=30,minprofit=1000,landingPadSize=0):
 
@@ -413,7 +458,7 @@ class SQLiteDB(EliteDB.EliteDB):
         A.exportPrice BETWEEN 1 AND A.average
         AND
         profit > :minprofit
-    ORDER BY profit DESC
+    --ORDER BY profit DESC
     --LIMIT 0,10
     """
 
@@ -473,7 +518,7 @@ class SQLiteDB(EliteDB.EliteDB):
           A.exportPrice BETWEEN 1 AND A.average
           AND
           profit > :minprofit
-      ORDER BY profit DESC
+      --ORDER BY profit DESC
       --LIMIT 0,10
       """
 
@@ -482,6 +527,6 @@ class SQLiteDB(EliteDB.EliteDB):
     result=cur.execute(querystring,queryvals).fetchall()
     querytime=time.time()-querystart
 
-    print("queryProfitWindow, "+str(len(result))+" values, "+str(querytime)+" seconds")
+    print("queryProfitWindow, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
 
     return [self._rowToDict(o) for o in result]
