@@ -140,6 +140,6 @@ def importDownloaded(db):
 
   db.importCommodityPrices(marketdata)
 
-
+  db.vacuum()
 
   print("eddb import complete")

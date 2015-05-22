@@ -43,6 +43,12 @@ class SQLiteDB(EliteDB.EliteDB):
     if self.conn is not None:
       self.conn.close()
 
+  def vacuum(self):
+    print("vacuuming database...")
+    cur=self.conn.cursor()
+    cur.execute("VACUUM")
+    return
+
   def getBasesOfSystem(self, id):
     cur = self.conn.cursor()
 
