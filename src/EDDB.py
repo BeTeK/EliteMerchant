@@ -4,145 +4,142 @@ import json
 import urllib
 import time
 
-class EDDB:
+eddbUrls={
+  "commodities":"http://eddb.io/archive/v3/commodities.json",
+  "systems":"http://eddb.io/archive/v3/systems.json",
+  "stations":"http://eddb.io/archive/v3/stations.json"
+}
 
-  eddbUrls={
-    "commodities":"http://eddb.io/archive/v3/commodities.json",
-    "systems":"http://eddb.io/archive/v3/systems.json",
-    "stations":"http://eddb.io/archive/v3/stations.json"
-  }
-
-  def __init__(self):
-    pass
-
-  def readJSON(self,filename):
-    try:
-      with open(filename, "r") as file:
-        return json.loads(file.read())
-    except Exception as ex:
-      print(ex)
-      return None
+def readJSON(filename):
+  try:
+    with open(filename, "r") as file:
+      return json.loads(file.read())
+  except Exception as ex:
+    print(ex)
+    return None
 
 
-  def update(self,db):
-    #if self.checkUpdated(db):
-    #  self.download(db)
-    self.importDownloaded(db)
+def update(db):
+  #if checkUpdated(db):
+  #  download(db)
+  importDownloaded(db)
 
-  def checkUpdated(self,db):
+def checkUpdated(db):
 
-    with urllib.request.urlopen(self.eddbUrls['stations'], timeout=30) as conn:
-      last_modified = conn.info().getdate('last-modified')
-      time_struct = time.strptime(last_modified, '%a, %d %b %Y %H:%M:%S %Z')
-      # todo: this thing
-      ## return conf["EDDBlastdownload"] < time_struct
+  with urllib.request.urlopen(eddbUrls['stations'], timeout=30) as conn:
+    last_modified = conn.info().getdate('last-modified')
+    time_struct = time.strptime(last_modified, '%a, %d %b %Y %H:%M:%S %Z')
+    # todo: this thing
+    ## return conf["EDDBlastdownload"] < time_struct
 
+  return False
+
+def download(db):
+  # compression header:
+  #Accept-Encoding: gzip, deflate, sdch
+  # todo: download
+  pass
+
+def importDownloaded(db):
+  if not os.path.exists('systems.json') or not os.path.exists('commodities.json') or not os.path.exists('stations.json'):
+    print("eddb json files missing! - required: systems.json, commodities.json, stations.json")
     return False
 
-  def download(self,db):
-    # compression header:
-    #Accept-Encoding: gzip, deflate, sdch
-    # todo: download
-    pass
+  # -- commodities --
 
-  def importDownloaded(self,db):
-    if not os.path.exists('systems.json') or not os.path.exists('commodities.json') or not os.path.exists('stations.json'):
-      print("eddb json files missing! - required: systems.json, commodities.json, stations.json")
-      return False
+  print("improting eddb commodities")
+  commoditiesdata = readJSON("commodities.json")
+  if commoditiesdata is None:
+    print("parsing commodities.json failed")
+    return False
 
-    # -- commodities --
+  # remap database columns
+  for commodity in commoditiesdata:
+    commodity['average']=commodity['average_price']
 
-    print("improting eddb commodities")
-    commoditiesdata = self.readJSON("commodities.json")
-    if commoditiesdata is None:
-      print("parsing commodities.json failed")
-      return False
+  # insert into db and retrieve new ids
+  importedCommodities=db.importCommodities(commoditiesdata)
 
-    # remap database columns
-    for commodity in commoditiesdata:
-      commodity['average']=commodity['average_price']
+  # name to id map
+  importedCommoditiesMap=dict( (o["name"].lower(),o["id"]) for o in importedCommodities )
 
-    # insert into db and retrieve new ids
-    importedCommodities=db.importCommodities(commoditiesdata)
+  # eddb to EliteDB id map
+  commodities_importmap=dict( (o["id"],importedCommoditiesMap[o["name"].lower()]) for o in commoditiesdata )
 
-    # name to id map
-    importedCommoditiesMap=dict( (o["name"].lower(),o["id"]) for o in importedCommodities )
+  # -- systems --
 
-    # eddb to EliteDB id map
-    commodities_importmap=dict( (o["id"],importedCommoditiesMap[o["name"].lower()]) for o in commoditiesdata )
+  print("               systems")
+  systemsdata = readJSON("systems.json")
+  if systemsdata is None:
+    print("parsing systems.json failed")
+    return False
 
-    # -- systems --
+  # insert into db and retrieve new ids
+  importedSystems=db.importSystems(systemsdata)
 
-    print("               systems")
-    systemsdata = self.readJSON("systems.json")
-    if systemsdata is None:
-      print("parsing systems.json failed")
-      return False
+  # name to id map
+  importedSystemsMap=dict( (o["name"].lower(),o["id"]) for o in importedSystems )
 
-    # insert into db and retrieve new ids
-    importedSystems=db.importSystems(systemsdata)
+  # eddb to EliteDB id map
+  systems_importmap=dict( (o["id"],importedSystemsMap[o["name"].lower()]) for o in systemsdata )
 
-    # name to id map
-    importedSystemsMap=dict( (o["name"].lower(),o["id"]) for o in importedSystems )
+  # -- stations --
 
-    # eddb to EliteDB id map
-    systems_importmap=dict( (o["id"],importedSystemsMap[o["name"].lower()]) for o in systemsdata )
+  print("               stations")
+  stationsdata = readJSON("stations.json")
+  if stationsdata is None:
+    print("parsing stations.json failed")
+    return False
 
-    # -- stations --
+  # remap database
+  for station in stationsdata:
+    station["systemId"]=systems_importmap[station["system_id"]]
+    station["distance"]=station["distance_to_star"]
 
-    print("               stations")
-    stationsdata = self.readJSON("stations.json")
-    if stationsdata is None:
-      print("parsing stations.json failed")
-      return False
+  # insert into db and retrieve new ids
+  importedStations=db.importBases(stationsdata)
 
-    # remap database
-    for station in stationsdata:
-      station["systemId"]=systems_importmap[station["system_id"]]
-      station["distance"]=station["distance_to_star"]
+  # name to id map
+  importedStationsMap=dict( (o["name"].lower(),o["id"]) for o in importedStations )
 
-    # insert into db and retrieve new ids
-    importedStations=db.importBases(stationsdata)
+  # eddb to EliteDB id map
+  stations_importmap=dict( (o["id"],importedStationsMap[o["name"].lower()]) for o in stationsdata )
 
-    # name to id map
-    importedStationsMap=dict( (o["name"].lower(),o["id"]) for o in importedStations )
+  # -- station metadata --
 
-    # eddb to EliteDB id map
-    stations_importmap=dict( (o["id"],importedStationsMap[o["name"].lower()]) for o in stationsdata )
+  print("               station metadata")
 
-    # -- station metadata --
+  padsize={
+    None:None,
+    "S":0,
+    "M":1,
+    "L":2
+  }
+  # remap database
+  for station in stationsdata:
+    station["id"]=stations_importmap[station["id"]]
+    station["blackMarket"]=station["has_blackmarket"]
+    station["landingPadSize"]=padsize[station["max_landing_pad_size"]]
 
-    print("               station metadata")
+  db.importBaseInfos(stationsdata)
 
-    padsize={
-      None:None,
-      "S":0,
-      "M":1,
-      "L":2
-    }
-    # remap database
-    for station in stationsdata:
-      station["id"]=stations_importmap[station["id"]]
-      station["blackMarket"]=station["has_blackmarket"]
-      station["landingPadSize"]=padsize[station["max_landing_pad_size"]]
+  # -- station market data --
 
-    db.importBaseInfos(stationsdata)
+  print("               market data")
 
-    # -- station market data --
+  marketdata=[]
+  # remap database
+  for station in stationsdata:
+    for commodity in station["listings"]:
+      commodity["baseId"]=station["id"] # stationid already remapped
+      commodity["commodityId"]=commodities_importmap[commodity["commodity_id"]]
+      commodity["importPrice"]=commodity["sell_price"] # note: eddb works from the perspective of the player - "sell" is import, "buy" is export
+      commodity["exportPrice"]=commodity["buy_price"]
+      commodity["lastUpdated"]=commodity["collected_at"]
+      marketdata.append(commodity)
 
-    print("               market data")
+  db.importCommodityPrices(marketdata)
 
-    marketdata=[]
-    # remap database
-    for station in stationsdata:
-      for commodity in station["listings"]:
-        commodity["baseId"]=station["id"] # stationid already remapped
-        commodity["commodityId"]=commodities_importmap[commodity["commodity_id"]]
-        commodity["importPrice"]=commodity["sell_price"] # note: eddb works from the perspective of the player - "sell" is import, "buy" is export
-        commodity["exportPrice"]=commodity["buy_price"]
-        commodity["lastUpdated"]=commodity["collected_at"]
-        marketdata.append(commodity)
 
-    db.importCommodityPrices(marketdata)
 
-    print("eddb import complete")
+  print("eddb import complete")

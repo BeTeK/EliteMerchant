@@ -1,14 +1,15 @@
 from SQLiteDB import SQLiteDB
-from EDDB import EDDB
 import sys
 from pprint import pprint # lets make debugging beautiful
 from PyQt5 import QtCore, QtGui, QtWidgets
 import ui.MainWindow
 import time
 import Options
+import Queries
+import EDDB
 
 def loadEDDB(db, options):
-  EDDB().update(db)
+  EDDB.update(db)
 
 def addSystem(db):
   db.addSystem("foobar2")

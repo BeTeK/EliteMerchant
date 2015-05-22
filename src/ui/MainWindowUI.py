@@ -150,7 +150,7 @@ class Ui_MainWindow(object):
         self.minPadSize.setItemText(0, _translate("MainWindow", "any"))
         self.minPadSize.setItemText(1, _translate("MainWindow", "M"))
         self.minPadSize.setItemText(2, _translate("MainWindow", "L"))
-        self.windowCountTxt.setText(_translate("MainWindow", "7"))
+        self.windowCountTxt.setText(_translate("MainWindow", "1"))
         self.label_6.setText(_translate("MainWindow", "Window iterations"))
         self.twoWayBool.setText(_translate("MainWindow", "Roundtrip"))
         self.searchBtn.setText(_translate("MainWindow", "Search"))
