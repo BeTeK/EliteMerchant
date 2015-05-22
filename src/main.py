@@ -19,8 +19,9 @@ def fetchSystem(db):
   systems[0].getStations()
 
 def testfn(db, options):
-  systems = db.getSystemByWindow((0, 0, 0), 10)
-  print(systems)
+  EDDB.update(db)
+  #systems = db.getSystemByWindow((0, 0, 0), 10)
+  #print(systems)
   
 
 def testfunction(db,options):
