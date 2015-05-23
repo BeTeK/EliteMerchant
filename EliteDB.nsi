@@ -19,12 +19,12 @@ InstallDirRegKey HKLM "Software\EliteDB" "Install_Dir"
 
 Function .onInit
         ${If} ${RunningX64}
-        ${DisableX64FSRedirection}
+        ${EnableX64FSRedirection}
         ${else}
         MessageBox MB_OK "Sorry this application runs only on x64 machines"
         Abort
         ${EndIf}
-        StrCpy '$INSTDIR' '$PROGRAMFILES\My Application'
+        StrCpy '$INSTDIR' '$PROGRAMFILES\EliteDB'
 
 FunctionEnd
 ;--------------------------------
@@ -80,8 +80,10 @@ Section "Uninstall"
 
   ; Remove shortcuts, if any
   Delete "$SMPROGRAMS\EliteDB\*.*"
+  Delete "$SMPROGRAMS\EliteDB\platforms\*.*"
 
   ; Remove directories used
+  RMDir "$SMPROGRAMS\EliteDB\platforms"
   RMDir "$SMPROGRAMS\EliteDB"
   RMDir "$INSTDIR"
 

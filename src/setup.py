@@ -144,11 +144,10 @@ includes = ["sip",
             "PyQt5.QtCore",
             "PyQt5.QtGui"]
 
-#datafiles = [("platforms", ["C:\\Python34\\Lib\\site-packages\\PyQt5\\plugins" +
-#                            "\\platforms\\qwindows.dll"]),
-#             ("", [r"c:\windows\syswow64\MSVCP100.dll",
-#                   r"c:\windows\syswow64\MSVCR100.dll"])]
-datafiles = []
+datafiles = [("platforms", ["..\\extraInstallFiles\\qwindows.dll"]),
+             ("", [r"..\\extraInstallFiles\\MSVCP100.dll",
+                   r"..\\extraInstallFiles\\MSVCR100.dll"])]
+#datafiles = []
 
 py2exe_options = dict(
     packages = [],
@@ -166,10 +165,10 @@ py2exe_options = dict(
 # Some options can be overridden by command line options...
 setup(name="name",
       # console based executables
-      console=[main],
+      console=[],
 
       # windows subsystem executables (no console)
-      windows=[],
+      windows=[main],
       data_files=datafiles,
       # py2exe options
       zipfile=None,
