@@ -35,7 +35,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     if interval <= 0:
       return
 
-    if now - lastUpdated > interval * 60 * 60:
+    if lastUpdated <= 0 or now - lastUpdated > interval * 60 * 60:
       EDDB.update(self.db)
 
 

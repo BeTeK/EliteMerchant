@@ -87,6 +87,7 @@ def downloadFile(url):
 
 def update(db):
   print("Checking for updated EDDB database")
+  Options.set("EDDB-last-updated", int(datetime.datetime.now().timestamp()))
   anyUpdated=False
   for file in eddbUrls:
     if checkUpdated(file,eddbUrls[file]):
@@ -94,8 +95,6 @@ def update(db):
       downloadFile(eddbUrls[file])
   if anyUpdated:
     importDownloaded(db)
-
-  Options.set("EDDB-last-updated", int(datetime.datetime.now().timestamp()))
 
 def checkUpdated(file,url):
   with request.urlopen(url, timeout=30) as conn:
