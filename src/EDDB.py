@@ -85,12 +85,12 @@ def downloadFile(url):
     Options.set("EDDB-lastmodified-"+file_name,last_modified)
 
 
-def update(db):
+def update(db, force = False):
   print("Checking for updated EDDB database")
   Options.set("EDDB-last-updated", int(datetime.datetime.now().timestamp()))
   anyUpdated=False
   for file in eddbUrls:
-    if checkUpdated(file,eddbUrls[file]):
+    if force or checkUpdated(file,eddbUrls[file]):
       anyUpdated=True
       downloadFile(eddbUrls[file])
   if anyUpdated:

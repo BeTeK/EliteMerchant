@@ -26,7 +26,7 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         self.udpateEDDBBtn.clicked.connect(self.onUpdateEDDBNowClicked)
 
     def onUpdateEDDBNowClicked(self):
-        EDDB.update(self.db)
+        EDDB.update(self.db, True)
 
     def onCheckIntervalChanged(self):
         OptionsParams.set("eddb-check-interval", self.EDDBUpdateIntervalTxt.value())
