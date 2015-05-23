@@ -23,18 +23,18 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         self.EDCEPathTxt.textEdited.connect(self.onEDCEPathTxtChanged)
 
         self.EDDBUpdateIntervalTxt.valueChanged.connect(self.onCheckIntervalChanged)
-        self.EDDBUpdateIntervalTxt.setValue(int(OptionsParams.get("eddb-check-interval", 24)))
+        self.EDDBUpdateIntervalTxt.setValue(int(OptionsParams.get("EDDB-check-interval", 1)))
 
         self.udpateEDDBBtn.clicked.connect(self.onUpdateEDDBNowClicked)
 
     def onUpdateEDDBNowClicked(self):
-        EDDB.update(self.db, True)
+        EDDB.update(self.db,True)
 
     def onCheckIntervalChanged(self):
-        OptionsParams.set("eddb-check-interval", self.EDDBUpdateIntervalTxt.value())
+        OptionsParams.set("EDDB-check-interval", self.EDDBUpdateIntervalTxt.value())
 
     def onCloseClicked(self):
-        self.close();
+        self.close()
 
     def _readSettings(self):
         self.restoreGeometry(OptionsParams.get("Options-geometry", QtCore.QByteArray()))
