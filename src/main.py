@@ -38,7 +38,8 @@ def main():
   index = 1
   options = {"dbPath" : os.path.join(home, ".eliteTradetool.sqlite"),
              "eraseDb" : False,
-             "operation" : None}
+             "operation" : None,
+             "redirectOutputToLog" : False}
   
   try:
     while index < len(sys.argv):
@@ -53,10 +54,17 @@ def main():
         options["operation"] = loadEDDB
       elif sys.argv[index] in ["--test"]: # devhax
         options["operation"] = testfn
+      elif sys.argv[index] in ["--redirectOutput"]:
+        stdOutFile = open(os.path.join(home, "eliteDb_stdout.log"), "w+")
+        stdErrFile = open(os.path.join(home, "eliteDb_stderr.log"), "w+")
+
+        sys.stdout = stdOutFile
+        sys.stderr = stdErrFile
         
       index += 1
   except Exception as ex:
     pprint("Not known param")
+
   if options["operation"] is not None:
     with SQLiteDB(options["dbPath"], options["eraseDb"]) as db:
       options["operation"](db, options)

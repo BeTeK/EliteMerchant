@@ -64,7 +64,7 @@ Section "Start Menu Shortcuts"
 
   CreateDirectory "$SMPROGRAMS\EliteDB"
   CreateShortcut "$SMPROGRAMS\EliteDB\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortcut "$SMPROGRAMS\EliteDB\EliteDB.lnk" "$INSTDIR\EliteDB.exe" "--UI" "$INSTDIR\EliteDB.exe" 0
+  CreateShortcut "$SMPROGRAMS\EliteDB\EliteDB.lnk" "$INSTDIR\EliteDB.exe" "--UI --redirectOutput" "$INSTDIR\EliteDB.exe" 0
   
 SectionEnd
 
