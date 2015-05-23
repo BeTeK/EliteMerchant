@@ -17,3 +17,4 @@ def get(key, default, *formatStr):
 def set(key, value):
     global settings
     settings.setValue(key, value)
+    settings.sync() # save the value

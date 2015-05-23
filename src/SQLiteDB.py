@@ -43,6 +43,12 @@ class SQLiteDB(EliteDB.EliteDB):
     if self.conn is not None:
       self.conn.close()
 
+  def vacuum(self):
+    print("vacuuming database...")
+    cur=self.conn.cursor()
+    cur.execute("VACUUM")
+    return
+
   def getBasesOfSystem(self, id):
     cur = self.conn.cursor()
 
@@ -248,110 +254,28 @@ class SQLiteDB(EliteDB.EliteDB):
     SET importPrice=:importPrice, exportPrice=exportPrice, lastUpdated=:lastUpdated, demand=:demand, supply=:supply
     WHERE baseId=:baseId AND commodityId=:commodityId AND lastUpdated<:lastUpdated
     """, marketlist)
-
     self.conn.commit()
 
-  def generateQueryWindows(self,x,y,z,windowsize=30,windows=1):
-    # generate buckets
-
-    # sort buckets
-
-    # limit buckets
-    return [[x,y,z]]
-
-  def queryProfitRoundtrip(self,x,y,z,windowsize=30,windows=1,maxdistance=30,minprofit=1000,landingPadSize=0):
-    oneway=self.queryProfit(x,y,z,windowsize,windows,maxdistance,minprofit,landingPadSize)
-    twoway=[]
-
-    print("Finding two way routes...")
-
-    querystart=time.time()
-
-    prune=dict() # hierarchize
-    for way in oneway:
-      if not way['AsystemId'] in prune:
-        prune[way['AsystemId']]=dict()
-      if not way["AbaseId"]in prune[way['AsystemId']]:
-        prune[way['AsystemId']][way["AbaseId"]]=dict()
-      if not way['BsystemId'] in prune[way['AsystemId']][way["AbaseId"]]:
-        prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']]=dict()
-      if not way["BbaseId"] in prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']]:
-        prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']][way["BbaseId"]]=[way]
-      else:
-        prune[way['AsystemId']][way["AbaseId"]][way['BsystemId']][way["BbaseId"]].append(way)
-
-    for Abases in prune.values(): # walk the hierarchy
-      for Bsystems in Abases.values():
-        for Bbases in Bsystems.values():
-          for routes in Bbases.values():
-            for way in routes:
-              if way['BsystemId'] in prune: # look for reverse system
-                if way["BbaseId"] in prune[way['BsystemId']]:
-                  if way['AsystemId'] in prune[way['BsystemId']][way["BbaseId"]]:
-                    if way["AbaseId"] in prune[way['BsystemId']][way["BbaseId"]][way['AsystemId']]:
-                      for yaw in prune[way['BsystemId']][way["BbaseId"]][way['AsystemId']][way["AbaseId"]]:
-                        twowayroute=dict(way)
-                        twowayroute["BexportPrice"]=yaw["AexportPrice"] # for sake of simplicity we call A station C for return trip
-                        twowayroute["CimportPrice"]=yaw["BimportPrice"]
-                        twowayroute["Cdemand"]=yaw["Bdemand"]
-                        twowayroute["Bsupply"]=yaw["Asupply"]
-                        twowayroute["Ccommodityname"]=yaw["commodityname"]
-                        twowayroute["CcommodityId"]=yaw["commodityId"]
-                        twowayroute["Caverage"]=yaw["average"]
-                        twowayroute["Cprofit"]=yaw["profit"]
-                        twowayroute["totalprofit"]=way["profit"]+yaw["profit"]
-                        twoway.append(twowayroute)
-
-    print("Found "+str(len(twoway))+" roundtrip trade routes in "+str(time.time()-querystart)+" seconds")
-    return sorted(twoway,key=operator.itemgetter("totalprofit"), reverse=True)
-
-  def queryProfitRoundtrip_naiveunoptimized(self,x,y,z,windowsize=30,windows=1,maxdistance=30,minprofit=1000,landingPadSize=0):
-    oneway=self.queryProfit(x,y,z,windowsize,windows,maxdistance,minprofit,landingPadSize)
-    twoway=[]
-
-    print("Finding two way routes...")
-
-    querystart=time.time()
-    for way in oneway: #     A->B  C
-      for yaw in oneway: #   A  B->C
-        if way['AsystemId']==yaw['BsystemId'] and yaw['AsystemId']==way['BsystemId']: # system twoway
-          if way["AbaseId"]==yaw['BbaseId'] and yaw['AbaseId']==way['BbaseId']: # base twoway
-            #print("two way route: "+way["Asystemname"]+" <-> "+way["Bsystemname"])
-            twowayroute=dict(way)
-            twowayroute["BexportPrice"]=yaw["AexportPrice"] # for sake of simplicity we call A station C for return trip
-            twowayroute["CimportPrice"]=yaw["BimportPrice"]
-            twowayroute["Cdemand"]=yaw["Bdemand"]
-            twowayroute["Bsupply"]=yaw["Asupply"]
-            twowayroute["Ccommodityname"]=yaw["commodityname"]
-            twowayroute["CcommodityId"]=yaw["commodityId"]
-            twowayroute["Caverage"]=yaw["average"]
-            twowayroute["Cprofit"]=yaw["profit"]
-            twowayroute["totalprofit"]=way["profit"]+yaw["profit"]
-            twoway.append(twowayroute)
-
-    print("Found "+str(len(twoway))+" roundtrip trade routes in "+str(time.time()-querystart)+" seconds")
-    return sorted(twoway,key=operator.itemgetter("totalprofit"), reverse=True)
-
-  def queryProfit(self,x,y,z,windowsize=30,windows=1,maxdistance=30,minprofit=1000,landingPadSize=0):
-    windows=self.generateQueryWindows(x,y,z,windowsize,windows)
-    combined=[]
-    for w in windows:
-      results=self.queryProfitWindow(w[0],w[1],w[2],windowsize,maxdistance,minprofit,landingPadSize)
-      # combine buckets
-      combined=results
-    return combined
-
-  def queryProfitWindow(self,x,y,z,windowsize=30,maxdistance=30,minprofit=1000,landingPadSize=0):
-
+  def getGalaxyExtents(self):
     cur = self.conn.cursor()
-    queryvals=dict()
-    queryvals['x']=x
-    queryvals['y']=y
-    queryvals['z']=z
-    queryvals['maxdistance']=maxdistance # min(maxdistance,100)
-    queryvals['window']=windowsize/2 # max(queryvals['maxdistance']/2,windowsize)
-    queryvals['minprofit']=minprofit # max(1000,minprofit)
-    queryvals['landingPadSize']=landingPadSize
+
+    cur.execute("""
+    SELECT MAX(x) AS maxX, MIN(x) AS minX, MAX(y) AS maxY, MIN(y) AS minY, MAX(z) AS maxZ, MIN(z) AS minZ
+    FROM
+    systems,bases
+    WHERE
+    bases.systemId=systems.id --we only want systems with stations on them
+    """)
+
+    return self._rowToDict(cur.fetchone())
+
+  def getWindowProfit(self,queryvals):
+    cur = self.conn.cursor()
+
+    queryvals['maxdistance'] = 'maxdistance' in queryvals and queryvals['maxdistance'] or 30
+    queryvals['window'] = 'window' in queryvals and queryvals['window']/2 or 30
+    queryvals['minprofit'] = 'minprofit' in queryvals and queryvals['minprofit'] or 1000
+    queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
 
     # TODO: distance from star limit
 
@@ -413,11 +337,11 @@ class SQLiteDB(EliteDB.EliteDB):
         A.exportPrice BETWEEN 1 AND A.average
         AND
         profit > :minprofit
-    ORDER BY profit DESC
+    --ORDER BY profit DESC
     --LIMIT 0,10
     """
 
-    if not landingPadSize>0: # query without landingpads
+    if not queryvals['landingPadSize']>0: # query without landingpads
       querystring="""
       WITH systemwindow AS (
         SELECT
@@ -473,7 +397,7 @@ class SQLiteDB(EliteDB.EliteDB):
           A.exportPrice BETWEEN 1 AND A.average
           AND
           profit > :minprofit
-      ORDER BY profit DESC
+      --ORDER BY profit DESC
       --LIMIT 0,10
       """
 
@@ -482,6 +406,6 @@ class SQLiteDB(EliteDB.EliteDB):
     result=cur.execute(querystring,queryvals).fetchall()
     querytime=time.time()-querystart
 
-    print("queryProfitWindow, "+str(len(result))+" values, "+str(querytime)+" seconds")
+    print("queryProfitWindow, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
 
     return [self._rowToDict(o) for o in result]

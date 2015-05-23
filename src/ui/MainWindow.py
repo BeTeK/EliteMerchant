@@ -3,6 +3,7 @@ import ui.MainWindowUI
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QVariant
 import Options
+import Queries
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def __init__(self, db):
@@ -11,7 +12,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.retranslateUi(self)
     self.result = []
     self.currentSystem = None
-    self.twowaySearch = False
+    self.searchType=1
     self.searchBtn.clicked.connect(self.searchBtnPressed)
     self.db = db
     self.model = MainWindow.TableModel(None, self)
@@ -27,8 +28,10 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     windows = int(self.windowCountTxt.text())
     maxDistance = float(self.maxDistanceTxt.text())
     minProfit = int(self.minProfitTxt.text())
-    minPadSize = int(self.minPadSize.currentIndex())
-    twoway = bool(self.twoWayBool.isChecked())
+    minPadSize = int(self.minPadSizeCombo.currentIndex())
+    searchType = int(self.searchTypeCombo.currentIndex())
+    graphDepth = int(self.graphDepthSpin.value())
+    #twoway = bool(self.twoWayBool.isChecked())
 
     systems = self.db.getSystemByName(currentSystem)
     if len(systems) == 0:
@@ -37,13 +40,22 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     pos = system.getPosition()
 
     self.currentSystem=system
-    self.twowaySearch=twoway
+    self.searchType=searchType
+    #self.twowaySearch=twoway
 
     print("Querying database...")
-    if twoway:
-      self.result = self.db.queryProfitRoundtrip(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
+    if searchType==0:
+      print("queryProfit")
+      self.result = Queries.queryProfit(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
+      #self.result = self.db.queryProfit(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
+    elif searchType==1:
+      print("queryProfitRoundtrip")
+      self.result = Queries.queryProfitRoundtrip(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
+      #self.result = self.db.queryProfitRoundtrip(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
     else:
-      self.result = self.db.queryProfit(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
+      print("queryProfitGraph")
+      self.result = Queries.queryProfitGraph(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize,graphDepth)
+
     self.model.refeshData()
     print("Done!")
 
@@ -56,36 +68,50 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def closeEvent(self, event):
     Options.set("MainWindow-geometry", self.saveGeometry())
     Options.set("MainWindow-state", self.saveState())
-    
+
   class TableModel(QtCore.QAbstractTableModel):
     def __init__(self, parent, mw):
       super().__init__(parent)
       self.mw = mw
       self.columnorder=[
-        "_curdist",
-        "Asystemname",
-        "Abasename",
-        "AexportPrice",
-        "commodityname",
-        "BimportPrice",
-        "Bsystemname",
-        "Bbasename",
-        "DistanceSq",
-        "profit"
-      ]
-      self.columnorderTwoway=[
-        "_curdist",
-        "Asystemname",
-        "Abasename",
-        "commodityname",
-        "profit",
-        "_Bcurdist",
-        "Bsystemname",
-        "Bbasename",
-        "Ccommodityname",
-        "Cprofit",
-        "DistanceSq",
-        "totalprofit"
+        [
+          "_curdist",
+          "Asystemname",
+          "Abasename",
+          "AexportPrice",
+          "commodityname",
+          "BimportPrice",
+          "Bsystemname",
+          "Bbasename",
+          "DistanceSq",
+          "profit"
+        ],
+        [
+          "_curdist",
+          "Asystemname",
+          "Abasename",
+          "commodityname",
+          "profit",
+          "_Bcurdist",
+          "Bsystemname",
+          "Bbasename",
+          "Ccommodityname",
+          "Cprofit",
+          "DistanceSq",
+          "totalprofit"
+        ],
+        [
+          "_curdist",
+          "Asystemname",
+          "Abasename",
+          "AexportPrice",
+          "commodityname",
+          "BimportPrice",
+          "Bsystemname",
+          "Bbasename",
+          "DistanceSq",
+          "profit"
+        ]
       ]
 
 
@@ -94,11 +120,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       return rows
 
     def columnCount(self, parent):
-      if self.mw.twowaySearch:
-        columns=len(self.columnorderTwoway)
-      else:
-        columns=len(self.columnorder)
-      return columns
+      return len(self.columnorder[self.mw.searchType])
 
 
     def data(self, index, role):
@@ -109,10 +131,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       data = self.mw.result[index.row()]
       section=index.column()
 
-      if self.mw.twowaySearch:
-        columnorder=self.columnorderTwoway
-      else:
-        columnorder=self.columnorder
+      columnorder=self.columnorder[self.mw.searchType]
 
       if section >= len(columnorder):
         return None
@@ -120,6 +139,11 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       # roles:  http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
 
       if role == QtCore.Qt.BackgroundRole: # background colors
+        if "celltype" in data:
+          if data["celltype"]=='emptyrow':
+            return QtGui.QBrush(QtGui.QColor(255,255,255))
+          if data["celltype"]=='separatorrow':
+            return QtGui.QBrush(QtGui.QColor(200,200,200))
         if columnorder[section] in ["Asystemname","Abasename","Bsystemname","Bbasename"]:
           return QtGui.QBrush(QtGui.QColor(255,255,230))
         if columnorder[section] in ["commodityname","Ccommodityname"]:
@@ -128,6 +152,22 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           return QtGui.QBrush(QtGui.QColor(255,230,255))
 
       if role == QtCore.Qt.ToolTipRole: # tooltips
+
+        if self.mw.searchType==2:
+          if columnorder[section] == "profit":
+            """
+            "averageprofit":loop["averageprofit"],
+            "loopminprofit":loop["loopminprofit"],
+            "loopmaxprofit":loop["loopmaxprofit"]
+            """
+            ret="Loop average profit: "+str(data["averageprofit"])+"\nLoop max profit: "+str(data["loopmaxprofit"])+"\nLoop min profit: "+str(data["loopmaxprofit"])
+            if "celltype" not in data:
+              ret+= "\nBuy for "+str(data["AexportPrice"])+"\nSell for "+str(data["BimportPrice"])+"\nProfit:  "+str(data["profit"])
+            return ret
+          else:
+            if "celltype" in data:
+              return None
+
         if columnorder[section] == "_curdist":
           if self.mw.currentSystem is None:
             return
@@ -197,6 +237,15 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
         if section >=len(columnorder):
             return None
 
+        if "celltype" in data:
+          if data["celltype"] in ['separatorrow']:
+            if columnorder[section]=='profit':
+              return "Average: "+str(data["averageprofit"])+"cr"
+            else:
+              return None
+          else:
+            return None
+
         if columnorder[section] == "_curdist":
           if self.mw.currentSystem is None:
             return '?'
@@ -218,18 +267,13 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
       return None # default when nothing matches
 
-
-
     def headerData(self, section, orientation, role):
       if role == QtCore.Qt.DisplayRole: # visible text data
 
         if orientation != QtCore.Qt.Horizontal:
           return None
 
-        if self.mw.twowaySearch:
-          columnorder=self.columnorderTwoway
-        else:
-          columnorder=self.columnorder
+        columnorder=self.columnorder[self.mw.searchType]
 
         if columnorder[section] in ["_curdist","_Bcurdist"]:
           #field="Curr.Dist."

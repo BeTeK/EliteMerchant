@@ -1,14 +1,15 @@
 from SQLiteDB import SQLiteDB
-from EDDB import EDDB
 import sys
 from pprint import pprint # lets make debugging beautiful
 from PyQt5 import QtCore, QtGui, QtWidgets
 import ui.MainWindow
 import time
 import Options
+import Queries
+import EDDB
 
 def loadEDDB(db, options):
-  EDDB().update(db)
+  EDDB.update(db)
 
 def addSystem(db):
   db.addSystem("foobar2")
@@ -18,18 +19,10 @@ def fetchSystem(db):
   systems[0].getStations()
 
 def testfn(db, options):
-  systems = db.getSystemByWindow((0, 0, 0), 10)
-  print(systems)
-  
-
-def testfunction(db,options):
-    #updatePrices(db)
-    #querystart=time.time()
-    queryresult=db.queryProfitWindow(0,0,0,30,30,1600)
-    #querytime=time.time()-querystart
-    #pprint(queryresult)
-    #pprint(str(len(queryresult))+" values time="+str(querytime))
-    #fetchSystem(db)
+  #EDDB.update(db)
+  Queries.queryProfitGraph(db,0,0,0,60,1,30,500,0,2)
+  #systems = db.getSystemByWindow((0, 0, 0), 10)
+  #print(systems)
 
 def showUI(db, options):
   app = QtWidgets.QApplication(sys.argv)
@@ -54,8 +47,6 @@ def main():
         options["operation"] = showUI
       elif sys.argv[index] in ["--load-eddb"]:
         options["operation"] = loadEDDB
-      elif sys.argv[index] in ["--testfunction"]: # devhax
-        options["operation"] = testfunction
       elif sys.argv[index] in ["--test"]: # devhax
         options["operation"] = testfn
         
