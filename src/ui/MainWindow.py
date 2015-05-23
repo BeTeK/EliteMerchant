@@ -16,6 +16,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.retranslateUi(self)
     self.result = []
     self.currentSystem = None
+    self.currentStatus = None
     self.searchType=1
     self.searchBtn.clicked.connect(self.searchBtnPressed)
     self.optionsMenu.triggered.connect(self.optionsMenuSelected)
@@ -26,9 +27,15 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.timer = QtCore.QTimer(self)
     self.analyzer = EliteLogAnalyzer.EliteLogAnalyzer()
     self.analyzer.setPath(Options.get("Elite-path", ""))
-
+    self.getCurrentBtn.clicked.connect(self.onGetCurrentSystemBtnClicked)
     self.timer.timeout.connect(self.onTimerEvent)
     self.timer.start(1000)
+
+  def onGetCurrentSystemBtnClicked(self):
+    if self.currentStatus is None:
+      return
+
+    self.currentSystemTxt.setText(self.currentStatus["System"])
 
   def onTimerEvent(self):
     self._updateIfNeededEDDB()
@@ -36,8 +43,12 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
   def _checkCurrentStatus(self):
     if self.analyzer.poll():
-      print(self.analyzer.getCurrentStatus())
-      print(self.analyzer.hasDockPermissionGot())
+      status = self.analyzer.getCurrentStatus()
+      self.currenlyAtSystemTxt.setText(status["System"])
+      self.currentlyNearAtTxt.setText(status["Near"])
+      self.dockingRequestStatusTxt.setText("Requested" if self.analyzer.hasDockPermissionGot() else "Not requested")
+      self.currentStatus = status
+
 
   def _updateIfNeededEDDB(self):
     interval = int(Options.get("EDDB-check-interval", 1))

@@ -42,7 +42,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Edce verification"))
         self.cancelBtn.setText(_translate("Dialog", "Cancel"))
         self.okBtn.setText(_translate("Dialog", "Ok"))
         self.label.setText(_translate("Dialog", "Verification code needed. Check your email and insert code here."))
