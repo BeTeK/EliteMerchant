@@ -3,3 +3,6 @@
 **/*.sqlite
 **/*.pyc
 **/*.json
+src/dist/*
+.idea/*
+EliteDBInstaller.exe

@@ -14,6 +14,7 @@ class SQLiteDB(EliteDB.EliteDB):
   
   def __init__(self, filename, forceInit = False):
     super().__init__()
+    print(filename)
     self.filename = filename
     self.forceInit = forceInit
     self.commonityCache = {}

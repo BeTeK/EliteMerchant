@@ -1,3 +1,5 @@
+from os.path import expanduser
+import os
 from SQLiteDB import SQLiteDB
 import sys
 from pprint import pprint # lets make debugging beautiful
@@ -31,8 +33,10 @@ def showUI(db, options):
   sys.exit(app.exec_())
 
 def main():
+  home = expanduser("~")
+
   index = 1
-  options = {"dbPath" : "main.sqlite",
+  options = {"dbPath" : os.path.join(home, ".eliteTradetool.sqlite"),
              "eraseDb" : False,
              "operation" : None}
   

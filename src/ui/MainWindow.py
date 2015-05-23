@@ -93,6 +93,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def closeEvent(self, event):
     Options.set("MainWindow-geometry", self.saveGeometry())
     Options.set("MainWindow-state", self.saveState())
+    self.timer.stop()
 
   class TableModel(QtCore.QAbstractTableModel):
     def __init__(self, parent, mw):
