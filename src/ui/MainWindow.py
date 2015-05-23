@@ -28,7 +28,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.timer.start(1000)
 
   def onTimerEvent(self):
-    interval = int(Options.get("eddb-check-interval", 24))
+    interval = int(Options.get("EDDB-check-interval", 1))
     lastUpdated = int(Options.get("EDDB-last-updated", -1))
     now = datetime.datetime.now().timestamp()
 
