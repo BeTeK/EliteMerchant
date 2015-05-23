@@ -1,9 +1,12 @@
 
 import ui.MainWindowUI
+import ui.Options
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QVariant
 import Options
 import Queries
+import datetime
+import EDDB
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def __init__(self, db):
@@ -14,10 +17,32 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.currentSystem = None
     self.searchType=1
     self.searchBtn.clicked.connect(self.searchBtnPressed)
+    self.optionsMenu.triggered.connect(self.optionsMenuSelected)
     self.db = db
     self.model = MainWindow.TableModel(None, self)
     self.SearchResultTable.setModel(self.model)
     self._readSettings()
+    self.timer = QtCore.QTimer(self)
+
+    self.timer.timeout.connect(self.onTimerEvent)
+    self.timer.start(1000)
+
+  def onTimerEvent(self):
+    interval = int(Options.get("eddb-check-interval", 24))
+    lastUpdated = int(Options.get("EDDB-last-updated", -1))
+    now = datetime.datetime.now().timestamp()
+
+    if interval <= 0:
+      return
+
+    if now - lastUpdated > interval * 60 * 60:
+      EDDB.update(self.db)
+
+
+  def optionsMenuSelected(self):
+    options = ui.Options.Options(self.db)
+    options.setModal(True)
+    options.exec()
 
   def searchBtnPressed(self):
 

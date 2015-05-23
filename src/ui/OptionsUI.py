@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(508, 404)
+        Dialog.resize(551, 445)
         self.gridLayout_2 = QtWidgets.QGridLayout(Dialog)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.label_4 = QtWidgets.QLabel(Dialog)
@@ -77,9 +77,9 @@ class Ui_Dialog(object):
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_5.addItem(spacerItem)
-        self.pushButton_4 = QtWidgets.QPushButton(Dialog)
-        self.pushButton_4.setObjectName("pushButton_4")
-        self.horizontalLayout_5.addWidget(self.pushButton_4)
+        self.closeBtn = QtWidgets.QPushButton(Dialog)
+        self.closeBtn.setObjectName("closeBtn")
+        self.horizontalLayout_5.addWidget(self.closeBtn)
         self.gridLayout_2.addLayout(self.horizontalLayout_5, 4, 1, 1, 1)
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
@@ -110,6 +110,6 @@ class Ui_Dialog(object):
         self.label_2.setText(_translate("Dialog", "h"))
         self.udpateEDDBBtn.setText(_translate("Dialog", "Update now"))
         self.ElitePathBtn.setText(_translate("Dialog", "..."))
-        self.pushButton_4.setText(_translate("Dialog", "Close"))
+        self.closeBtn.setText(_translate("Dialog", "Close"))
         self.EDCEPathBtn.setText(_translate("Dialog", "..."))
 

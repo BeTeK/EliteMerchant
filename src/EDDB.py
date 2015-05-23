@@ -7,6 +7,7 @@ import Options
 import sys
 import gzip
 from io import BytesIO
+import datetime
 
 eddbUrls={
   "commodities.json":"http://eddb.io/archive/v3/commodities.json",
@@ -93,6 +94,8 @@ def update(db):
       downloadFile(eddbUrls[file])
   if anyUpdated:
     importDownloaded(db)
+
+  Options.set("EDDB-last-updated", int(datetime.datetime.now().timestamp()))
 
 def checkUpdated(file,url):
   with request.urlopen(url, timeout=30) as conn:
