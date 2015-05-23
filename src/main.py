@@ -9,6 +9,7 @@ import time
 import Options
 import Queries
 import EDDB
+import EliteLogAnalyzer
 
 def loadEDDB(db, options):
   EDDB.update(db)
@@ -22,9 +23,12 @@ def fetchSystem(db):
 
 def testfn(db, options):
   #EDDB.update(db)
-  Queries.queryProfitGraph(db,0,0,0,60,1,30,500,0,2)
+  #Queries.queryProfitGraph(db,0,0,0,60,1,30,500,0,2)
   #systems = db.getSystemByWindow((0, 0, 0), 10)
   #print(systems)
+  analyzer = EliteLogAnalyzer.EliteLogAnalyzer("D:\\Frontier\\EDLaunch\\Products\\FORC-FDEV-D-1002")
+  analyzer.poll()
+  print(analyzer.getCurrentStatus())
 
 def showUI(db, options):
   app = QtWidgets.QApplication(sys.argv)

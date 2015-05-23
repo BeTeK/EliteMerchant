@@ -5,9 +5,11 @@ import Options as OptionsParams
 import EDDB
 
 class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
-    def __init__(self, db, parent = None):
+    def __init__(self, db, analyzer, parent = None):
         super(QtWidgets.QDialog, self).__init__(parent)
         self.db = db
+        self.analyzer = analyzer
+
         self.setupUi(self)
         self.closeBtn.clicked.connect(self.onCloseClicked)
         self._readSettings()
@@ -52,6 +54,7 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
 
     def onElitePathTxtChanged(self, txt):
         OptionsParams.set("Elite-path", self.ElitePathTxt.text())
+        self.analyzer.setPath(self.ElitePathTxt.text())
 
     def onElitePathClicked(self):
         path = self._selectPathDialog("Select Elite path", self.ElitePathTxt.text())
@@ -59,6 +62,7 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         if path is not None:
             self.ElitePathTxt.setText(path)
             OptionsParams.set("Elite-path", path)
+            self.analyzer.setPath(self.ElitePathTxt.text())
 
     def _selectPathDialog(self, origin, title):
         fileDialog = QtWidgets.QFileDialog(self, title, origin)

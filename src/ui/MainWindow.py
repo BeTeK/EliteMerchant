@@ -7,6 +7,7 @@ import Options
 import Queries
 import datetime
 import EDDB
+import EliteLogAnalyzer
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def __init__(self, db):
@@ -23,11 +24,22 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.SearchResultTable.setModel(self.model)
     self._readSettings()
     self.timer = QtCore.QTimer(self)
+    self.analyzer = EliteLogAnalyzer.EliteLogAnalyzer()
+    self.analyzer.setPath(Options.get("Elite-path", ""))
 
     self.timer.timeout.connect(self.onTimerEvent)
     self.timer.start(1000)
 
   def onTimerEvent(self):
+    self._updateIfNeededEDDB()
+    self._checkCurrentStatus()
+
+  def _checkCurrentStatus(self):
+    if self.analyzer.poll():
+      print(self.analyzer.getCurrentStatus())
+      print(self.analyzer.hasDockPermissionGot())
+
+  def _updateIfNeededEDDB(self):
     interval = int(Options.get("eddb-check-interval", 24))
     lastUpdated = int(Options.get("EDDB-last-updated", -1))
     now = datetime.datetime.now().timestamp()
@@ -40,7 +52,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
 
   def optionsMenuSelected(self):
-    options = ui.Options.Options(self.db)
+    options = ui.Options.Options(self.db, self.analyzer)
     options.setModal(True)
     options.exec()
 
