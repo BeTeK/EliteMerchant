@@ -194,16 +194,20 @@ def importDownloaded(db):
 
   print("               market data")
 
+  # limit data age
+  validityhorizon=float( time.time() - (60*60*24* int(Options.get("Market-valid-days", 7)) ))
+
   marketdata=[]
   # remap database
   for station in stationsdata:
     for commodity in station["listings"]:
-      commodity["baseId"]=station["id"] # stationid already remapped
-      commodity["commodityId"]=commodities_importmap[commodity["commodity_id"]]
-      commodity["importPrice"]=commodity["sell_price"] # note: eddb works from the perspective of the player - "sell" is import, "buy" is export
-      commodity["exportPrice"]=commodity["buy_price"]
-      commodity["lastUpdated"]=commodity["collected_at"]
-      marketdata.append(commodity)
+      if validityhorizon < commodity["collected_at"]: # no old data
+        commodity["baseId"]=station["id"] # stationid already remapped
+        commodity["commodityId"]=commodities_importmap[commodity["commodity_id"]]
+        commodity["importPrice"]=commodity["sell_price"] # note: eddb works from the perspective of the player - "sell" is import, "buy" is export
+        commodity["exportPrice"]=commodity["buy_price"]
+        commodity["lastUpdated"]=commodity["collected_at"]
+        marketdata.append(commodity)
 
   db.importCommodityPrices(marketdata)
 

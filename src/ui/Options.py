@@ -27,6 +27,9 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         self.EDDBUpdateIntervalTxt.valueChanged.connect(self.onCheckIntervalChanged)
         self.EDDBUpdateIntervalTxt.setValue(int(OptionsParams.get("EDDB-check-interval", 1)))
 
+        self.MarketValidVal.valueChanged.connect(self.onMarketValidValChanged)
+        self.MarketValidVal.setValue(int(OptionsParams.get("Market-valid-days", 7)))
+
         self.udpateEDDBBtn.clicked.connect(self.onUpdateEDDBNowClicked)
 
         self.usernameTxt.textEdited.connect(self.onUsernameEdited)
@@ -65,6 +68,9 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
 
     def onCheckIntervalChanged(self):
         OptionsParams.set("EDDB-check-interval", self.EDDBUpdateIntervalTxt.value())
+
+    def onMarketValidValChanged(self):
+        OptionsParams.set("Market-valid-days", self.MarketValidVal.value())
 
     def onCloseClicked(self):
         self.close()
