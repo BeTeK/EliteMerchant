@@ -108,7 +108,27 @@
      </item>
     </layout>
    </item>
-   <item row="4" column="1">
+   <item row="5" column="1">
+    <widget class="QPushButton" name="testEdceBtn">
+     <property name="text">
+      <string>Test EDCE connection</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="8" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <spacer name="horizontalSpacer">
@@ -152,18 +172,36 @@
      </item>
     </layout>
    </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Elite username (for EDCE)</string>
+     </property>
+    </widget>
+   </item>
    <item row="3" column="1">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+    <widget class="QLineEdit" name="usernameTxt"/>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="text">
+      <string>Elite password (for EDCE)</string>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="passwordTxt">
+     <property name="echoMode">
+      <enum>QLineEdit::Password</enum>
      </property>
-    </spacer>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLabel" name="edceConnectionStatusTxt">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

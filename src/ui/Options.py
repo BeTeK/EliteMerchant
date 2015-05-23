@@ -1,8 +1,10 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import PyQt5
 import ui.OptionsUI
+import ui.EdceVerification
 import Options as OptionsParams
 import EDDB
+import EdceWrapper
 
 class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
     def __init__(self, db, analyzer, parent = None):
@@ -26,6 +28,37 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         self.EDDBUpdateIntervalTxt.setValue(int(OptionsParams.get("EDDB-check-interval", 1)))
 
         self.udpateEDDBBtn.clicked.connect(self.onUpdateEDDBNowClicked)
+
+        self.usernameTxt.textEdited.connect(self.onUsernameEdited)
+        self.usernameTxt.setText(OptionsParams.get("elite-username", ""))
+
+        self.passwordTxt.textEdited.connect(self.onPasswordEdited)
+        self.passwordTxt.setText(OptionsParams.get("elite-password", ""))
+
+        self.testEdceBtn.clicked.connect(self.onTestEdceConnectionClicked)
+
+    def onTestEdceConnectionClicked(self):
+        path = OptionsParams.get("EDCE-path", "")
+        try:
+            wrapper = EdceWrapper.EdceWrapper(path, self._verificationCheck)
+            print(wrapper.getResult())
+            self.edceConnectionStatusTxt.setText("Connection is working")
+
+        except Exception as ex:
+            raise ex
+
+    def _verificationCheck(self):
+        dialog = ui.EdceVerification.EdceVerification(self)
+        dialog.setModal(True)
+        dialog.exec()
+        code = dialog.getResult()
+        return code
+
+    def onUsernameEdited(self):
+        OptionsParams.set("elite-username", self.usernameTxt.text())
+
+    def onPasswordEdited(self):
+        OptionsParams.set("elite-password", self.passwordTxt.text())
 
     def onUpdateEDDBNowClicked(self):
         EDDB.update(self.db,True)

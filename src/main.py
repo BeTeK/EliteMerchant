@@ -5,11 +5,8 @@ import sys
 from pprint import pprint # lets make debugging beautiful
 from PyQt5 import QtCore, QtGui, QtWidgets
 import ui.MainWindow
-import time
-import Options
-import Queries
 import EDDB
-import EliteLogAnalyzer
+import EdceWrapper
 
 def loadEDDB(db, options):
   EDDB.update(db)
@@ -26,9 +23,10 @@ def testfn(db, options):
   #Queries.queryProfitGraph(db,0,0,0,60,1,30,500,0,2)
   #systems = db.getSystemByWindow((0, 0, 0), 10)
   #print(systems)
-  analyzer = EliteLogAnalyzer.EliteLogAnalyzer("D:\\Frontier\\EDLaunch\\Products\\FORC-FDEV-D-1002")
-  analyzer.poll()
-  print(analyzer.getCurrentStatus())
+  edce = EdceWrapper.EdceWrapper("D:\\prog\\edce-client", verification)
+
+def verification():
+    return "EGTJN"
 
 def showUI(db, options):
   app = QtWidgets.QApplication(sys.argv)
