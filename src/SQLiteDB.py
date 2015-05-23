@@ -277,6 +277,8 @@ class SQLiteDB(EliteDB.EliteDB):
     queryvals['window'] = 'window' in queryvals and queryvals['window']/2 or 30
     queryvals['minprofit'] = 'minprofit' in queryvals and queryvals['minprofit'] or 1000
     queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
+    queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
+    queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
 
     # TODO: distance from star limit
 
@@ -294,6 +296,8 @@ class SQLiteDB(EliteDB.EliteDB):
         systems
       WHERE
         average>:minprofit*6
+        AND
+        commodityPrices.lastUpdated>:lastUpdated
         AND
         commodityPrices.commodityId=commodities.id
         AND

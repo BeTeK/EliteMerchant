@@ -1,6 +1,7 @@
 
 import operator
 import time
+import Options
 
 # as a rule, functions starting with 'query..' need db as first param - others are standalone
 
@@ -157,6 +158,7 @@ def queryProfit(db,x,y,z,windowsize=60,windows=1,maxdistance=30,minprofit=1000,l
     queryparams['maxdistance']=maxdistance
     queryparams['minprofit']=minprofit
     queryparams['landingPadSize']=landingPadSize
+    queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
     results=db.getWindowProfit(queryparams)
     #results=db.queryProfitWindow(w[0],w[1],w[2],windowsize,maxdistance,minprofit,landingPadSize)
     combined=ProfitArrayToHierarchy(results,combined)
