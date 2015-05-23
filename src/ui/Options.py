@@ -103,7 +103,7 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
             OptionsParams.set("Elite-path", path)
             self.analyzer.setPath(self.ElitePathTxt.text())
 
-    def _selectPathDialog(self, origin, title):
+    def _selectPathDialog(self, title, origin):
         fileDialog = QtWidgets.QFileDialog(self, title, origin)
         fileDialog.setModal(True)
         fileDialog.setFileMode(QtWidgets.QFileDialog.Directory)
