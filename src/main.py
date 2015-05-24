@@ -7,6 +7,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import ui.MainWindow
 import EDDB
 import EdceWrapper
+import certifi
 
 def loadEDDB(db, options):
   EDDB.update(db)

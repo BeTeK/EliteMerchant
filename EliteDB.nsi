@@ -50,6 +50,9 @@ Section "EliteDB (required)" ;No components page, name is not important
   
   SetOutPath $INSTDIR\platforms
   File src\dist\platforms\*
+
+  SetOutPath $INSTDIR\requests
+  File src\dist\requests\*
   
   WriteRegStr HKLM SOFTWARE\Software\EliteDB "Install_Dir" "$INSTDIR"
   

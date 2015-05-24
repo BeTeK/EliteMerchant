@@ -4,7 +4,9 @@
 
 from distutils.core import setup
 import py2exe
-
+import site
+import os
+import os.path
 class Target(object):
     '''Target is the baseclass for all executables that are created.
     It defines properties that are shared by all of them.
@@ -138,15 +140,29 @@ main = Target(
 #     without unpacking to the file system.  This does not work for
 #     some dlls, so use with caution.
 
+def findSitePackagesPath(requestedPath):
+    for i in site.getsitepackages():
+        path = os.path.join(i, requestedPath)
+        if os.path.exists(path):
+            return path
+
+    raise Exception("cannot find file {0}".format(requestedPath))
+
+print(findSitePackagesPath(os.path.join("requests", "cacert.pem")))
 
 includes = ["sip",
             "PyQt5",
             "PyQt5.QtCore",
-            "PyQt5.QtGui"]
+            "PyQt5.QtGui",
+            "requests",
+            "requests.adapters",
+            "certifi"]
 
-datafiles = [("platforms", ["..\\extraInstallFiles\\qwindows.dll"]),
+datafiles = [("platforms", [findSitePackagesPath(os.path.join("PyQt5", "plugins", "platforms", "qwindows.dll"))]),
              ("", [r"..\\extraInstallFiles\\MSVCP100.dll",
-                   r"..\\extraInstallFiles\\MSVCR100.dll"])]
+                   r"..\\extraInstallFiles\\MSVCR100.dll"]),
+             ("requests", [findSitePackagesPath(os.path.join("requests", "cacert.pem"))])]
+
 #datafiles = []
 
 py2exe_options = dict(
@@ -165,10 +181,10 @@ py2exe_options = dict(
 # Some options can be overridden by command line options...
 setup(name="name",
       # console based executables
-      console=[],
+      console=[main],
 
       # windows subsystem executables (no console)
-      windows=[main],
+      windows=[],
       data_files=datafiles,
       # py2exe options
       zipfile=None,

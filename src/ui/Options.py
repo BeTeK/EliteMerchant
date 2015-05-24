@@ -43,7 +43,10 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
     def onTestEdceConnectionClicked(self):
         path = OptionsParams.get("EDCE-path", "")
         try:
-            wrapper = EdceWrapper.EdceWrapper(path, self._verificationCheck)
+            wrapper = EdceWrapper.EdceWrapper(path, self.db, self._verificationCheck)
+            wrapper.fetchNewInfo()
+            wrapper.join()
+            wrapper.updateResults()
             self.edceConnectionStatusTxt.setText("Connection is working")
 
         except Exception as ex:

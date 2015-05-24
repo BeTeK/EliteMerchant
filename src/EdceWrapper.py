@@ -42,7 +42,7 @@ class EdceWrapper:
 
         import configparser
         edce.config.setConfigFile(os.path.join(home, "edce.ini"))
-        edce.config.writeConfig(Options.get("elite-username", ""), Options.get("elite-password", ""), True, home, home)
+        edce.config.writeConfig(Options.get("elite-username", ""), Options.get("elite-password", ""), True, home, home, home)
         self.resultsUpdated = True
         self.activeThreads = []
         self.result = None
