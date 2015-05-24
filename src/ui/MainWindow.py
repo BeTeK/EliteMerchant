@@ -8,8 +8,12 @@ import Queries
 import datetime
 import EDDB
 import EliteLogAnalyzer
+import ui.EdceVerification
+import EdceWrapper
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
+  _edceUpdateTimeout = 120 # 2 min timeout to keep fd happy
+
   def __init__(self, db):
     super(QtWidgets.QMainWindow, self).__init__()
     self.setupUi(self)
@@ -28,8 +32,19 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.analyzer = EliteLogAnalyzer.EliteLogAnalyzer()
     self.analyzer.setPath(Options.get("Elite-path", ""))
     self.getCurrentBtn.clicked.connect(self.onGetCurrentSystemBtnClicked)
+    self._updateEdceIntance()
+    self.edceLastUpdated = int(datetime.datetime.now().timestamp())
+
     self.timer.timeout.connect(self.onTimerEvent)
     self.timer.start(1000)
+
+  def _updateEdceIntance(self):
+    self.edce = None
+    try:
+      self.edce = EdceWrapper.EdceWrapper(Options.get("EDCE-path", ""), self.db, self._verificationCheck)
+    except Exception as ex:
+      print(ex)
+
 
   def onGetCurrentSystemBtnClicked(self):
     if self.currentStatus is None:
@@ -40,6 +55,30 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def onTimerEvent(self):
     self._updateIfNeededEDDB()
     self._checkCurrentStatus()
+    self._checkEDCE()
+
+  def _verificationCheck(self):
+        dialog = ui.EdceVerification.EdceVerification(self)
+        dialog.setModal(True)
+        dialog.exec()
+        code = dialog.getResult()
+        return code
+
+  def _checkEDCE(self):
+    if self.edce is None:
+      return
+
+    self.edce.updateResults()
+
+    if not self.analyzer.hasDockPermissionGot():
+      return
+
+    now = int(datetime.datetime.now().timestamp())
+    if now - self.edceLastUpdated < MainWindow._edceUpdateTimeout:
+      return
+
+    self.edceLastUpdated = now
+    self.edce.fetchNewInfo()
 
   def _checkCurrentStatus(self):
     if self.analyzer.poll():
@@ -66,6 +105,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     options = ui.Options.Options(self.db, self.analyzer)
     options.setModal(True)
     options.exec()
+    self._updateEdceIntance()
 
   def searchBtnPressed(self):
 
@@ -117,6 +157,9 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     Options.set("MainWindow-geometry", self.saveGeometry())
     Options.set("MainWindow-state", self.saveState())
     self.timer.stop()
+
+    if self.edce is not None:
+      self.edce.join()
 
   class TableModel(QtCore.QAbstractTableModel):
     def __init__(self, parent, mw):

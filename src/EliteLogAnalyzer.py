@@ -51,6 +51,7 @@ class EliteLogAnalyzer:
                     if line.find(b"FindBestIsland:") >= 0:
                         latestIsland = line
                         latestIslandLineNumber = lineNum
+                        permissionGot = False
 
                     if line.find(b"Dock Permission Received on pad") >= 0:
                         if lineNum > latestIslandLineNumber:

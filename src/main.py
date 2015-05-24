@@ -23,10 +23,14 @@ def testfn(db, options):
   #Queries.queryProfitGraph(db,0,0,0,60,1,30,500,0,2)
   #systems = db.getSystemByWindow((0, 0, 0), 10)
   #print(systems)
-  edce = EdceWrapper.EdceWrapper("D:\\prog\\edce-client", verification)
+  edce = EdceWrapper.EdceWrapper("D:\\prog\\edce-client", db, verification)
+  edce.fetchNewInfo()
+  edce.join()
+  edce.updateResults()
 
 def verification():
-    return "EGTJN"
+    code = input("code: ")
+    return code
 
 def showUI(db, options):
   app = QtWidgets.QApplication(sys.argv)
