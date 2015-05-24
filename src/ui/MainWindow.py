@@ -45,6 +45,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     except Exception as ex:
       print(ex)
 
+  def _setInfoText(self, txt = ""):
+    self.statusMessageTxt.setText(txt)
 
   def onGetCurrentSystemBtnClicked(self):
     if self.currentStatus is None:
@@ -68,7 +70,9 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     if self.edce is None:
       return
 
-    self.edce.updateResults()
+    result = self.edce.updateResults()
+    if result:
+      self._setInfoText()
 
     if not self.analyzer.hasDockPermissionGot():
       return
@@ -79,6 +83,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
     self.edceLastUpdated = now
     self.edce.fetchNewInfo()
+    self._setInfoText("Fetching current station data from EDCE")
 
   def _checkCurrentStatus(self):
     if self.analyzer.poll():
@@ -98,7 +103,9 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       return
 
     if lastUpdated <= 0 or now - lastUpdated > interval * 60 * 60:
+      self._setInfoText("Updating trade data from EDDB")
       EDDB.update(self.db)
+      self._setInfoText("")
 
 
   def optionsMenuSelected(self):
@@ -156,8 +163,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def closeEvent(self, event):
     Options.set("MainWindow-geometry", self.saveGeometry())
     Options.set("MainWindow-state", self.saveState())
+    self._setInfoText("Waiting for EDCE fetch to complete")
     self.timer.stop()
-
     if self.edce is not None:
       self.edce.join()
 
