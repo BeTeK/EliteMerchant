@@ -5,6 +5,8 @@ import ui.EdceVerification
 import Options as OptionsParams
 import EDDB
 import EdceWrapper
+import time
+import traceback
 
 class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
     def __init__(self, db, analyzer, parent = None):
@@ -38,26 +40,62 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         self.passwordTxt.textEdited.connect(self.onPasswordEdited)
         self.passwordTxt.setText(OptionsParams.get("elite-password", ""))
 
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self._onTimerEvent)
+        self.timer.start(1000)
+
         self.testEdceBtn.clicked.connect(self.onTestEdceConnectionClicked)
+        self.verificationCode = None
+        self.startVerification = False
+        self.edceWrapper = None
+
 
     def onTestEdceConnectionClicked(self):
         path = OptionsParams.get("EDCE-path", "")
         try:
-            wrapper = EdceWrapper.EdceWrapper(path, self.db, self._verificationCheck)
-            wrapper.fetchNewInfo()
-            wrapper.join()
-            wrapper.updateResults()
-            self.edceConnectionStatusTxt.setText("Connection is working")
-
+            self.edceConnectionStatusTxt.setText("Testing connection...")
+            self.edceWrapper = EdceWrapper.EdceWrapper(path, self.db, self._verificationCheck)
+            self.edceWrapper.fetchNewInfo()
         except Exception as ex:
-            raise ex
+            self.edceConnectionStatusTxt.setText(str(ex))
+
+    def _onTimerEvent(self):
+        if self.startVerification:
+            self.startVerification = False
+            result = self._showVerificationDialog()
+            if result is None:
+                result = ""
+            self.verificationCode = result
+
+
+        if self.edceWrapper is not None and not self.edceWrapper.isActive():
+            try:
+                self.edceWrapper.updateResults()
+                fail = self.edceWrapper.isDisabled()
+                if fail is not None:
+                    raise fail
+
+                self.edceConnectionStatusTxt.setText("EDCE connection is working")
+                self.edceWrapper = None
+
+            except Exception as ex:
+                self.edceConnectionStatusTxt.setText(str(ex))
 
     def _verificationCheck(self):
+        self.startVerification = True
+        while self.verificationCode is None:
+            time.sleep(0.1)
+
+        code = self.verificationCode
+        self.verificationCode = None
+        return code
+
+    def _showVerificationDialog(self):
         dialog = ui.EdceVerification.EdceVerification(self)
         dialog.setModal(True)
         dialog.exec()
-        code = dialog.getResult()
-        return code
+        return dialog.getResult()
+
 
     def onUsernameEdited(self):
         OptionsParams.set("elite-username", self.usernameTxt.text())
@@ -114,3 +152,4 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
             return fileDialog.selectedFiles()[0]
         else:
             return None
+

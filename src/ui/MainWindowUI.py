@@ -211,7 +211,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Elite Merchant"))
         self.minPadSizeCombo.setItemText(0, _translate("MainWindow", "any"))
         self.minPadSizeCombo.setItemText(1, _translate("MainWindow", "M"))
         self.minPadSizeCombo.setItemText(2, _translate("MainWindow", "L"))

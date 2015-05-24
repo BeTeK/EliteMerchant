@@ -4,10 +4,6 @@ import Options
 import CommonityPrice
 import threading
 
-from os.path import expanduser
-
-home = expanduser("~")
-
 class EdceWrapper:
     _commonityNameTranslationTable = {
         "Fruit And Vegetables" : "Fruit and Vegetables",
@@ -25,10 +21,10 @@ class EdceWrapper:
     }
 
     def __init__(self, edcePath, db, verificationCodeInputFn):
-        global home
         self.verificationFn = verificationCodeInputFn
         self.db = db
         self.lock = threading.RLock()
+        self.disabled = None
 
         sys.path.insert(0, edcePath)
         sys.path.insert(0, os.path.join(edcePath, "edce"))
@@ -42,10 +38,10 @@ class EdceWrapper:
 
         edce.eddn.testSchema = False
         edce.query.minimumDelay = 0
-
+        print(Options.getPath())
         import configparser
-        edce.config.setConfigFile(os.path.join(home, "edce.ini"))
-        edce.config.writeConfig(Options.get("elite-username", ""), Options.get("elite-password", ""), True, home, home, home)
+        edce.config.setConfigFile(Options.getPath("edce.ini"))
+        edce.config.writeConfig(Options.get("elite-username", ""), Options.get("elite-password", ""), True, Options.getPath(), Options.getPath(), Options.getPath())
         self.resultsUpdated = True
         self.activeThreads = []
         self.result = None
@@ -61,16 +57,25 @@ class EdceWrapper:
         import edce.config
         import edce.globals
 
-        res = edce.query.performQuery(verificationCodeSupplyFn = self.verificationFn)
-        result = edce.util.edict(res)
-        if edce.config.getString('preferences','enable_eddn').lower().find('y') >= 0:
-            if "docked" in result.commander and result.commander.docked:
-                edce.eddn.postMarketData(result)
+        try:
+            if self.disabled is not None:
+                return
 
-        with self.lock:
-            self.result = result
+            res = edce.query.performQuery(verificationCodeSupplyFn = self.verificationFn)
+            result = edce.util.edict(res)
+            if edce.config.getString('preferences','enable_eddn').lower().find('y') >= 0:
+                if "docked" in result.commander and result.commander.docked:
+                    edce.eddn.postMarketData(result)
 
-        print("New data fetched from edce")
+            with self.lock:
+                self.result = result
+
+            print("New data fetched from edce")
+        except Exception as ex:
+            self.disabled = ex
+
+    def isDisabled(self):
+        return self.disabled
 
     def _cleanThreads(self):
         toBeRemoved = []
@@ -86,6 +91,13 @@ class EdceWrapper:
         thread = threading.Thread(target = self._updateResults)
         self.activeThreads.append(thread)
         thread.start()
+
+    def isActive(self):
+        for i in self.activeThreads:
+            if i.is_alive():
+                return True
+
+        return False
 
     def join(self):
         self._cleanThreads()

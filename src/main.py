@@ -1,4 +1,3 @@
-from os.path import expanduser
 import os
 from SQLiteDB import SQLiteDB
 import sys
@@ -8,6 +7,8 @@ import ui.MainWindow
 import EDDB
 import EdceWrapper
 import certifi
+import Options
+
 
 def loadEDDB(db, options):
   EDDB.update(db)
@@ -40,10 +41,9 @@ def showUI(db, options):
   sys.exit(app.exec_())
 
 def main():
-  home = expanduser("~")
 
   index = 1
-  options = {"dbPath" : os.path.join(home, ".eliteTradetool.sqlite"),
+  options = {"dbPath" : Options.getPath("EliteMerchantList.sqlite"),
              "eraseDb" : False,
              "operation" : None,
              "redirectOutputToLog" : False}
@@ -62,8 +62,8 @@ def main():
       elif sys.argv[index] in ["--test"]: # devhax
         options["operation"] = testfn
       elif sys.argv[index] in ["--redirectOutput"]:
-        stdOutFile = open(os.path.join(home, "eliteDb_stdout.log"), "w+")
-        stdErrFile = open(os.path.join(home, "eliteDb_stderr.log"), "w+")
+        stdOutFile = open(Options.getPath("eliteDb_stdout.log"), "w+")
+        stdErrFile = open(Options.getPath("eliteDb_stderr.log"), "w+")
 
         sys.stdout = stdOutFile
         sys.stderr = stdErrFile

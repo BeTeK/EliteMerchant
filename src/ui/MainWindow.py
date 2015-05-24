@@ -10,6 +10,7 @@ import EDDB
 import EliteLogAnalyzer
 import ui.EdceVerification
 import EdceWrapper
+import time
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   _edceUpdateTimeout = 90 # 2 min timeout to keep fd happy
@@ -29,14 +30,16 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.model = MainWindow.TableModel(None, self)
     self.SearchResultTable.setModel(self.model)
     self._readSettings()
-    self.timer = QtCore.QTimer(self)
     self.analyzer = EliteLogAnalyzer.EliteLogAnalyzer()
     self.analyzer.setPath(Options.get("Elite-path", ""))
     self.getCurrentBtn.clicked.connect(self.onGetCurrentSystemBtnClicked)
     self._updateEdceIntance()
     self.edceLastUpdated = int(datetime.datetime.now().timestamp())
     self.edceLastUpdateInfo = None
+    self.verificationCode = None
+    self.startVerification = False
 
+    self.timer = QtCore.QTimer(self)
     self.timer.timeout.connect(self.onTimerEvent)
     self.timer.start(1000)
 
@@ -63,13 +66,30 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self._updateIfNeededEDDB()
     self._checkCurrentStatus()
     self._checkEDCE()
+    self._checkVerificationWindow()
+
+  def _checkVerificationWindow(self):
+    if self.startVerification:
+        self.startVerification = False
+        result = self._showVerificationDialog()
+        if result is None:
+            result = ""
+        self.verificationCode = result
+
+  def _showVerificationDialog(self):
+      dialog = ui.EdceVerification.EdceVerification(self)
+      dialog.setModal(True)
+      dialog.exec()
+      return dialog.getResult()
 
   def _verificationCheck(self):
-        dialog = ui.EdceVerification.EdceVerification(self)
-        dialog.setModal(True)
-        dialog.exec()
-        code = dialog.getResult()
-        return code
+    self.startVerification = True
+    while self.verificationCode is None:
+        time.sleep(0.1)
+
+    code = self.verificationCode
+    self.verificationCode = None
+    return code
 
   def _checkEDCE(self):
     if self.edce is None:

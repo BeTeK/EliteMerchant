@@ -181,10 +181,10 @@ py2exe_options = dict(
 # Some options can be overridden by command line options...
 setup(name="name",
       # console based executables
-      console=[main],
+      console=[],
 
       # windows subsystem executables (no console)
-      windows=[],
+      windows=[main],
       data_files=datafiles,
       # py2exe options
       zipfile=None,
