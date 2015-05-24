@@ -28,6 +28,7 @@ class EdceWrapper:
         global home
         self.verificationFn = verificationCodeInputFn
         self.db = db
+        self.lock = threading.RLock()
 
         sys.path.insert(0, edcePath)
         sys.path.insert(0, os.path.join(edcePath, "edce"))
@@ -59,7 +60,9 @@ class EdceWrapper:
         if edce.config.getString('preferences','enable_eddn').lower().find('y') >= 0:
             edce.eddn.postMarketData(result)
 
-        self.result = result
+        with self.lock:
+            self.result = result
+
         print("New data fetched from edce")
 
     def _cleanThreads(self):
@@ -86,9 +89,14 @@ class EdceWrapper:
 
     def updateResults(self):
         self._cleanThreads()
-        result = self.result
+        result = None
+
+        with self.lock:
+            result = self.result
+            if result is not None:
+                self.result = None
+
         if result is not None:
-            self.result = None
             self._updateImpl(result)
         #else:
         #    print("No new results skipping")
