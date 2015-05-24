@@ -7,7 +7,11 @@ class EliteLogAnalyzer:
     def __init__(self):
         self.path = None
         self.fixLog = True
-        self.currentStatus = None
+        self.currentStatus = {
+            "PlayerName" : "",
+            "System" : "",
+            "Near" : ""
+        }
         self.dockPermissionGot = False
 
     def setFixLog(self, fixLog):

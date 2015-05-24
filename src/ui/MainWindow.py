@@ -12,7 +12,7 @@ import ui.EdceVerification
 import EdceWrapper
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
-  _edceUpdateTimeout = 60 # 2 min timeout to keep fd happy
+  _edceUpdateTimeout = 90 # 2 min timeout to keep fd happy
 
   def __init__(self, db):
     super(QtWidgets.QMainWindow, self).__init__()
@@ -35,6 +35,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.getCurrentBtn.clicked.connect(self.onGetCurrentSystemBtnClicked)
     self._updateEdceIntance()
     self.edceLastUpdated = int(datetime.datetime.now().timestamp())
+    self.edceLastUpdateInfo = None
 
     self.timer.timeout.connect(self.onTimerEvent)
     self.timer.start(1000)
@@ -75,8 +76,20 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       return
 
     result = self.edce.updateResults()
+    info = self.edce.getLastUpdatedInfo()
+
     if result:
       self._setInfoText()
+
+    if info["docked"]:
+      self.edceLastUpdated = info
+
+
+    if self.analyzer.getCurrentStatus()["System"] == info["systemName"] and \
+        self.analyzer.getCurrentStatus()["Near"] == info["starportName"]:
+      return
+
+
 
     if not self.analyzer.hasDockPermissionGot():
       return
