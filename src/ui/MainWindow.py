@@ -12,7 +12,7 @@ import ui.EdceVerification
 import EdceWrapper
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
-  _edceUpdateTimeout = 120 # 2 min timeout to keep fd happy
+  _edceUpdateTimeout = 130 # 2 min timeout to keep fd happy
 
   def __init__(self, db):
     super(QtWidgets.QMainWindow, self).__init__()
