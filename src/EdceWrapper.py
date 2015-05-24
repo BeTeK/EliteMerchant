@@ -40,6 +40,9 @@ class EdceWrapper:
         import edce.config
         import edce.globals
 
+        edce.eddn.testSchema = False
+        edce.query.minimumDelay = 0
+
         import configparser
         edce.config.setConfigFile(os.path.join(home, "edce.ini"))
         edce.config.writeConfig(Options.get("elite-username", ""), Options.get("elite-password", ""), True, home, home, home)
