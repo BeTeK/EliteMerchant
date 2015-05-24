@@ -24,6 +24,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.searchType=1
     self.searchBtn.clicked.connect(self.searchBtnPressed)
     self.optionsMenu.triggered.connect(self.optionsMenuSelected)
+    self.exitMenu.triggered.connect(self.exitMenuSelected)
     self.db = db
     self.model = MainWindow.TableModel(None, self)
     self.SearchResultTable.setModel(self.model)
@@ -37,6 +38,9 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
     self.timer.timeout.connect(self.onTimerEvent)
     self.timer.start(1000)
+
+  def exitMenuSelected(self):
+    self.close()
 
   def _updateEdceIntance(self):
     self.edce = None

@@ -386,6 +386,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="exitMenu"/>
    </widget>
    <widget class="QMenu" name="editMenu">
     <property name="title">
@@ -400,6 +401,11 @@
   <action name="optionsMenu">
    <property name="text">
     <string>Options</string>
+   </property>
+  </action>
+  <action name="exitMenu">
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>
