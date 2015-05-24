@@ -58,7 +58,8 @@ class EdceWrapper:
         res = edce.query.performQuery(verificationCodeSupplyFn = self.verificationFn)
         result = edce.util.edict(res)
         if edce.config.getString('preferences','enable_eddn').lower().find('y') >= 0:
-            edce.eddn.postMarketData(result)
+            if "docked" in result.commander and result.commander.docked:
+                edce.eddn.postMarketData(result)
 
         with self.lock:
             self.result = result
@@ -108,9 +109,6 @@ class EdceWrapper:
         starportName = results.lastStarport.name
         systemName = results.lastSystem.name
         docked = results.commander.docked
-        if not docked:
-            print("Not docked. Skipping")
-            return
 
         systems = self.db.getSystemByName(systemName)
         if len(systems) == 0:
