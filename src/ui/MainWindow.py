@@ -328,7 +328,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
             if "celltype" not in data:
               ret+= "\nBuy for "+str(data["AexportPrice"])\
                     +"\nSell for "+str(data["BimportPrice"])\
-                    +"\nProfit:  "+str(data["profit"])
+                    +"\nProfit:  "+str(data["profit"])\
+                    +"\nProfit/h:"+str(int(data["profit"]/data["hours"]))
             return ret
           else:
             if "celltype" in data:
@@ -461,7 +462,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
         elif columnorder[section] == "SystemDistance":
           return data["SystemDistance"]
         elif columnorder[section] == "profitPh":
-          return str(int(data["profitPh"]))
+          return str(int(data["profit"]/data["hours"]))
         else:
           return data[columnorder[section]]
 

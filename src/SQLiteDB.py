@@ -321,7 +321,7 @@ class SQLiteDB(EliteDB.EliteDB):
       cur = self.conn.cursor()
 
       queryvals['maxdistance'] = 'maxdistance' in queryvals and queryvals['maxdistance'] or 30
-      queryvals['window'] = 'window' in queryvals and queryvals['window']/2 or 30
+      queryvals['window'] = 'window' in queryvals and queryvals['window']/2 or 50
       queryvals['minprofit'] = 'minprofit' in queryvals and queryvals['minprofit'] or 0
       queryvals['minprofitPh'] = 'minprofitPh' in queryvals and queryvals['minprofitPh'] or 0
       queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
@@ -361,16 +361,13 @@ class SQLiteDB(EliteDB.EliteDB):
       SELECT
         B.importPrice-A.exportPrice AS profit,
         Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) AS SystemDistance,
-        (B.importPrice-A.exportPrice)
-        /
         (
           (
             StarToBase( B.distance )
             +
             BaseToBase( Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) ,16)
           )/60/60
-        )
-        AS profitPh,
+        ) AS hours,
         (
             (A.x - B.x)*(A.x - B.x)
             +
@@ -402,7 +399,7 @@ class SQLiteDB(EliteDB.EliteDB):
         AND
         profit > :minprofit
         AND
-        profitPh > :minprofitPh
+        profit/hours > :minprofitPh
         --ORDER BY profit DESC
         --LIMIT 0,10
       """
@@ -412,5 +409,4 @@ class SQLiteDB(EliteDB.EliteDB):
       querytime=time.time()-querystart
 
       print("queryProfitWindow, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
-
       return [self._rowToDict(o) for o in result]
