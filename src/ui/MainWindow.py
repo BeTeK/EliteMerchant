@@ -10,6 +10,7 @@ import EDDB
 import EliteLogAnalyzer
 import ui.EdceVerification
 import EdceWrapper
+import SpaceTime
 import time
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
@@ -60,7 +61,16 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     if self.currentStatus is None:
       return
 
-    self.currentSystemTxt.setText(self.currentStatus["System"])
+    self._setCurrentSystemByname(self.currentStatus["System"])
+
+
+  def _setCurrentSystemByname(self,systemname):
+    self.currentSystemTxt.setText(systemname)
+    systems = self.db.getSystemByName(systemname)
+    if len(systems) == 0:
+      return
+    self.currentSystem = systems[0]
+    self.model.refeshData()
 
   def onTimerEvent(self):
     self._updateIfNeededEDDB()
@@ -130,6 +140,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       self.dockingRequestStatusTxt.setText("Requested" if self.analyzer.hasDockPermissionGot() else "Not requested")
       self.currentStatus = status
 
+      self._setCurrentSystemByname(status["System"])
 
   def _updateIfNeededEDDB(self):
     interval = int(Options.get("EDDB-check-interval", 1))
@@ -140,16 +151,13 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       return
 
     if lastUpdated <= 0 or now - lastUpdated > interval * 60 * 60:
-      self._setInfoText("Updating trade data from EDDB")
       EDDB.update(self.db)
-      self._setInfoText("")
 
 
   def optionsMenuSelected(self):
     options = ui.Options.Options(self.db, self.analyzer)
     options.setModal(True)
     options.exec()
-    self._updateEdceIntance()
 
   def searchBtnPressed(self):
 
@@ -159,34 +167,42 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     windowSize = float(self.windowSizeTxt.text())
     windows = int(self.windowCountTxt.text())
     maxDistance = float(self.maxDistanceTxt.text())
-    minProfit = int(self.minProfitTxt.text())
+    minProfit =None
+    minProfitPh =None
+    if bool(self.profitPhChk.isChecked()):
+      minProfitPh = int(self.minProfitTxt.text())
+    else:
+      minProfit = int(self.minProfitTxt.text())
     minPadSize = int(self.minPadSizeCombo.currentIndex())
     searchType = int(self.searchTypeCombo.currentIndex())
-    graphDepth = int(self.graphDepthSpin.value())
+    graphDepth = int(self.graphMinDepthSpin.value())
+    graphDepthmax = int(self.graphDepthSpin.value())
     #twoway = bool(self.twoWayBool.isChecked())
 
     systems = self.db.getSystemByName(currentSystem)
     if len(systems) == 0:
       return
-    system = systems[0]
-    pos = system.getPosition()
+    self.currentSystem = systems[0]
+    pos = self.currentSystem.getPosition()
 
-    self.currentSystem=system
     self.searchType=searchType
     #self.twowaySearch=twoway
 
     print("Querying database...")
     if searchType==0:
       print("queryProfit")
-      self.result = Queries.queryProfit(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
+      self.result = Queries.queryProfit(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize)
       #self.result = self.db.queryProfit(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
     elif searchType==1:
       print("queryProfitRoundtrip")
-      self.result = Queries.queryProfitRoundtrip(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
+      self.result = Queries.queryProfitRoundtrip(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize)
       #self.result = self.db.queryProfitRoundtrip(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
+    elif searchType==2:
+      print("queryProfitGraphLoops")
+      self.result = Queries.queryProfitGraphLoops(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,graphDepth,graphDepthmax)
     else:
-      print("queryProfitGraph")
-      self.result = Queries.queryProfitGraph(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize,graphDepth)
+      print("queryProfitGraphDeadends")
+      self.result = Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,graphDepth,graphDepthmax)
 
     self.model.refeshData()
     print("Done!")
@@ -209,8 +225,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     def __init__(self, parent, mw):
       super().__init__(parent)
       self.mw = mw
-      self.columnorder=[
-        [
+      basictradetable=[
           "_curdist",
           "Asystemname",
           "Abasename",
@@ -219,10 +234,12 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           "BimportPrice",
           "Bsystemname",
           "Bbasename",
-          "DistanceSq",
-          "profit"
-        ],
-        [
+          #"DistanceSq",
+          "SystemDistance",
+          "profit",
+          "profitPh"
+        ]
+      twowaytradetable=[
           "_curdist",
           "Asystemname",
           "Abasename",
@@ -233,21 +250,16 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           "Bbasename",
           "Ccommodityname",
           "Cprofit",
-          "DistanceSq",
-          "totalprofit"
-        ],
-        [
-          "_curdist",
-          "Asystemname",
-          "Abasename",
-          "AexportPrice",
-          "commodityname",
-          "BimportPrice",
-          "Bsystemname",
-          "Bbasename",
-          "DistanceSq",
-          "profit"
+          #"DistanceSq",
+          "SystemDistance",
+          "totalprofit",
+          "profitPh"
         ]
+      self.columnorder=[
+        basictradetable,
+        twowaytradetable,
+        basictradetable,
+        basictradetable
       ]
 
 
@@ -289,16 +301,34 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
       if role == QtCore.Qt.ToolTipRole: # tooltips
 
-        if self.mw.searchType==2:
+        if self.mw.searchType==2 or self.mw.searchType==3:
           if columnorder[section] == "profit":
             """
             "averageprofit":loop["averageprofit"],
             "loopminprofit":loop["loopminprofit"],
             "loopmaxprofit":loop["loopmaxprofit"]
             """
-            ret="Loop average profit: "+str(data["averageprofit"])+"\nLoop max profit: "+str(data["loopmaxprofit"])+"\nLoop min profit: "+str(data["loopmaxprofit"])
+            ret="Loop average profit: "+str(data["averageprofit"])\
+                +"\nLoop max profit: "+str(data["loopmaxprofit"])\
+                +"\nLoop min profit: "+str(data["loopmaxprofit"])
             if "celltype" not in data:
-              ret+= "\nBuy for "+str(data["AexportPrice"])+"\nSell for "+str(data["BimportPrice"])+"\nProfit:  "+str(data["profit"])
+              ret+= "\nBuy for "+str(data["AexportPrice"])\
+                    +"\nSell for "+str(data["BimportPrice"])\
+                    +"\nProfit:  "+str(data["profit"])
+            return ret
+          if columnorder[section] == "profitPh":
+            """
+            "averageprofit":loop["averageprofit"],
+            "loopminprofit":loop["loopminprofit"],
+            "loopmaxprofit":loop["loopmaxprofit"]
+            """
+            ret="Loop average profit: "+str(data["averageprofit"])\
+                +"\nLoop max profit: "+str(data["loopmaxprofit"])\
+                +"\nLoop min profit: "+str(data["loopmaxprofit"])
+            if "celltype" not in data:
+              ret+= "\nBuy for "+str(data["AexportPrice"])\
+                    +"\nSell for "+str(data["BimportPrice"])\
+                    +"\nProfit:  "+str(data["profit"])
             return ret
           else:
             if "celltype" in data:
@@ -308,18 +338,22 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           if self.mw.currentSystem is None:
             return
           else:
-            curname=self.mw.currentSystem.getName()
+            curname=self.mw.currentSystem.getName() # todo: ship range
             pos=self.mw.currentSystem.getPosition()
             dist=( (pos[0]-data["Ax"])**2 + (pos[1]-data["Ay"])**2 + (pos[2]-data["Az"])**2 ) ** 0.5
-            return "Distance from "+curname+" (current system)\nto "+data["Asystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly"
+            return "Distance from "+curname+" (current system)\n" \
+              "to "+data["Asystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly " \
+              "("+str("%.2f" % (SpaceTime.BaseToBase(dist)/60))+"min)"
         elif columnorder[section] == "_Bcurdist":
           if self.mw.currentSystem is None:
             return
           else:
-            curname=self.mw.currentSystem.getName()
+            curname=self.mw.currentSystem.getName() # todo: ship range
             pos=self.mw.currentSystem.getPosition()
             dist=( (pos[0]-data["Bx"])**2 + (pos[1]-data["By"])**2 + (pos[2]-data["Bz"])**2 ) ** 0.5
-            return "Distance from "+curname+" (current system)\nto "+data["Bsystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly"
+            return "Distance from "+curname+" (current system)\n" \
+              "to "+data["Bsystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly " \
+              "("+str("%.2f" % (SpaceTime.BaseToBase(dist)/60))+"min)"
         elif columnorder[section] in ["Asystemname","Abasename"]:
           padsize={
             None:"unknown",
@@ -329,9 +363,9 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           }
           returnstring=""
           returnstring+="System: "+data["Asystemname"]+"\n"
-          returnstring+="Coordinates: "+str(data["Ax"])+", "+str(data["Ay"])+", "+str(data["Az"])+"\n"
           returnstring+="Station: "+data["Abasename"]+"\n"
-          returnstring+="Distance to star: "+str(data["Adistance"] is not None and data["Adistance"] or "unknown")+"\n"
+          returnstring+="Distance to star: "+str(data["Adistance"] is not None and (str(data["Adistance"])
+          +" ("+str("%.2f" % (SpaceTime.StarToBase(data["Adistance"])/60))+"min)") or "unknown")+"\n"
           returnstring+="Landing pad size: "+padsize[data["AlandingPadSize"]]
           return returnstring
         elif columnorder[section] == "AexportPrice":
@@ -355,17 +389,41 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           }
           returnstring=""
           returnstring+="System: "+data["Bsystemname"]+"\n"
-          returnstring+="Coordinates: "+str(data["Bx"])+", "+str(data["By"])+", "+str(data["Bz"])+"\n"
           returnstring+="Station: "+data["Bbasename"]+"\n"
-          returnstring+="Distance to star: "+str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"\n"
+          returnstring+="Distance to star: "+str(data["Bdistance"] is not None and (str(data["Bdistance"])
+          + " ("+str("%.2f" %(SpaceTime.StarToBase(data["Bdistance"])/60))+"min)") or "unknown")+"\n"
           returnstring+="Landing pad size: "+padsize[data["BlandingPadSize"]]
           return returnstring
         elif columnorder[section] == "DistanceSq":
-          return "Travel distance "+str(data["DistanceSq"]**0.5)+"ly + "+str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"ls from star to station"
+          return "Travel distance "+str(data["DistanceSq"]**0.5)+"ly + "+\
+                 str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"ls from star to station"
+        elif columnorder[section] == "SystemDistance":
+          return "Travel distance "+str(data["SystemDistance"])+"ly + "+\
+                 str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"ls from star to station"
         elif columnorder[section] == "profit":
-          return "Buy for "+str(data["AexportPrice"])+"\nSell for "+str(data["BimportPrice"])+"\nProfit:  "+str(data["profit"])
+          return "Buy for "+str(data["AexportPrice"])\
+                 +"\nSell for "+str(data["BimportPrice"])\
+                 +"\nProfit:  "+str(data["profit"])
         elif columnorder[section] == "Cprofit":
-          return "Buy for "+str(data["BexportPrice"])+"\nSell for "+str(data["CimportPrice"])+"\nProfit:  "+str(data["Cprofit"])
+          return "Buy for "+str(data["BexportPrice"])\
+                 +"\nSell for "+str(data["CimportPrice"])\
+                 +"\nProfit:  "+str(data["Cprofit"])
+        elif columnorder[section] == "profitPh":
+          returnstring="Profit:"+str(data["profit"])+"\n"
+          returnstring+="System: "+data["Bsystemname"]+"\n"
+          returnstring+=str(data["SystemDistance"])+"ly\n"
+          returnstring+="Station: "+data["Bbasename"]+"\n"
+          returnstring+=str(data["Bdistance"] is not None and str(data["Bdistance"])+"ls\n" or "")
+          returnstring+=str(data["Bdistance"] is not None and str("%.2f" % (SpaceTime.StarToBase(data["Bdistance"])/60))+"min" or "")
+          return returnstring
+        elif columnorder[section] == "CprofitPh":
+          returnstring="Profit:"+str(data["Cprofit"])+"\n"
+          returnstring+="System: "+data["Csystemname"]+"\n"
+          returnstring+=str(data["CSystemDistance"])+"ly\n"
+          returnstring+="Station: "+data["Cbasename"]+"\n"
+          returnstring+=str(data["Cdistance"] is not None and str(data["Cdistance"])+"ls\n" or "")
+          returnstring+=str(data["Cdistance"] is not None and str("%.2f" % (SpaceTime.StarToBase(data["Cdistance"])/60))+"min" or "")
+          return returnstring
         else:
           return None
 
@@ -377,6 +435,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           if data["celltype"] in ['separatorrow']:
             if columnorder[section]=='profit':
               return "Average: "+str(data["averageprofit"])+"cr"
+            elif columnorder[section]=='profitPh':
+              return str(data["totalprofitPh"])+"cr/h"
             else:
               return None
           else:
@@ -398,6 +458,10 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
             return "%.2f" % dist # two decimals
         elif columnorder[section] == "DistanceSq":
           return data["DistanceSq"] ** 0.5
+        elif columnorder[section] == "SystemDistance":
+          return data["SystemDistance"]
+        elif columnorder[section] == "profitPh":
+          return str(int(data["profitPh"]))
         else:
           return data[columnorder[section]]
 
@@ -434,12 +498,16 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           field="To Station"
         elif columnorder[section] == "DistanceSq":
           field="Distance"
+        elif columnorder[section] == "SystemDistance":
+          field="Distance"
         elif columnorder[section] == "profit":
           field="Profit Cr"
         elif columnorder[section] == "Cprofit":
           field="Return Profit Cr"
         elif columnorder[section] == "totalprofit":
           field="Total Profit Cr"
+        elif columnorder[section] == "profitPh":
+          field="Profit Cr/h"
         else:
           return None
 

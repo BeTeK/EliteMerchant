@@ -10,6 +10,8 @@ import time
 import datetime
 import CommonityPrice
 import Commonity
+import SpaceTime
+from math import *
 
 class SQLiteDB(EliteDB.EliteDB):
   
@@ -20,7 +22,7 @@ class SQLiteDB(EliteDB.EliteDB):
     self.forceInit = forceInit
     self.commonityCache = {}
     self.lock = threading.RLock()
-  
+
 
   def __enter__(self):
     self._init()
@@ -32,6 +34,14 @@ class SQLiteDB(EliteDB.EliteDB):
       os.remove(self.filename)
 
     self.conn = sqlite3.connect(self.filename)
+
+    # custom db functions
+    # https://docs.python.org/2/library/sqlite3.html#sqlite3.Connection.create_function
+    self.conn.create_function("StarToBase", 1, SpaceTime.StarToBase)
+    self.conn.create_function("BaseToBase", 2, SpaceTime.BaseToBase)
+    def distance3d(x,y,z,i,j,k):
+      return ((x-i)**2+(y-j)**2+(z-k)**2)**.5
+    self.conn.create_function("Distance3D", 6, distance3d)
 
     # database settings
     cur=self.conn.cursor()
@@ -312,75 +322,89 @@ class SQLiteDB(EliteDB.EliteDB):
 
       queryvals['maxdistance'] = 'maxdistance' in queryvals and queryvals['maxdistance'] or 30
       queryvals['window'] = 'window' in queryvals and queryvals['window']/2 or 30
-      queryvals['minprofit'] = 'minprofit' in queryvals and queryvals['minprofit'] or 1000
+      queryvals['minprofit'] = 'minprofit' in queryvals and queryvals['minprofit'] or 0
+      queryvals['minprofitPh'] = 'minprofitPh' in queryvals and queryvals['minprofitPh'] or 0
       queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
       queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
       queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
 
       # TODO: distance from star limit
 
-      # full querystring
       querystring="""
       WITH systemwindow AS (
-        SELECT
-          systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
-          commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average
-        FROM
-          commodities,
-          commodityPrices,
-          bases,
-          baseInfo,
-          systems
-        WHERE
-          average>:minprofit*6
-          AND
-          commodityPrices.lastUpdated>:lastUpdated
-          AND
-          commodityPrices.commodityId=commodities.id
-          AND
-          commodityPrices.baseId=bases.id
-          AND
-          bases.systemId=systems.id
-          AND
-          baseInfo.baseId=bases.id
-          AND
-          baseInfo.landingPadSize>=:landingPadSize
-          AND
-          :x-:window<x AND x<:x+:window AND :y-:window<y AND y<:y+:window AND :z-:window<z AND z<:z+:window
+      SELECT
+        systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
+        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average
+      FROM
+        commodities,
+        commodityPrices,
+        bases,
+        baseInfo,
+        systems
+      WHERE
+        average>:minprofit*6
+        AND
+        commodityPrices.lastUpdated>:lastUpdated
+        AND
+        commodityPrices.commodityId=commodities.id
+        AND
+        commodityPrices.baseId=bases.id
+        AND
+        bases.systemId=systems.id
+        AND
+        baseInfo.baseId=bases.id
+        AND
+        baseInfo.landingPadSize>=:landingPadSize
+        AND
+        :x-:window<x AND x<:x+:window AND :y-:window<y AND y<:y+:window AND :z-:window<z AND z<:z+:window
       )
       SELECT
-          B.importPrice-A.exportPrice AS profit,
+        B.importPrice-A.exportPrice AS profit,
+        Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) AS SystemDistance,
+        (B.importPrice-A.exportPrice)
+        /
+        (
           (
-              (A.x - B.x)*(A.x - B.x)
-              +
-              (A.y - B.y)*(A.y - B.y)
-              +
-              (A.z - B.z)*(A.z - B.z)
-          ) AS DistanceSq,
-          A.commodityname AS commodityname,
-          A.commodityId AS commodityId,
-          A.average AS average,
-          A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
-          A.exportPrice AS AexportPrice, A.supply AS Asupply,
-          A.x AS Ax, A.y AS Ay, A.z AS Az,
-          B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
-          B.importPrice AS BimportPrice, B.demand AS Bdemand,
-          B.x AS Bx, B.y AS By, B.z AS Bz
-        FROM
-          systemwindow AS A,
-          systemwindow AS B
+            StarToBase( B.distance )
+            +
+            BaseToBase( Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) ,16)
+          )/60/60
+        )
+        AS profitPh,
+        (
+            (A.x - B.x)*(A.x - B.x)
+            +
+            (A.y - B.y)*(A.y - B.y)
+            +
+            (A.z - B.z)*(A.z - B.z)
+        ) AS DistanceSq,
+        A.commodityname AS commodityname,
+        A.commodityId AS commodityId,
+        A.average AS average,
+        A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
+        A.exportPrice AS AexportPrice, A.supply AS Asupply,
+        A.x AS Ax, A.y AS Ay, A.z AS Az,
+        B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
+        B.importPrice AS BimportPrice, B.demand AS Bdemand,
+        B.x AS Bx, B.y AS By, B.z AS Bz
+      FROM
+        systemwindow AS A,
+        systemwindow AS B
       WHERE
-          --B.importPrice > B.average
-          --AND
-          A.commodityId=B.commodityId
-          AND
-          distanceSQ < :maxdistance*:maxdistance
-          AND
-          A.exportPrice BETWEEN 1 AND A.average
-          AND
-          profit > :minprofit
-      --ORDER BY profit DESC
-      --LIMIT 0,10
+        --B.importPrice > B.average
+        --AND
+        A.commodityId=B.commodityId
+        AND
+        --SystemDistance < :maxdistance
+        DistanceSq < :maxdistance*:maxdistance
+        AND
+        A.exportPrice BETWEEN 1 AND A.average
+        AND
+        profit > :minprofit
+        AND
+        profitPh > :minprofitPh
+        --ORDER BY profit DESC
+        --LIMIT 0,10
       """
 
       querystart=time.time()
