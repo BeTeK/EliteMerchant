@@ -232,7 +232,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
                         if "celltype" not in data:
                             ret+= "\nBuy for "+str(data["AexportPrice"])\
                                         +"\nSell for "+str(data["BimportPrice"])\
-                                        +"\nProfit:    "+str(data["profit"])
+                                        +"\nProfit:    "+str(data["profit"])\
+                                        +"\nProfit/h:"+str(int(data["profit"]/data["hours"]))
                         return ret
                     else:
                         if "celltype" in data:
@@ -340,7 +341,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
                         if columnorder[section]=='profit':
                             return "Average: "+str(data["averageprofit"])+"cr"
                         elif columnorder[section]=='profitPh':
-                          return str(data["totalprofitPh"])+"cr/h"
+                            return str(data["totalprofitPh"])+"cr/h"
                         else:
                             return None
                     else:
@@ -365,7 +366,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
                 elif columnorder[section] == "SystemDistance":
                     return data["SystemDistance"]
                 elif columnorder[section] == "profitPh":
-                    return str(int(data["profitPh"]))
+                    return str(int(data["profit"]/data["hours"]))
                 else:
                     return data[columnorder[section]]
 
