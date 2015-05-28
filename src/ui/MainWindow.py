@@ -146,9 +146,11 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       if len(systems) == 0:
           return
       for tab in self.tabItems:
-        tab[1].currentSystem = systems[0]
-        tab[1].currentSystemTxt.setText(systemName)
-        tab[1].model.refeshData()
+        if tab[1].searchType==0:
+          tab[1].currentSystem = systems[0]
+          tab[1].currentSystemTxt.setText(systemName)
+          tab[1].model.refeshData()
+          tab[1].searchBtnPressed()
 
   def onTimerEvent(self):
     self._updateIfNeededEDDB()

@@ -210,7 +210,7 @@ def queryProfitRoundtrip(db,x,y,z,windowsize,windows,maxdistance,minprofit,minpr
   print("Found "+str(len(twoway))+" roundtrip trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
   return sorted(twoway,key=operator.itemgetter("totalprofitPh"), reverse=True)
 
-def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ):
+def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,sourcesystem=None,sourcebase=None):
   windows=queryGenerateWindows(db,x,y,z,windowsize,maxdistance,windows)
   combined=dict()
   for wi in range(len(windows)):
@@ -230,6 +230,25 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     #results=db.queryProfitWindow(w[0],w[1],w[2],windowsize,maxdistance,minprofit,landingPadSize)
     combined=ProfitArrayToHierarchy(results,combined)
     print("Window " + str(wi+1) + " of " + str(len(windows)) + " (" + str("%.2f"%( (wi+1)/len(windows) *100 )) + "%)")
+
+  if sourcesystem is not None or sourcebase is not None:
+    print("Fetching starting system with loosened criteria.. ("+str(sourcesystem)+", "+str(sourcebase)+")")
+    queryparams=dict()
+    queryparams['x']=x
+    queryparams['y']=y
+    queryparams['z']=z
+    queryparams['window']=100
+    queryparams['maxdistance']=50
+    queryparams['minprofit']=0
+    queryparams['minprofitPh']=0
+    queryparams['landingPadSize']=landingPadSize
+    queryparams['jumprange']=jumprange
+    queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
+    queryparams['sourcesystem']=sourcesystem or '%'
+    queryparams['sourcebase']=sourcebase or '%'
+    results=db.getWindowProfitFrom(queryparams)
+    combined=ProfitArrayToHierarchy(results,combined)
+
   combinedAr=ProfitHierarchyToArray(combined)
   return sorted(combinedAr,key=operator.itemgetter("profitPh"),reverse=True)
 
@@ -249,7 +268,7 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
 
   print("discarded "+str(len(bases_deadends))+" confirmed deadends")
   """
-
+  profitfailuredepth=2
   startingroutecount=len(oneway)
   iteration=0
   routecount=0
@@ -281,9 +300,8 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
   loops=[]
   routed=[]
   def walk(fromid,start,history,profit,hours,mintotalprofitPh):
-    #global mintotalprofitPh  # punch a hole for book-keeping
     depth=len(history)
-    if depth > 2 and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
+    if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
       return False
     if maxdepth<depth:
       return False
@@ -386,18 +404,32 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
     #returnarray.append('separatorrow')
   return returnarray
 
-
-
-def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth):
-  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange )
+def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth,sourcesystem=None,sourcebase=None):
+  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange,sourcesystem,sourcebase)
 
   prune=ProfitArrayToHierarchy_profitPh(oneway)
 
-  #bases=list(set([way["AbaseId"] for way in onewayviable]))
-  bases=list(set([way["AbaseId"] for way in oneway]))
+  profitfailuredepth=2
+  profitmargin=0.95 # todo: configurable?
   profitpotential=0
   for way in oneway:
     profitpotential=max(profitpotential,way["profitPh"])
+  mintotalprofitPh=[profitpotential]
+
+
+  bases=list(set([way["AbaseId"] for way in oneway]))
+  if sourcebase is not None:
+    print("base not null")
+    profitfailuredepth=3
+    profitmargin=0.8
+    mintotalprofitPh=[0]
+    bases=list(set([way["AbaseId"] for way in oneway if way["Abasename"].lower().strip()==sourcebase.lower().strip()]))
+  if sourcebase is None or len(bases)==0 and sourcesystem is not None:
+    print("sys not null")
+    profitfailuredepth=3
+    profitmargin=0.8
+    mintotalprofitPh=[0]
+    bases=list(set([way["AbaseId"] for way in oneway if way["Asystemname"].lower().strip()==sourcesystem.lower().strip()]))
 
   print(str(len(oneway))+" viable trade hops")
 
@@ -405,15 +437,11 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
 
   querystart=time.time()
 
-  mintotalprofitPh=[minprofitPh or minprofit]
-  profitmargin=0.95 # todo: configurable?
-
   loops=[]
   routed=[]
   def walk(fromid,start,history,profit,hours,mintotalprofitPh):
-    #global mintotalprofitPh  # punch a hole for book-keeping
     depth=len(history)
-    if depth > 2 and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
+    if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
       return False
     if maxdepth<depth:
       return False
@@ -452,6 +480,7 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
   lastupdate=0
   updateinterval=1
 
+  print(bases)
   for bi in range(len(bases)):
     fromid=bases[bi]
     if time.time()-updateinterval > lastupdate: # console may slow us down so keep update intervals
@@ -466,7 +495,7 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
 
   print("")
 
-  print("Found "+str(len(loops))+" loop trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
+  print("Found "+str(len(loops))+" long trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
 
   loops = sorted(loops,key=lambda ar:ar[0],reverse=True) # sort by profit
   loops=loops[:5000] # don't overload the window

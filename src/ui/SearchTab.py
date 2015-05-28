@@ -49,6 +49,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
         self.maxDistanceTxt.setText(Options.get(self._optName("maximum_distance"), "30"))
         self.minProfitTxt.setText(Options.get(self._optName("minimum_profit"), "1000"))
         self.searchTypeCombo.setCurrentIndex(int(Options.get(self._optName("search_type"), "0")))
+        self.searchType=int(Options.get(self._optName("search_type"), "0"))
         self.graphDepthSpin.setValue(int(Options.get(self._optName("search_max_depth"), "3")))
         self.graphMinDepthSpin.setValue(int(Options.get(self._optName("search_min_depth"), "1")))
         self.windowSizeTxt.setText(Options.get(self._optName("search_window_size"), "100"))
@@ -77,7 +78,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
 
 
     def searchBtnPressed(self):
-
+        #print ("searchBtnPressed")
         #self.searchBtn.setText('- - - - S e a r c h i n g - - - -') # unfortunately these never show with synchronous ui
 
         currentSystem = self.currentSystemTxt.text()
@@ -107,16 +108,26 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
         #self.twowaySearch=twoway
 
         print("Querying database...")
-        if searchType==0:
+        if searchType==3:
             print("queryProfit")
             self.result = Queries.queryProfit(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange )
             #self.result = self.db.queryProfit(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
-        elif searchType==1:
+        elif searchType==2:
             print("queryProfitGraphLoops")
             self.result = Queries.queryProfitGraphLoops(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
-        else:
+        elif searchType==1:
             print("queryProfitGraphDeadends")
             self.result = Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
+        elif searchType==0:
+            currentBase=None
+            if self.analyzer.getCurrentStatus()['System'] == self.currentSystem:
+              #if self.analyzer.hasDockPermissionGot():
+              currentBase=self.analyzer.getCurrentStatus()["Near"]
+
+            print("queryProfitGraphDeadends from current")
+            self.result = Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
+        else:
+            print("unknown search type - we should not be here")
         #elif searchType==1:
         #    print("queryProfitRoundtrip")
         #    self.result = Queries.queryProfitRoundtrip(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize)
@@ -207,7 +218,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
 
             if role == QtCore.Qt.ToolTipRole: # tooltips
 
-                if self.mw.searchType==1 or self.mw.searchType==2:
+                if self.mw.searchType<3:
                     if columnorder[section] == "profit":
                         ret="Loop average profit: "+str(data["averageprofit"])\
                             +"\nLoop max profit: "+str(data["loopmaxprofit"])\
@@ -293,10 +304,11 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
                     return returnstring
                 elif columnorder[section] == "DistanceSq":
                     return "Travel distance "+str(data["DistanceSq"]**0.5)+"ly + "+\
-                                 str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"ls from star to station"
+                                str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"ls from star to station"
                 elif columnorder[section] == "SystemDistance":
                     return "Travel distance "+str(data["SystemDistance"])+"ly + "+\
-                                 str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"ls from star to station"
+                                str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"ls from star to station\n"+\
+                                str(data["Bdistance"] is not None and str("%.2f" % (SpaceTime.StarToBase(data["Bdistance"])/60))+"min" or "")
                 elif columnorder[section] == "profit":
                     return "Buy for "+str(data["AexportPrice"])\
                                  +"\nSell for "+str(data["BimportPrice"])\

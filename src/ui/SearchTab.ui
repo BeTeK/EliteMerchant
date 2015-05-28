@@ -132,7 +132,7 @@
          </property>
          <item>
           <property name="text">
-           <string>Single trip</string>
+           <string>Exports from current</string>
           </property>
          </item>
          <item>
@@ -143,6 +143,11 @@
          <item>
           <property name="text">
            <string>Long route</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Single trades</string>
           </property>
          </item>
         </widget>
