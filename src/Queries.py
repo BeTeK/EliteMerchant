@@ -176,8 +176,8 @@ def ProfitArrayToHierarchyReverse(oneway,prune=None): # add old hierarchy as sec
       prune[way["BbaseId"]][way["AbaseId"]][way["commodityId"]]=way
   return prune
 
-def queryProfitRoundtrip(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize):
-  oneway=queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize)
+def queryProfitRoundtrip(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ):
+  oneway=queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange )
   twoway=[]
 
   print("Finding two way routes...")
@@ -210,7 +210,7 @@ def queryProfitRoundtrip(db,x,y,z,windowsize,windows,maxdistance,minprofit,minpr
   print("Found "+str(len(twoway))+" roundtrip trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
   return sorted(twoway,key=operator.itemgetter("totalprofitPh"), reverse=True)
 
-def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize):
+def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ):
   windows=queryGenerateWindows(db,x,y,z,windowsize,maxdistance,windows)
   combined=dict()
   for wi in range(len(windows)):
@@ -224,6 +224,7 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     queryparams['minprofit']=minprofit
     queryparams['minprofitPh']=minprofitPh
     queryparams['landingPadSize']=landingPadSize
+    queryparams['jumprange']=jumprange
     queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
     results=db.getWindowProfit(queryparams)
     #results=db.queryProfitWindow(w[0],w[1],w[2],windowsize,maxdistance,minprofit,landingPadSize)
@@ -232,8 +233,8 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
   combinedAr=ProfitHierarchyToArray(combined)
   return sorted(combinedAr,key=operator.itemgetter("profitPh"),reverse=True)
 
-def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,mindepth,maxdepth):
-  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize)
+def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth):
+  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange )
 
   """
   # list of unique baseIds
@@ -387,8 +388,8 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
 
 
 
-def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,mindepth,maxdepth):
-  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize)
+def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth):
+  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange )
 
   prune=ProfitArrayToHierarchy_profitPh(oneway)
 

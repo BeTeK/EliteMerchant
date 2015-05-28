@@ -12,11 +12,12 @@ import time
 
 
 class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
-    def __init__(self, db, analyzer, tabName):
+    def __init__(self, db, analyzer, tabName, mainwindow):
         super(QtWidgets.QWidget, self).__init__()
         self.setupUi(self)
         self.tabName = tabName
         self.db = db
+        self.mainwindow = mainwindow
         self.result = []
         self.currentSystem = None
         self.searchType=1
@@ -50,9 +51,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
         self.searchTypeCombo.setCurrentIndex(int(Options.get(self._optName("search_type"), "0")))
         self.graphDepthSpin.setValue(int(Options.get(self._optName("search_max_depth"), "3")))
         self.graphMinDepthSpin.setValue(int(Options.get(self._optName("search_min_depth"), "1")))
-        self.minPadSizeCombo.setCurrentIndex(int(Options.get(self._optName("lading_pad_size"), "0")))
         self.windowSizeTxt.setText(Options.get(self._optName("search_window_size"), "100"))
         self.windowCountTxt.setText(Options.get(self._optName("search_window_count"), "1"))
+        self.profitPhChk.setChecked(Options.get(self._optName("search_profitPh"),"1")=="1")
 
     def _saveSearchStatus(self):
         Options.set(self._optName("current_system"), self.currentSystemTxt.text())
@@ -63,7 +64,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
         Options.set(self._optName("search_type"), self.searchTypeCombo.currentIndex())
         Options.set(self._optName("search_max_depth"), self.graphDepthSpin.value())
         Options.set(self._optName("search_min_depth"), self.graphMinDepthSpin.value())
-        Options.set(self._optName("lading_pad_size"), self.minPadSizeCombo.currentIndex())
+        Options.set(self._optName("search_profitPh"), self.profitPhChk.isChecked() and "1" or "0")
 
     def _setCurrentSystemByname(self):
         systemName = self.analyzer.getCurrentStatus()["System"]
@@ -71,9 +72,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
         systems = self.db.getSystemByName(systemName)
         if len(systems) == 0:
             return
-
         self.currentSystem = systems[0]
         self.model.refeshData()
+
 
     def searchBtnPressed(self):
 
@@ -83,13 +84,14 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
         windowSize = float(self.windowSizeTxt.text())
         windows = int(self.windowCountTxt.text())
         maxDistance = float(self.maxDistanceTxt.text())
+        jumprange = float(self.mainwindow.jumpRangeTxt.text())
         minProfit =None
         minProfitPh =None
         if bool(self.profitPhChk.isChecked()):
             minProfitPh = int(self.minProfitTxt.text())
         else:
             minProfit = int(self.minProfitTxt.text())
-        minPadSize = int(self.minPadSizeCombo.currentIndex())
+        minPadSize = int(self.mainwindow.minPadSizeCombo.currentIndex())
         searchType = int(self.searchTypeCombo.currentIndex())
         graphDepth = int(self.graphMinDepthSpin.value())
         graphDepthmax = int(self.graphDepthSpin.value())
@@ -107,18 +109,18 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
         print("Querying database...")
         if searchType==0:
             print("queryProfit")
-            self.result = Queries.queryProfit(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize)
+            self.result = Queries.queryProfit(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange )
             #self.result = self.db.queryProfit(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
         elif searchType==1:
-            print("queryProfitRoundtrip")
-            self.result = Queries.queryProfitRoundtrip(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize)
-            #self.result = self.db.queryProfitRoundtrip(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
-        elif searchType==2:
             print("queryProfitGraphLoops")
-            self.result = Queries.queryProfitGraphLoops(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,graphDepth,graphDepthmax)
+            self.result = Queries.queryProfitGraphLoops(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
         else:
             print("queryProfitGraphDeadends")
-            self.result = Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,graphDepth,graphDepthmax)
+            self.result = Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
+        #elif searchType==1:
+        #    print("queryProfitRoundtrip")
+        #    self.result = Queries.queryProfitRoundtrip(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize)
+        #    #self.result = self.db.queryProfitRoundtrip(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
 
         self.model.refeshData()
         print("Done!")
@@ -161,7 +163,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
                 ]
             self.columnorder=[
                 basictradetable,
-                twowaytradetable,
+                #twowaytradetable,
                 basictradetable,
                 basictradetable
             ]
@@ -205,35 +207,25 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
 
             if role == QtCore.Qt.ToolTipRole: # tooltips
 
-                if self.mw.searchType==2 or self.mw.searchType==3:
+                if self.mw.searchType==1 or self.mw.searchType==2:
                     if columnorder[section] == "profit":
-                        """
-                        "averageprofit":loop["averageprofit"],
-                        "loopminprofit":loop["loopminprofit"],
-                        "loopmaxprofit":loop["loopmaxprofit"]
-                        """
                         ret="Loop average profit: "+str(data["averageprofit"])\
-                                +"\nLoop max profit: "+str(data["loopmaxprofit"])\
-                                +"\nLoop min profit: "+str(data["loopmaxprofit"])
+                            +"\nLoop max profit: "+str(data["loopmaxprofit"])\
+                            +"\nLoop min profit: "+str(data["loopmaxprofit"])
                         if "celltype" not in data:
                             ret+= "\nBuy for "+str(data["AexportPrice"])\
-                                        +"\nSell for "+str(data["BimportPrice"])\
-                                        +"\nProfit:    "+str(data["profit"])
+                                +"\nSell for "+str(data["BimportPrice"])\
+                                +"\nProfit:    "+str(data["profit"])
                         return ret
                     if columnorder[section] == "profitPh":
-                        """
-                        "averageprofit":loop["averageprofit"],
-                        "loopminprofit":loop["loopminprofit"],
-                        "loopmaxprofit":loop["loopmaxprofit"]
-                        """
                         ret="Loop average profit: "+str(data["averageprofit"])\
-                                +"\nLoop max profit: "+str(data["loopmaxprofit"])\
-                                +"\nLoop min profit: "+str(data["loopmaxprofit"])
+                            +"\nLoop max profit: "+str(data["loopmaxprofit"])\
+                            +"\nLoop min profit: "+str(data["loopmaxprofit"])
                         if "celltype" not in data:
                             ret+= "\nBuy for "+str(data["AexportPrice"])\
-                                        +"\nSell for "+str(data["BimportPrice"])\
-                                        +"\nProfit:    "+str(data["profit"])\
-                                        +"\nProfit/h:"+str(int(data["profit"]/data["hours"]))
+                                  +"\nSell for "+str(data["BimportPrice"])\
+                                  +"\nProfit:    "+str(data["profit"])\
+                                  +"\nProfit/h:"+str(int(data["profit"]/data["hours"]))
                         return ret
                     else:
                         if "celltype" in data:

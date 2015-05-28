@@ -60,7 +60,7 @@
        <item row="1" column="0">
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Current system</string>
+          <string>Starting system</string>
          </property>
         </widget>
        </item>
@@ -77,6 +77,9 @@
           <widget class="QCheckBox" name="profitPhChk">
            <property name="text">
             <string>Cr/h</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -122,41 +125,6 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="5">
-        <widget class="QComboBox" name="minPadSizeCombo">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="currentIndex">
-          <number>2</number>
-         </property>
-         <item>
-          <property name="text">
-           <string>any</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>M</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>L</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="1" column="4">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Min pad size</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="3">
         <widget class="QComboBox" name="searchTypeCombo">
          <property name="currentIndex">
@@ -165,11 +133,6 @@
          <item>
           <property name="text">
            <string>Single trip</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Round trip</string>
           </property>
          </item>
          <item>
