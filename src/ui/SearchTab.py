@@ -98,9 +98,14 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
         graphDepthmax = int(self.graphDepthSpin.value())
         #twoway = bool(self.twoWayBool.isChecked())
 
+        if (graphDepth>graphDepthmax):
+          print("min hops have to be less than max hops!")
+          return
+
         systems = self.db.getSystemByName(currentSystem)
         if len(systems) == 0:
-            return
+          print("system not found!")
+          return
         self.currentSystem = systems[0]
         pos = self.currentSystem.getPosition()
 
@@ -108,17 +113,17 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
         #self.twowaySearch=twoway
 
         print("Querying database...")
-        if searchType==3:
+        if searchType==4:
             print("queryProfit")
             self.result = Queries.queryProfit(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange )
             #self.result = self.db.queryProfit(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
         elif searchType==2:
             print("queryProfitGraphLoops")
             self.result = Queries.queryProfitGraphLoops(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
-        elif searchType==1:
+        elif searchType==3:
             print("queryProfitGraphDeadends")
             self.result = Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
-        elif searchType==0:
+        elif searchType==0 or searchType==1:
             currentBase=None
             if self.analyzer.getCurrentStatus()['System'] == self.currentSystem:
               #if self.analyzer.hasDockPermissionGot():
@@ -174,7 +179,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
                 ]
             self.columnorder=[
                 basictradetable,
-                #twowaytradetable,
+                basictradetable,
                 basictradetable,
                 basictradetable
             ]
@@ -218,7 +223,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
 
             if role == QtCore.Qt.ToolTipRole: # tooltips
 
-                if self.mw.searchType<3:
+                if "averageprofit" in data: # this is a graph search
                     if columnorder[section] == "profit":
                         ret="Loop average profit: "+str(data["averageprofit"])\
                             +"\nLoop max profit: "+str(data["loopmaxprofit"])\

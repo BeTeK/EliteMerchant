@@ -423,10 +423,9 @@ class SQLiteDB(EliteDB.EliteDB):
       queryvals['minprofitPh'] = 'minprofitPh' in queryvals and queryvals['minprofitPh'] or 0
       queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
       queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
-      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
+      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated']*2 )) # allow twice as old
       queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
       queryvals['sourcesystem'] = 'sourcesystem' in queryvals and queryvals['sourcesystem'] or '%'
-      queryvals['sourcebase'] = 'sourcebase' in queryvals and queryvals['sourcebase'] or '%'
 
       querystring="""
       WITH systemwindow AS (
@@ -440,6 +439,8 @@ class SQLiteDB(EliteDB.EliteDB):
         baseInfo,
         systems
       WHERE
+        commodityPrices.lastUpdated>:lastUpdated
+        AND
         commodityPrices.commodityId=commodities.id
         AND
         commodityPrices.baseId=bases.id
@@ -483,8 +484,6 @@ class SQLiteDB(EliteDB.EliteDB):
         systemwindow AS B
       WHERE
         A.systemname LIKE :sourcesystem
-        AND
-        A.basename LIKE :sourcebase
         AND
         A.commodityId=B.commodityId
         AND

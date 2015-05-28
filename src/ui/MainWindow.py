@@ -146,7 +146,12 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       if len(systems) == 0:
           return
       for tab in self.tabItems:
-        if tab[1].searchType==0:
+        if tab[1].searchType==0 and self.analyzer.hasDockPermissionGot():
+          tab[1].currentSystem = systems[0]
+          tab[1].currentSystemTxt.setText(systemName)
+          tab[1].model.refeshData()
+          tab[1].searchBtnPressed()
+        if tab[1].searchType==1:
           tab[1].currentSystem = systems[0]
           tab[1].currentSystemTxt.setText(systemName)
           tab[1].model.refeshData()
@@ -214,8 +219,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       status = self.analyzer.getCurrentStatus()
       self.currenlyAtSystemTxt.setText(status["System"])
       self.currentlyNearAtTxt.setText(status["Near"])
-      if self.analyzer.hasDockPermissionGot():
-        self._setCurrentSystemByname()
+      #if self.analyzer.hasDockPermissionGot():
+      self._setCurrentSystemByname()
 
   def _updateIfNeededEDDB(self):
     interval = int(Options.get("EDDB-check-interval", 1))
