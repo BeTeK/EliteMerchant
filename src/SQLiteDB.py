@@ -327,6 +327,7 @@ class SQLiteDB(EliteDB.EliteDB):
       queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
       queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
       queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
+      queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
 
       # TODO: distance from star limit
 
@@ -365,7 +366,7 @@ class SQLiteDB(EliteDB.EliteDB):
           (
             StarToBase( B.distance )
             +
-            BaseToBase( Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) ,16)
+            BaseToBase( Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) ,:jumprange)
           )/60/60
         ) AS hours,
         (
