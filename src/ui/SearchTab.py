@@ -9,9 +9,9 @@ import EliteLogAnalyzer
 import EdceWrapper
 import SpaceTime
 import time
+import ui.TabAbstract
 
-
-class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
+class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabAbstract):
     def __init__(self, db, analyzer, tabName, mainwindow):
         super(QtWidgets.QWidget, self).__init__()
         self.setupUi(self)

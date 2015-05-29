@@ -10,9 +10,9 @@ import EliteLogAnalyzer
 import EdceWrapper
 import SpaceTime
 import time
+import ui.TabAbstract
 
-
-class Status(ui.StatusUI.Ui_Dialog, QtWidgets.QWidget):
+class Status(ui.StatusUI.Ui_Dialog, QtWidgets.QWidget, ui.TabAbstract.TabAbstract):
     def __init__(self, db, analyzer, tabName, mainWindow):
         super(QtWidgets.QWidget, self).__init__()
         self.setupUi(self)
