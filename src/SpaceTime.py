@@ -1,6 +1,6 @@
 from math import *
 
-# calculating spacetime relations - namely how long it takes to travel across sytems and within a system
+# calculating spacetime relations - namely how long it takes to travel between systems and within a system
 
 def BaseToBase(ly,shiprange=16.5,stops=1):
 
@@ -12,18 +12,9 @@ def BaseToBase(ly,shiprange=16.5,stops=1):
   time_stationbusiness=49.6 # time spent trading in station
   time_stationleave=54.7 # time between leaving and fsd
 
-  # todo: hopsPerLy ship range multiplier
-  hopsPerLy=1.464/shiprange
-
-  #empty hauler
-  #hopsPerLy=0.055 # multiplier for ly to get number of hops
-  #empty t7 23.28
-  #hopsPerLy=0.061 # multiplier for ly to get number of hops
-  #full t7 16.53
-  #hopsPerLy=0.088 # multiplier for ly to get number of hops
-
-  #hops=ceil(ly*hopsPerLy)
-  hops=ly*hopsPerLy
+  a=.6
+  b=.22
+  hops=0.5+ly*(a/(shiprange**(a+b)))
 
   time_in_fsd=( hops * time_hop ) + ( max(0,(hops-1)) * time_fsdrecharge )
 

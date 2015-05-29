@@ -76,10 +76,10 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self._updateTabs()
 
   def _addStatusTabSelected(self):
-    self._addTab(ui.Status.Status(self.db, self.analyzer, ""))
+    self._addTab(ui.Status.Status(self.db, self.analyzer, "", self))
 
   def _addSearchTabSelected(self):
-    self._addTab(ui.SearchTab.SearchTab(self.db, self.analyzer, ""))
+    self._addTab(ui.SearchTab.SearchTab(self.db, self.analyzer, "", self))
 
   def _exitMenuSelected(self):
     self.close()
@@ -87,15 +87,20 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def _readSettings(self):
     self.restoreGeometry(Options.get("MainWindow-geometry", QtCore.QByteArray()))
     self.restoreState(Options.get("MainWindow-state", QtCore.QByteArray()))
+
+    self.cargoSizeTxt.setText(Options.get("ship_cargo_size", "100"))
+    self.jumpRangeTxt.setText(Options.get("ship_jump_range", "15"))
+    self.minPadSizeCombo.setCurrentIndex(int(Options.get("ship_landing_pad_size", "0")))
+
     tabCount = int(Options.get("main_window_tab_count", "0"))
 
     for index in range(tabCount):
       type = Options.get("main_window_tab_{0}_type".format(index), "")
 
       if type == "search":
-        item = ("Search {0}".format(index + 1), ui.SearchTab.SearchTab(self.db, self.analyzer, str(index + 1)))
+        item = ("Search {0}".format(index + 1), ui.SearchTab.SearchTab(self.db, self.analyzer, str(index + 1),self))
       elif type == "status":
-        item = ("Status {0}".format(index + 1), ui.Status.Status(self.db, self.analyzer, str(index + 1)))
+        item = ("Status {0}".format(index + 1), ui.Status.Status(self.db, self.analyzer, str(index + 1),self))
 
       self.tabItems.append(item)
 
@@ -107,6 +112,9 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       widget.dispose()
       index += 1
 
+    Options.set("ship_cargo_size", self.cargoSizeTxt.text())
+    Options.set("ship_jump_range", self.jumpRangeTxt.text())
+    Options.set("ship_landing_pad_size", self.minPadSizeCombo.currentIndex())
 
     Options.set("MainWindow-geometry", self.saveGeometry())
     Options.set("MainWindow-state", self.saveState())
@@ -128,8 +136,26 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def onGetCurrentSystemBtnClicked(self):
     if self.currentStatus is None:
       return
+    self._setCurrentSystemByname()
 
-    self._setCurrentSystemByname(self.currentStatus["System"])
+
+  def _setCurrentSystemByname(self):
+      systemName = self.analyzer.getCurrentStatus()["System"]
+      self.currenlyAtSystemTxt.setText(systemName)
+      systems = self.db.getSystemByName(systemName)
+      if len(systems) == 0:
+          return
+      for tab in self.tabItems:
+        if tab[1].searchType==0 and self.analyzer.hasDockPermissionGot():
+          tab[1].currentSystem = systems[0]
+          tab[1].currentSystemTxt.setText(systemName)
+          tab[1].model.refeshData()
+          tab[1].searchBtnPressed()
+        if tab[1].searchType==1:
+          tab[1].currentSystem = systems[0]
+          tab[1].currentSystemTxt.setText(systemName)
+          tab[1].model.refeshData()
+          tab[1].searchBtnPressed()
 
   def onTimerEvent(self):
     self._updateIfNeededEDDB()
@@ -173,12 +199,9 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     if info["docked"]:
       self.edceLastUpdated = info
 
-
     if self.analyzer.getCurrentStatus()["System"] == info["systemName"] and \
         self.analyzer.getCurrentStatus()["Near"] == info["starportName"]:
       return
-
-
 
     if not self.analyzer.hasDockPermissionGot():
       return
@@ -194,6 +217,10 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def _checkCurrentStatus(self):
     if self.analyzer.poll():
       status = self.analyzer.getCurrentStatus()
+      self.currenlyAtSystemTxt.setText(status["System"])
+      self.currentlyNearAtTxt.setText(status["Near"])
+      #if self.analyzer.hasDockPermissionGot():
+      self._setCurrentSystemByname()
 
   def _updateIfNeededEDDB(self):
     interval = int(Options.get("EDDB-check-interval", 1))

@@ -92,7 +92,7 @@ def ProfitArrayToHierarchy_flat(oneway,prune=None): # add old hierarchy as secon
 
   return prune
 
-def ProfitArrayToHierarchy_flat_profitPh(oneway,prune=None): # add old hierarchy as second parameter to add to it
+def ProfitArrayToHierarchy_profitPh(oneway,prune=None): # add old hierarchy as second parameter to add to it
   # hierarchy follows this simple structure:
   """
   fromId
@@ -114,9 +114,10 @@ def ProfitArrayToHierarchy_flat_profitPh(oneway,prune=None): # add old hierarchy
     if not way["AbaseId"] in prune:
       prune[way["AbaseId"]]=dict()
     if not way["BbaseId"] in prune[way["AbaseId"]]:
-      prune[way["AbaseId"]][way["BbaseId"]]=way['profitPh']
+      prune[way["AbaseId"]][way["BbaseId"]]=way
     else:
-      prune[way["AbaseId"]][way["BbaseId"]]=max(way['profitPh'],prune[way["AbaseId"]][way["BbaseId"]])
+      if prune[way["AbaseId"]][way["BbaseId"]]['profitPh']<way['profitPh']:
+        prune[way["AbaseId"]][way["BbaseId"]]=way
 
   return prune
 
@@ -144,7 +145,7 @@ def ProfitArrayToHierarchy(oneway,prune=None): # add old hierarchy as second par
     if not way["BbaseId"] in prune[way["AbaseId"]]:
       prune[way["AbaseId"]][way["BbaseId"]]=dict()
     if not way["commodityId"] in prune[way["AbaseId"]][way["BbaseId"]]:
-      way["profitPh"]=int(way["profit"]/way["hours"]) # bake me a cake
+      way["profitPh"]=int(way["profit"]/way["hours"]) # bake me a cake  -----  profitPh = profit / hours
       prune[way["AbaseId"]][way["BbaseId"]][way["commodityId"]]=way
   return prune
 
@@ -175,8 +176,8 @@ def ProfitArrayToHierarchyReverse(oneway,prune=None): # add old hierarchy as sec
       prune[way["BbaseId"]][way["AbaseId"]][way["commodityId"]]=way
   return prune
 
-def queryProfitRoundtrip(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize):
-  oneway=queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize)
+def queryProfitRoundtrip(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ):
+  oneway=queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange )
   twoway=[]
 
   print("Finding two way routes...")
@@ -209,7 +210,7 @@ def queryProfitRoundtrip(db,x,y,z,windowsize,windows,maxdistance,minprofit,minpr
   print("Found "+str(len(twoway))+" roundtrip trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
   return sorted(twoway,key=operator.itemgetter("totalprofitPh"), reverse=True)
 
-def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize):
+def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,sourcesystem=None,sourcebase=None):
   windows=queryGenerateWindows(db,x,y,z,windowsize,maxdistance,windows)
   combined=dict()
   for wi in range(len(windows)):
@@ -223,16 +224,36 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     queryparams['minprofit']=minprofit
     queryparams['minprofitPh']=minprofitPh
     queryparams['landingPadSize']=landingPadSize
+    queryparams['jumprange']=jumprange
     queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
     results=db.getWindowProfit(queryparams)
     #results=db.queryProfitWindow(w[0],w[1],w[2],windowsize,maxdistance,minprofit,landingPadSize)
     combined=ProfitArrayToHierarchy(results,combined)
     print("Window " + str(wi+1) + " of " + str(len(windows)) + " (" + str("%.2f"%( (wi+1)/len(windows) *100 )) + "%)")
+
+  if sourcesystem is not None or sourcebase is not None:
+    print("Fetching starting system with loosened criteria.. ("+str(sourcesystem)+", "+str(sourcebase)+")")
+    queryparams=dict()
+    queryparams['x']=x
+    queryparams['y']=y
+    queryparams['z']=z
+    queryparams['window']=100
+    queryparams['maxdistance']=50
+    queryparams['minprofit']=0
+    queryparams['minprofitPh']=0
+    queryparams['landingPadSize']=landingPadSize
+    queryparams['jumprange']=jumprange
+    queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
+    queryparams['sourcesystem']=sourcesystem or '%'
+    queryparams['sourcebase']=sourcebase or '%'
+    results=db.getWindowProfitFrom(queryparams)
+    combined=ProfitArrayToHierarchy(results,combined)
+
   combinedAr=ProfitHierarchyToArray(combined)
   return sorted(combinedAr,key=operator.itemgetter("profitPh"),reverse=True)
 
-def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,routelength,maxdepth):
-  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize)
+def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth):
+  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange )
 
   """
   # list of unique baseIds
@@ -247,7 +268,7 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
 
   print("discarded "+str(len(bases_deadends))+" confirmed deadends")
   """
-
+  profitfailuredepth=2
   startingroutecount=len(oneway)
   iteration=0
   routecount=0
@@ -262,69 +283,85 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
     oneway=[way for way in oneway if way["AbaseId"] in pruneR]
   print("discarded "+str(startingroutecount-len(oneway)))
 
-
-  prune=ProfitArrayToHierarchy_flat_profitPh(oneway)
+  prune=ProfitArrayToHierarchy_profitPh(oneway)
 
   #bases=list(set([way["AbaseId"] for way in onewayviable]))
   bases=list(set([way["AbaseId"] for way in oneway]))
 
+  print(str(len(oneway))+" viable trade hops")
 
   print("walking galaxy-graph for loops")
 
   querystart=time.time()
 
-  #loopgraph=dict()
+  mintotalprofitPh=[minprofitPh or minprofit]
+  profitmargin=0.99
 
-  #loops=set()
   loops=[]
+  satisfactionattempts=20
+  satisfiedwithresult=False
+  while not satisfiedwithresult and profitmargin>0.25:#satisfactionattempts>=0:
+    loops=[]
+    routed=[]
+    def walk(fromid,start,history,profit,hours,mintotalprofitPh):
+      depth=len(history)+1
+      if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
+        return False
+      if maxdepth<depth:
+        return False
+      for toid in prune[fromid]:
+        if toid in history: # avoid internal loops on the way
+          #print("internal loop at "+str(toid))
+          continue
+        elif toid in routed: # avoid multiple entries
+          continue
+        elif toid==start: # found loop
+          if mindepth<=depth:
+            if depth%2==0:
+              sys.stdout.write("\r\\")
+            else:
+              sys.stdout.write("\r/")
+            profit+=prune[fromid][toid]['profit']
+            hours+=prune[fromid][toid]['hours']
+            mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+            loops.append([profit/hours,[start]+history+[toid]])
+        elif toid in prune: # new target - walk it
+          walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'],mintotalprofitPh)
+        else: # deadend
+          #print('deadend '+str(start)+" - "+str(toid)+"  history depth "+str(len(history)))
+          #graph[toid]=False
+          pass
+      #return graph
 
-  routed=[]
-  def walk(fromid,start,history,depth,profitPh): #todo: optimize on the fly - get rid of profitPh
-    if maxdepth<depth:
-      return False
-    #graph=dict()
-    for toid in prune[fromid]:
-      if toid==start: # found loop
-        #print('----------------------------- loop '+str(start)+" - "+str(toid))
-        if routelength<=depth:
-          loops.append([start]+history+[toid])
-        #loops.add(tuple([start]+history+[toid]))
-        #graph[toid]=True
-      elif toid in history: # avoid internal loops on the way
-        #print("internal loop at "+str(toid))
-        continue
-      elif toid in routed: # avoid multiple entries
-        continue
-      elif toid in prune: # new target - walk it
-        walk(toid,start,history+[toid],depth,profitPh+prune[fromid][toid])
-        #graph[toid]=walk(toid,start,history+[toid])
-      else: # deadend
-        #print('deadend '+str(start)+" - "+str(toid)+"  history depth "+str(len(history)))
-        #graph[toid]=False
-        pass
-    #return graph
 
+    lastupdate=0
+    updateinterval=1
 
-  lastupdate=0
-  updateinterval=1
+    for bi in range(len(bases)):
+      fromid=bases[bi]
+      if time.time()-updateinterval > lastupdate: # console may slow us down so keep update intervals
+        lastupdate=time.time()
+        sys.stdout.write("\r   "+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
+      for toid in prune[fromid]:
+        if toid in prune: # no danger of this since deadends already removed
+          walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'],mintotalprofitPh)
+      routed.append(fromid)
 
-  for bi in range(len(bases)):
-    fromid=bases[bi]
-    if time.time()-updateinterval > lastupdate: # console may slow us down so keep update intervals
-      lastupdate=time.time()
-      sys.stdout.write("\r"+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
-      #print(str("%.2f"%(bi/len(bases)*100))+"%")
-    for toid in prune[fromid]:
-      if toid in prune:
-        walk(toid,fromid,[toid],1,prune[fromid][toid])
-        #loopgraph[fromid]=walk(toid,fromid,[toid])
-    routed.append(fromid)
+    if len(loops)<3000:
+      #profitmargin-=0.05
+      profitmargin-=0.03
+      satisfactionattempts-=1
+      print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
+    else:
+      satisfiedwithresult=True
+    print("")
 
-  print("")
-
-  #todo: drop repeated loops
 
   print("Found "+str(len(loops))+" loop trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
+
+  loops = sorted(loops,key=lambda ar:ar[0],reverse=True) # sort by profit
+  loops=loops[:5000] # don't overload the window
+  loops=[i[1] for i in loops]
 
   prune=ProfitArrayToHierarchy(oneway)
   print("Gathering hops...")
@@ -334,6 +371,7 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
     route["loopminprofit"]=0
     route["loopmaxprofit"]=0
     route["totalprofitPh"]=0
+    route["totalhours"]=0
     route["hops"]=[]
     prev=loop[0]
     for ni in range(1,len(loop)): # by hop
@@ -342,11 +380,11 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
       hoptrades = sorted(hoptrades,key=operator.itemgetter("profitPh"),reverse=True) # sort by profit
       route["loopminprofit"]+=hoptrades[-1]["profit"]
       route["loopmaxprofit"]+=hoptrades[0]["profit"]
-      route["totalprofitPh"]+=hoptrades[0]["profitPh"] #todo: confirm the math here
+      route["totalhours"]+=hoptrades[0]["hours"]
       prev=next
       route["hops"].append(hoptrades) # store hops
     route["averageprofit"]=int(route["loopmaxprofit"]/len(route["hops"]))
-    route["totalprofitPh"]=int(route["totalprofitPh"]/len(route["hops"]))
+    route["totalprofitPh"]=int(route["loopmaxprofit"]/route["totalhours"])
     traderoutes.append(route)
 
   traderoutes = sorted(traderoutes,key=operator.itemgetter("totalprofitPh"),reverse=True) # sort by profit
@@ -377,77 +415,114 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
     #returnarray.append('separatorrow')
   return returnarray
 
+def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth,sourcesystem=None,sourcebase=None):
+  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange,sourcesystem,sourcebase)
 
+  prune=ProfitArrayToHierarchy_profitPh(oneway)
 
-def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,routelength,maxdepth):
-  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize)
-
-  prune=ProfitArrayToHierarchy_flat_profitPh(oneway)
-
-  #bases=list(set([way["AbaseId"] for way in onewayviable]))
-  bases=list(set([way["AbaseId"] for way in oneway]))
+  profitfailuredepth=2
+  profitmargin=0.99
   profitpotential=0
   for way in oneway:
     profitpotential=max(profitpotential,way["profitPh"])
+  mintotalprofitPh=[profitpotential]
+
+
+  bases=list(set([way["AbaseId"] for way in oneway]))
+  if sourcebase is not None:
+    print("trying to select with station")
+    profitfailuredepth=3
+    profitmargin=0.8
+    mintotalprofitPh=[0]
+    bases=list(set([way["AbaseId"] for way in oneway if way["Abasename"].lower().strip()==sourcebase.lower().strip()]))
+  if (sourcebase is None or len(bases)==0) and sourcesystem is not None:
+    print("trying to select with system")
+    profitfailuredepth=3
+    profitmargin=0.8
+    mintotalprofitPh=[0]
+    bases=list(set([way["AbaseId"] for way in oneway if way["Asystemname"].lower().strip()==sourcesystem.lower().strip()]))
+
+  print(str(len(oneway))+" viable trade hops")
 
   print("walking galaxy-graph for loops")
 
   querystart=time.time()
 
-  #loopgraph=dict()
-  #routelength=10
-  #loops=set()
   loops=[]
+  satisfactionattempts=20
+  satisfiedwithresult=False
+  while not satisfiedwithresult and profitmargin>0.25:#satisfactionattempts>=0:
+    loops=[]
+    routed=[]
+    def walk(fromid,start,history,profit,hours,mintotalprofitPh):
+      depth=len(history)+1
+      if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
+        return False
+      if maxdepth<depth:
+        return False
+      if mindepth<=depth:
+        mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+        loops.append([profit/hours,[start]+history])
+      for toid in prune[fromid]:
+        if toid in history: # avoid internal loops on the way
+          #print("internal loop at "+str(toid))
+          continue
+        elif toid in routed: # avoid multiple entries
+          continue
+        elif toid==start: # found loop
+          if mindepth<=depth:
+            if depth%2==0:
+              sys.stdout.write("\r\\")
+            else:
+              sys.stdout.write("\r/")
+            profit+=prune[fromid][toid]['profit']
+            hours+=prune[fromid][toid]['hours']
+            mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+            loops.append([profit/hours,[start]+history+[toid]])
+        elif toid in prune: # new target - walk it
+          walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'],mintotalprofitPh)
+        else: # deadend
+          if mindepth<=depth:
+            if depth%2==0:
+              sys.stdout.write("\r\\")
+            else:
+              sys.stdout.write("\r/")
+            profit+=prune[fromid][toid]['profit']
+            hours+=prune[fromid][toid]['hours']
+            mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+            loops.append([profit/hours,[start]+history+[toid]])
 
-  allowedprofitloss=10 # pct
-  minprofit=(1-1/allowedprofitloss)*profitpotential
+    lastupdate=0
+    updateinterval=1
 
-  routed=[]
-  def walk(fromid,start,history,depth,profitPh): #todo: optimize on the fly - get rid of profitPh
-    for toid in prune[fromid]:
-      if depth>maxdepth:
-        loops.append([start]+history)
-      elif toid==start: # found loop
-        if depth>=routelength:
-          loops.append([start]+history+[toid])
-        #print('----------------------------- loop '+str(start)+" - "+str(toid))
-        #loops.add(tuple([start]+history+[toid]))
-        #graph[toid]=True
-      elif toid in history: # avoid internal loops on the way
-        #print("internal loop at "+str(toid))
-        continue
-      #elif toid in routed: # avoid multiple entries
-      #  continue
-      elif toid in prune: # new target - walk it
-        walk(toid,start,history+[toid],depth+1,profitPh+prune[fromid][toid])
-        #graph[toid]=walk(toid,start,history+[toid])
-      else: # deadend
-        if depth>=routelength:
-          loops.append([start]+history+[toid])
-        #print('deadend '+str(start)+" - "+str(toid)+"  history depth "+str(len(history)))
-        #graph[toid]=False
-        #pass
-    #return graph
+    for bi in range(len(bases)):
+      fromid=bases[bi]
+      if time.time()-updateinterval > lastupdate: # console may slow us down so keep update intervals
+        lastupdate=time.time()
+        sys.stdout.write("\r   "+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
+        #print(str("%.2f"%(bi/len(bases)*100))+"%")
+      for toid in prune[fromid]:
+        if toid in prune:
+          walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'],mintotalprofitPh)
+          #loopgraph[fromid]=walk(toid,fromid,[toid])
+      routed.append(fromid)
+
+    print("")
+
+    if len(loops)<3000:
+      profitmargin-=0.03
+      satisfactionattempts-=1
+      print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
+    else:
+      satisfiedwithresult=True
 
 
-  lastupdate=0
-  updateinterval=1
 
-  for bi in range(len(bases)):
-    fromid=bases[bi]
-    if time.time()-updateinterval > lastupdate: # console may slow us down so keep update intervals
-      lastupdate=time.time()
-      sys.stdout.write("\r"+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
-      #print(str("%.2f"%(bi/len(bases)*100))+"%")
-    for toid in prune[fromid]:
-      if toid in prune:
-        walk(toid,fromid,[toid],1,prune[fromid][toid])
-        #loopgraph[fromid]=walk(toid,fromid,[toid])
-    routed.append(fromid)
+  print("Found "+str(len(loops))+" long trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
 
-  print("")
-
-  print("Found "+str(len(loops))+" loop trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
+  loops = sorted(loops,key=lambda ar:ar[0],reverse=True) # sort by profit
+  loops=loops[:5000] # don't overload the window
+  loops=[i[1] for i in loops]
 
   prune=ProfitArrayToHierarchy(oneway)
 
@@ -458,6 +533,7 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
     route["loopminprofit"]=0
     route["loopmaxprofit"]=0
     route["totalprofitPh"]=0
+    route["totalhours"]=0
     route["hops"]=[]
     prev=loop[0]
     for ni in range(1,len(loop)): # by hop
@@ -466,12 +542,11 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
       hoptrades = sorted(hoptrades,key=operator.itemgetter("profitPh"),reverse=True) # sort by profit
       route["loopminprofit"]+=hoptrades[-1]["profit"]
       route["loopmaxprofit"]+=hoptrades[0]["profit"]
-      route["totalprofitPh"]+=hoptrades[0]["profitPh"] #todo: confirm the math here
-      # todo. .. total hours
+      route["totalhours"]+=hoptrades[0]["hours"]
       prev=next
       route["hops"].append(hoptrades) # store hops
     route["averageprofit"]=int(route["loopmaxprofit"]/len(route["hops"]))
-    route["totalprofitPh"]=int(route["totalprofitPh"]/len(route["hops"]))
+    route["totalprofitPh"]=int(route["loopmaxprofit"]/route["totalhours"])
     traderoutes.append(route)
 
   traderoutes = sorted(traderoutes,key=operator.itemgetter("totalprofitPh"),reverse=True) # sort by profit
