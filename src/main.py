@@ -45,7 +45,7 @@ def main():
   index = 1
   options = {"dbPath" : Options.getPath("EliteMerchantList.sqlite"),
              "eraseDb" : False,
-             "operation" : None,
+             "operation" : showUI,
              "redirectOutputToLog" : False}
   
   try:
@@ -57,6 +57,8 @@ def main():
         options["eraseDb"] = True
       elif sys.argv[index] in ["--UI"]:
         options["operation"] = showUI
+      elif sys.argv[index] in ["--cli"]:
+        options["operation"] = None
       elif sys.argv[index] in ["--load-eddb"]:
         options["operation"] = loadEDDB
       elif sys.argv[index] in ["--test"]: # devhax
