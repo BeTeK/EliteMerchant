@@ -322,16 +322,15 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
 
   querystart=time.time()
 
-  mintotalprofitPh=[minprofitPh or minprofit]
+  mintotalprofitPh=[minprofitPh or minprofit] # using array index to get around function scope issues
   profitmargin=0.99
 
   loops=[]
-  satisfactionattempts=20
   satisfiedwithresult=False
-  while not satisfiedwithresult and profitmargin>0.25:#satisfactionattempts>=0:
+  while not satisfiedwithresult and profitmargin>0.05:
     loops=[]
     routed=[]
-    def walk(fromid,start,history,profit,hours,mintotalprofitPh):
+    def walk(fromid,start,history,profit,hours):
       depth=len(history)+1
       if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
         return False
@@ -354,7 +353,7 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
             mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
             loops.append([profit/hours,[start]+history+[toid]])
         elif toid in prune: # new target - walk it
-          walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'],mintotalprofitPh)
+          walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'])
         else: # deadend
           #print('deadend '+str(start)+" - "+str(toid)+"  history depth "+str(len(history)))
           #graph[toid]=False
@@ -372,13 +371,12 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
         sys.stdout.write("\r   "+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
       for toid in prune[fromid]:
         if toid in prune: # no danger of this since deadends already removed
-          walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'],mintotalprofitPh)
+          walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'])
       routed.append(fromid)
 
     if len(loops)<3000:
       #profitmargin-=0.05
       profitmargin-=0.03
-      satisfactionattempts-=1
       print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
     else:
       satisfiedwithresult=True
@@ -453,20 +451,20 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
   profitpotential=0
   for way in oneway:
     profitpotential=max(profitpotential,way["profitPh"])
-  mintotalprofitPh=[profitpotential]
+  mintotalprofitPh=[profitpotential] # using array index to get around function scope issues
 
 
   bases=list(set([way["AbaseId"] for way in oneway]))
   if sourcebase is not None:
     print("trying to select with station")
-    profitfailuredepth=3
-    profitmargin=0.8
+    profitfailuredepth+=1 # forgive the first jump
+    profitmargin=0.99
     mintotalprofitPh=[0]
     bases=list(set([way["AbaseId"] for way in oneway if way["Abasename"].lower().strip()==sourcebase.lower().strip()]))
   if (sourcebase is None or len(bases)==0) and sourcesystem is not None:
     print("trying to select with system")
-    profitfailuredepth=3
-    profitmargin=0.8
+    profitfailuredepth+=1 # forgive the first jump
+    profitmargin=0.99
     mintotalprofitPh=[0]
     bases=list(set([way["AbaseId"] for way in oneway if way["Asystemname"].lower().strip()==sourcesystem.lower().strip()]))
 
@@ -479,12 +477,11 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
   querystart=time.time()
 
   loops=[]
-  satisfactionattempts=20
   satisfiedwithresult=False
-  while not satisfiedwithresult and profitmargin>0.25:#satisfactionattempts>=0:
+  while not satisfiedwithresult and profitmargin>0.05:
     loops=[]
     routed=[]
-    def walk(fromid,start,history,profit,hours,mintotalprofitPh):
+    def walk(fromid,start,history,profit,hours):
       depth=len(history)+1
       if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
         return False
@@ -510,7 +507,7 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
             mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
             loops.append([profit/hours,[start]+history+[toid]])
         elif toid in prune: # new target - walk it
-          walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'],mintotalprofitPh)
+          walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'])
         else: # deadend
           if mindepth<=depth:
             if depth%2==0:
@@ -533,7 +530,7 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
         #print(str("%.2f"%(bi/len(bases)*100))+"%")
       for toid in prune[fromid]:
         if toid in prune:
-          walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'],mintotalprofitPh)
+          walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'])
           #loopgraph[fromid]=walk(toid,fromid,[toid])
       routed.append(fromid)
 
@@ -541,7 +538,6 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
 
     if len(loops)<3000:
       profitmargin-=0.03
-      satisfactionattempts-=1
       print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
     else:
       satisfiedwithresult=True
