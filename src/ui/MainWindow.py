@@ -46,12 +46,26 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.mainTab.setTabsClosable(True)
     self.mainTab.tabCloseRequested.connect(self._onTabClosing)
 
+    #self.mainTab.currentChanged.connect(self._onTabChanged)
+
+    newbutton=QtWidgets.QPushButton("New Search",self.mainTab)
+    newbutton.clicked.connect(self._addSearchTabSelected)
+    buttonlayout=QtWidgets.QStackedLayout()
+    buttonlayout.addWidget(newbutton)
+    buttonwidget=QtWidgets.QWidget()
+    buttonwidget.setLayout(buttonlayout)
+
+    self.mainTab.setCornerWidget ( buttonwidget, 0)
+
     self._readSettings()
+
     self._updateTabs()
+
+  def _onTabChanged(self, idx):
+    pass
 
   def _onTabClosing(self, closeIndex):
     del self.tabItems[closeIndex]
-
 
     for index, value in enumerate(self.tabItems):
       value[1].setTabName(index + 1)
@@ -60,12 +74,17 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self._updateTabs()
 
   def _updateTabs(self):
+    if len(self.tabItems)==0: # there should always be some tab open
+      self._addSearchTabSelected()
+      return
+
     self.mainTab.clear()
 
     index = 0
     for name, widget in self.tabItems:
       index += 1
       widget.setTabName(str(index))
+      #name=widget.searchTypeCombo.currentText()
       self.mainTab.addTab(widget, QtGui.QIcon(), name)
 
   def _addTab(self, widget):
