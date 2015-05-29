@@ -91,7 +91,7 @@ main = Target(
     # dest_base = "main",
 
     # Icon resources:[(resource_id, path to .ico file), ...]
-    # icon_resources=[(1, r"main.ico")]
+    icon_resources=[(1, r"main.ico")],
 
     other_resources = [(RT_MANIFEST, 1, (manifest_template % dict(prog="main", level="asInvoker")).encode("utf-8")),
     # for bitmap resources, the first 14 bytes must be skipped when reading the file:
@@ -157,10 +157,11 @@ includes = ["sip",
             "requests",
             "requests.adapters",
             "certifi"]
-
 datafiles = [("platforms", [findSitePackagesPath(os.path.join("PyQt5", "plugins", "platforms", "qwindows.dll"))]),
+             ("imageformats", [findSitePackagesPath(os.path.join("PyQt5", "plugins", "imageformats", "qico.dll"))]),
              ("", [r"..\\extraInstallFiles\\MSVCP100.dll",
-                   r"..\\extraInstallFiles\\MSVCR100.dll"]),
+                   r"..\\extraInstallFiles\\MSVCR100.dll",
+                   r"main.ico"]),
              ("requests", [findSitePackagesPath(os.path.join("requests", "cacert.pem"))])]
 
 #datafiles = []
@@ -181,10 +182,10 @@ py2exe_options = dict(
 # Some options can be overridden by command line options...
 setup(name="name",
       # console based executables
-      console=[],
+      console=[main],
 
       # windows subsystem executables (no console)
-      windows=[main],
+      #windows=[main],
       data_files=datafiles,
       # py2exe options
       zipfile=None,
