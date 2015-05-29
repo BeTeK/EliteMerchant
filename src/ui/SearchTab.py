@@ -181,6 +181,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog):
                 basictradetable,
                 basictradetable,
                 basictradetable,
+                basictradetable,
                 basictradetable
             ]
 

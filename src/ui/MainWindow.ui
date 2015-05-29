@@ -16,6 +16,10 @@
   <property name="windowTitle">
    <string>Elite Merchant</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>main.ico</normaloff>main.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_6">
     <item>
