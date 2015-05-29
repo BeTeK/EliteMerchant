@@ -4,54 +4,81 @@ import time
 import Options
 import sys
 from functools import reduce
+from math import *
 
 # as a rule, functions starting with 'query..' need db as first param - others are standalone
 
 def queryGenerateWindows(db,x,y,z,windowsize=60,distance=30,windows=1):
+
   if distance>=windowsize:
-    print("Distance cannot be larger then window size!\nSearch windows are created to overlap by the amount of 'distance'")
+    print("Distance cannot be larger than window size!\nSearch windows are created to overlap by the amount of 'distance'")
     return []
   extents=db.getGalaxyExtents()
 
   windowlist=[]
 
-  blocksize=windowsize-distance # overlap search windows by maxdistance
+  blocksize=float(windowsize-distance) # overlap search windows by maxdistance
 
-  # todo: this code is terrible - be ashamed and make everything about this smarter
+  # centered around current system, snap min corner to nearest blocksize
+  cornerX=x+ round( (extents["minX"]-x) /blocksize)*blocksize
+  cornerY=y+ round( (extents["minY"]-y) /blocksize)*blocksize
+  cornerZ=z+ round( (extents["minZ"]-z) /blocksize)*blocksize
 
-  i,j,k=0,0,0
+  # size of galaxy from snapped min corner to max corner
+  sizeX=extents["maxX"]-cornerX
+  sizeY=extents["maxY"]-cornerY
+  sizeZ=extents["maxZ"]-cornerZ
 
-  # run to the min-edge
-  while x+i*blocksize-windowsize/2 > extents["minX"]: # actual window will go +- window/2 from center coordinate
-    i-=1
-  while y+j*blocksize-windowsize/2 > extents["minY"]:
-    j-=1
-  while z+k*blocksize-windowsize/2 > extents["minZ"]:
-    k-=1
+  # round max corner to nearest block size, as window-count
+  windowsX=round( (sizeX / blocksize)+1 )
+  windowsY=round( (sizeY / blocksize)+1 )
+  windowsZ=round( (sizeZ / blocksize)+1 )
 
-  minI,minJ,minK=i,j,k
-  i,j,k=0,0,0
+  # collect windows
+  for wX in range(windowsX):
+    for wY in range(windowsY):
+      for wZ in range(windowsZ):
+        windowlist.append([
+          cornerX+(blocksize*wX),
+          cornerY+(blocksize*wY),
+          cornerZ+(blocksize*wZ)
+        ])
 
-  # run to the min-edge
-  while x+i*blocksize+windowsize/2 < extents["maxX"]: # actual window will go +- window/2 from center coordinate
-    i+=1
-  while y+j*blocksize+windowsize/2 < extents["maxY"]:
-    j+=1
-  while z+k*blocksize+windowsize/2 < extents["maxZ"]:
-    k+=1
-  maxI,maxJ,maxK=i,j,k
-
-  for i in range(minI,maxI):
-    for j in range(minJ,maxJ):
-      for k in range(minK,maxK):
-        windowlist.append([i*blocksize,j*blocksize,k*blocksize])
-
+  sizeX=extents["maxX"]-extents["minX"]
+  sizeY=extents["maxY"]-extents["minY"]
+  sizeZ=extents["maxZ"]-extents["minZ"]
+  print("The scale of the inhabited galaxy is "+str(windowsX*windowsY*windowsZ)+ " windows, or "+"%.2f"%(sizeX*sizeY*sizeZ)+"ly cubed")
+  """
+  print()
+  print('front corner',windowlist[0])
+  print('min',extents["minX"],extents["minY"],extents["minZ"])
+  if abs(windowlist[0][0]-extents["minX"])>windowsize/2:
+    print('Xdiff outside window size ',str(windowlist[0][0]-extents["minX"]), windowsize/2)
+  if abs(windowlist[0][1]-extents["minY"])>windowsize/2:
+    print('Ydiff outside window size ',str(windowlist[0][1]-extents["minY"]), windowsize/2)
+  if abs(windowlist[0][2]-extents["minZ"])>windowsize/2:
+    print('Zdiff outside window size ',str(windowlist[0][2]-extents["minZ"]), windowsize/2)
+  print()
+  print('back corner',windowlist[-1])
+  print('max',extents["maxX"],extents["maxY"],extents["maxZ"])
+  if abs(windowlist[-1][0]-extents["maxX"])>windowsize/2:
+    print('Xdiff outside window size ',str(windowlist[-1][0]-extents["maxX"]), windowsize/2)
+  if abs(windowlist[-1][1]-extents["maxY"])>windowsize/2:
+    print('Ydiff outside window size ',str(windowlist[-1][1]-extents["maxY"]), windowsize/2)
+  if abs(windowlist[-1][2]-extents["maxZ"])>windowsize/2:
+    print('Zdiff outside window size ',str(windowlist[-1][2]-extents["maxZ"]), windowsize/2)
+  """
   def sortdistance(a):
     return ( (x-a[0])**2 + (y-a[1])**2 + (z-a[2])**2 ) ** 0.5
   windowlist=sorted(windowlist,key=sortdistance)
-  print("The scale of the inhabited galaxy is "+str(len(windowlist))+ " windows")
   if windows > 0:
     windowlist=windowlist[:windows]
+  """
+  print()
+  print('current',x,y,z)
+  print('closest',windowlist[0])
+  print()
+  """
   return windowlist
 
 def ProfitHierarchyToArray(prune=None):
@@ -289,7 +316,8 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
   bases=list(set([way["AbaseId"] for way in oneway]))
 
   print(str(len(oneway))+" viable trade hops")
-
+  if len(oneway)==0:
+    return []
   print("walking galaxy-graph for loops")
 
   querystart=time.time()
@@ -443,6 +471,8 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
     bases=list(set([way["AbaseId"] for way in oneway if way["Asystemname"].lower().strip()==sourcesystem.lower().strip()]))
 
   print(str(len(oneway))+" viable trade hops")
+  if len(oneway)==0:
+    return []
 
   print("walking galaxy-graph for loops")
 
