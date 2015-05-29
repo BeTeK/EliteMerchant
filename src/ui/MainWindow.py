@@ -145,7 +145,11 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       systems = self.db.getSystemByName(systemName)
       if len(systems) == 0:
           return
+
       for tab in self.tabItems:
+        if tab[1].getType() != "search":
+          continue
+
         if tab[1].searchType==0 and self.analyzer.hasDockPermissionGot():
           tab[1].currentSystem = systems[0]
           tab[1].currentSystemTxt.setText(systemName)
