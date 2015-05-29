@@ -76,10 +76,10 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self._updateTabs()
 
   def _addStatusTabSelected(self):
-    self._addTab(ui.Status.Status(self.db, self.analyzer, ""))
+    self._addTab(ui.Status.Status(self.db, self.analyzer, "", self))
 
   def _addSearchTabSelected(self):
-    self._addTab(ui.SearchTab.SearchTab(self.db, self.analyzer, ""))
+    self._addTab(ui.SearchTab.SearchTab(self.db, self.analyzer, "", self))
 
   def _exitMenuSelected(self):
     self.close()

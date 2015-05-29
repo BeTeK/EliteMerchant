@@ -13,10 +13,11 @@ import time
 
 
 class Status(ui.StatusUI.Ui_Dialog, QtWidgets.QWidget):
-    def __init__(self, db, analyzer, tabName):
+    def __init__(self, db, analyzer, tabName, mainWindow):
         super(QtWidgets.QWidget, self).__init__()
         self.setupUi(self)
 
+        self.mainWindow = mainWindow
         self.tabName = tabName
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self._onTimerEvent)
