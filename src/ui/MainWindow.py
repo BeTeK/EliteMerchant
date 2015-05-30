@@ -37,6 +37,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.verificationCode = None
     self.startVerification = False
     self.sounds=Sounds.Sounds()
+    self.sounds.play("startup")
 
     self.timer = QtCore.QTimer(self)
     self.timer.timeout.connect(self.onTimerEvent)
@@ -62,7 +63,6 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self._readSettings()
 
     self._updateTabs()
-    self.sounds.play("startup")
 
   def _onTabChanged(self, idx):
     pass
@@ -127,6 +127,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       self.tabItems.append(item)
 
   def closeEvent(self, event):
+    self.sounds.quit() # unload soundsystem
+
     Options.set("main_window_tab_count", len(self.tabItems))
     index = 0
     for name, widget in self.tabItems:
@@ -186,7 +188,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           triggeredasearch=True
 
       if triggeredasearch:
-        self.sounds.play('searched')
+        self.sounds.play('search')
 
 
   def onTimerEvent(self):

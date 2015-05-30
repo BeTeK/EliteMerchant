@@ -150,31 +150,40 @@ def findSitePackagesPath(requestedPath):
 
 print(findSitePackagesPath(os.path.join("requests", "cacert.pem")))
 
+excludes = ["pygame", # disabled soundsystems
+            "pyglet"]
 includes = ["sip",
             "PyQt5",
             "PyQt5.QtCore",
             "PyQt5.QtGui",
             "PyQt5.QtMultimedia",
-            "PyQt5.QtNetwork",
+            "PyQt5.QtNetwork", # for QtMultimedia
+            #"pygame.mixer",
             "requests",
             "requests.adapters",
             "certifi"]
 datafiles = [
               ("platforms", [ findSitePackagesPath(os.path.join("PyQt5", "plugins", "platforms", "qwindows.dll")) ]),
               ("imageformats", [ findSitePackagesPath(os.path.join("PyQt5", "plugins", "imageformats", "qico.dll")) ]),
-              ("mediaservice", [
+              ("mediaservice", [ # for QtMultimedia
                 #findSitePackagesPath(os.path.join("PyQt5", "plugins", "mediaservice", "dsengine.dll")),
                 #findSitePackagesPath(os.path.join("PyQt5", "plugins", "mediaservice", "qtmedia_audioengine.dll")),
-                findSitePackagesPath(os.path.join("PyQt5", "plugins", "mediaservice", "wmfengine.dll"))
+                findSitePackagesPath(os.path.join("PyQt5", "plugins", "mediaservice", "wmfengine.dll")) # only this required
               ]),
               ("sounds",[
+                r"sounds\\soundcredits.txt",
                 r"sounds\\startup.wav",
                 r"sounds\\error.wav",
-                r"sounds\\search.wav"
+                r"sounds\\error1.wav",
+                r"sounds\\error2.wav",
+                r"sounds\\search.wav",
+                r"sounds\\search1.wav",
+                r"sounds\\search2.wav",
+                r"sounds\\search3.wav"
               ]),
               ("", [
-                findSitePackagesPath(os.path.join("PyQt5", "ssleay32.dll")),
-                findSitePackagesPath(os.path.join("PyQt5", "libeay32.dll")),
+                findSitePackagesPath(os.path.join("PyQt5", "ssleay32.dll")), # for QtMultimedia
+                findSitePackagesPath(os.path.join("PyQt5", "libeay32.dll")), # for QtMultimedia
                 r"..\\extraInstallFiles\\MSVCP100.dll",
                 r"..\\extraInstallFiles\\MSVCR100.dll",
                 r"main.ico"
@@ -186,12 +195,13 @@ datafiles = [
 
 py2exe_options = dict(
     packages = [],
+    excludes = excludes,
 ##    excludes = "tof_specials Tkinter".split(),
 ##    ignores = "dotblas gnosis.xml.pickle.parsers._cexpat mx.DateTime".split(),
 ##    dll_excludes = "MSVCP90.dll mswsock.dll powrprof.dll".split(),
     optimize=0,
-    compressed=False, # uncompressed may or may not have a faster startup
-    bundle_files=3,
+    compressed=True, # uncompressed may or may not have a faster startup
+    bundle_files=3,#1,
     dist_dir='dist',
     includes=includes
     )
