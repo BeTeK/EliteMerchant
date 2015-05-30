@@ -15,6 +15,9 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         self.analyzer = analyzer
 
         self.setupUi(self)
+
+        self.mainwindow=parent
+
         self.closeBtn.clicked.connect(self.onCloseClicked)
         self._readSettings()
 
@@ -39,6 +42,20 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
 
         self.passwordTxt.textEdited.connect(self.onPasswordEdited)
         self.passwordTxt.setText(OptionsParams.get("elite-password", ""))
+
+        self.soundStartupTxt.setText(OptionsParams.get("sounds-startup", "sounds/Windows Notify.wav"))
+        self.soundStartupTxt.textEdited.connect(self.onSoundsChanged)
+        self.soundStartupBtn.clicked.connect(self.onSoundStartupClicked)
+        self.soundSearchTxt.setText(OptionsParams.get("sounds-searched", "sounds/Windows Shutdown.wav"))
+        self.soundSearchTxt.textEdited.connect(self.onSoundsChanged)
+        self.soundSearchBtn.clicked.connect(self.onSoundSearchClicked)
+        self.soundErrorTxt.setText(OptionsParams.get("sounds-error", "sounds/Windows Critical Stop.wav"))
+        self.soundErrorTxt.textEdited.connect(self.onSoundsChanged)
+        self.soundErrorBtn.clicked.connect(self.onSoundErrorClicked)
+        self.soundEnabledChk.setChecked( OptionsParams.get("sounds-enabled", "0")=="1" )
+        self.soundEnabledChk.stateChanged.connect(self.onSoundsChanged)
+        self.soundVolumeSlider.setValue( int(OptionsParams.get("sounds-volume", 100)) )
+        self.soundVolumeSlider.sliderReleased.connect(self.onSoundsChanged)
 
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self._onTimerEvent)
@@ -96,6 +113,32 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         dialog.exec()
         return dialog.getResult()
 
+    def onSoundStartupClicked(self):
+        path = self._selectFileDialog("Select Sound", self.soundStartupTxt.text(),"Sounds (*.wav)")
+        if path is not None:
+            self.soundStartupTxt.setText(path)
+            OptionsParams.set("sounds-startup", path)
+
+    def onSoundSearchClicked(self):
+        path = self._selectFileDialog("Select Sound", self.soundSearchTxt.text(),"Sounds (*.wav)")
+        if path is not None:
+            self.soundSearchTxt.setText(path)
+            OptionsParams.set("sounds-searched", path)
+
+    def onSoundErrorClicked(self):
+        path = self._selectFileDialog("Select Sound", self.soundErrorTxt.text(),"Sounds (*.wav)")
+        if path is not None:
+            self.soundErrorTxt.setText(path)
+            OptionsParams.set("sounds-error", path)
+
+    def onSoundsChanged(self):
+        OptionsParams.set("sounds-startup", self.soundStartupTxt.text() )
+        OptionsParams.set("sounds-searched",self.soundSearchTxt.text() )
+        OptionsParams.set("sounds-error",self.soundErrorTxt.text() )
+        OptionsParams.set("sounds-enabled", self.soundEnabledChk.isChecked() and "1" or "0" )
+        OptionsParams.set("sounds-volume", self.soundVolumeSlider.value() )
+        if self.mainwindow is not None:
+          self.mainwindow.sounds.refreshSounds()
 
     def onUsernameEdited(self):
         OptionsParams.set("elite-username", self.usernameTxt.text())
@@ -148,6 +191,14 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         fileDialog.setModal(True)
         fileDialog.setFileMode(QtWidgets.QFileDialog.Directory)
         fileDialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly)
+        if fileDialog.exec() and len(fileDialog.selectedFiles()) > 0:
+            return fileDialog.selectedFiles()[0]
+        else:
+            return None
+
+    def _selectFileDialog(self, title, origin,filterstring):
+        fileDialog = QtWidgets.QFileDialog(self, title, origin,filterstring)
+        fileDialog.setModal(True)
         if fileDialog.exec() and len(fileDialog.selectedFiles()) > 0:
             return fileDialog.selectedFiles()[0]
         else:

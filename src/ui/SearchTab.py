@@ -46,15 +46,15 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
     def _restoreSearchStatus(self):
         self.currentSystemTxt.setText(Options.get(self._optName("current_system"), "Sol"))
-        self.maxDistanceTxt.setText(Options.get(self._optName("maximum_distance"), "30"))
+        self.maxDistanceTxt.setText(Options.get(self._optName("maximum_distance"), "50"))
         self.minProfitTxt.setText(Options.get(self._optName("minimum_profit"), "1000"))
         self.searchTypeCombo.setCurrentIndex(int(Options.get(self._optName("search_type"), "0")))
         self.searchType=int(Options.get(self._optName("search_type"), "0"))
-        self.graphDepthSpin.setValue(int(Options.get(self._optName("search_max_depth"), "3")))
+        self.graphDepthSpin.setValue(int(Options.get(self._optName("search_max_depth"), "5")))
         self.graphMinDepthSpin.setValue(int(Options.get(self._optName("search_min_depth"), "1")))
-        self.windowSizeTxt.setText(Options.get(self._optName("search_window_size"), "100"))
-        self.windowCountTxt.setText(Options.get(self._optName("search_window_count"), "1"))
-        self.profitPhChk.setChecked(Options.get(self._optName("search_profitPh"),"1")=="1")
+        self.windowSizeTxt.setText(Options.get(self._optName("search_window_size"), "200"))
+        self.windowCountTxt.setText(Options.get(self._optName("search_window_count"), "7"))
+        self.profitPhChk.setChecked(Options.get(self._optName("search_profitPh"),"0")=="1")
 
     def _saveSearchStatus(self):
         Options.set(self._optName("current_system"), self.currentSystemTxt.text())

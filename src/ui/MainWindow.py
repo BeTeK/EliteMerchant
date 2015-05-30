@@ -14,6 +14,7 @@ import EliteLogAnalyzer
 import ui.EdceVerification
 import EdceWrapper
 import SpaceTime
+import Sounds
 import time
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
@@ -35,6 +36,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.edceLastUpdateInfo = None
     self.verificationCode = None
     self.startVerification = False
+    self.sounds=Sounds.Sounds()
 
     self.timer = QtCore.QTimer(self)
     self.timer.timeout.connect(self.onTimerEvent)
@@ -60,6 +62,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self._readSettings()
 
     self._updateTabs()
+    self.sounds.play("startup")
 
   def _onTabChanged(self, idx):
     pass
@@ -165,20 +168,26 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       if len(systems) == 0:
           return
 
+      triggeredasearch=False
       for tab in self.tabItems:
         if tab[1].getType() != "search":
           continue
-
         if tab[1].searchType==0 and self.analyzer.hasDockPermissionGot():
           tab[1].currentSystem = systems[0]
           tab[1].currentSystemTxt.setText(systemName)
           tab[1].model.refeshData()
           tab[1].searchBtnPressed()
+          triggeredasearch=True
         if tab[1].searchType==1:
           tab[1].currentSystem = systems[0]
           tab[1].currentSystemTxt.setText(systemName)
           tab[1].model.refeshData()
           tab[1].searchBtnPressed()
+          triggeredasearch=True
+
+      if triggeredasearch:
+        self.sounds.play('searched')
+
 
   def onTimerEvent(self):
     self._updateIfNeededEDDB()
@@ -258,7 +267,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
 
   def _optionsMenuSelected(self):
-    options = ui.Options.Options(self.db, self.analyzer)
+    options = ui.Options.Options(self.db, self.analyzer,self)
     options.setModal(True)
     options.exec()
 

@@ -154,15 +154,33 @@ includes = ["sip",
             "PyQt5",
             "PyQt5.QtCore",
             "PyQt5.QtGui",
+            "PyQt5.QtMultimedia",
+            "PyQt5.QtNetwork",
             "requests",
             "requests.adapters",
             "certifi"]
-datafiles = [("platforms", [findSitePackagesPath(os.path.join("PyQt5", "plugins", "platforms", "qwindows.dll"))]),
-             ("imageformats", [findSitePackagesPath(os.path.join("PyQt5", "plugins", "imageformats", "qico.dll"))]),
-             ("", [r"..\\extraInstallFiles\\MSVCP100.dll",
-                   r"..\\extraInstallFiles\\MSVCR100.dll",
-                   r"main.ico"]),
-             ("requests", [findSitePackagesPath(os.path.join("requests", "cacert.pem"))])]
+datafiles = [
+              ("platforms", [ findSitePackagesPath(os.path.join("PyQt5", "plugins", "platforms", "qwindows.dll")) ]),
+              ("imageformats", [ findSitePackagesPath(os.path.join("PyQt5", "plugins", "imageformats", "qico.dll")) ]),
+              ("mediaservice", [
+                #findSitePackagesPath(os.path.join("PyQt5", "plugins", "mediaservice", "dsengine.dll")),
+                #findSitePackagesPath(os.path.join("PyQt5", "plugins", "mediaservice", "qtmedia_audioengine.dll")),
+                findSitePackagesPath(os.path.join("PyQt5", "plugins", "mediaservice", "wmfengine.dll"))
+              ]),
+              ("sounds",[
+                r"sounds\\startup.wav",
+                r"sounds\\error.wav",
+                r"sounds\\search.wav"
+              ]),
+              ("", [
+                findSitePackagesPath(os.path.join("PyQt5", "ssleay32.dll")),
+                findSitePackagesPath(os.path.join("PyQt5", "libeay32.dll")),
+                r"..\\extraInstallFiles\\MSVCP100.dll",
+                r"..\\extraInstallFiles\\MSVCR100.dll",
+                r"main.ico"
+              ]),
+              ("requests", [ findSitePackagesPath(os.path.join("requests", "cacert.pem")) ])
+            ]
 
 #datafiles = []
 
