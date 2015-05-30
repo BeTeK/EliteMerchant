@@ -112,6 +112,7 @@ class Ui_Dialog(object):
         sizePolicy.setHeightForWidth(self.SearchResultTable.sizePolicy().hasHeightForWidth())
         self.SearchResultTable.setSizePolicy(sizePolicy)
         self.SearchResultTable.setToolTipDuration(1)
+        self.SearchResultTable.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.SearchResultTable.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.SearchResultTable.setSortingEnabled(False)
         self.SearchResultTable.setCornerButtonEnabled(False)

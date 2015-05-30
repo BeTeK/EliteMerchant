@@ -309,9 +309,11 @@ class SQLiteDB(EliteDB.EliteDB):
       cur.execute("""
       SELECT MAX(x) AS maxX, MIN(x) AS minX, MAX(y) AS maxY, MIN(y) AS minY, MAX(z) AS maxZ, MIN(z) AS minZ
       FROM
-      systems,bases
+      systems,bases,commodityPrices
       WHERE
-      bases.systemId=systems.id --we only want systems with stations on them
+      bases.systemId=systems.id -- we only want systems with stations on them
+      AND
+      bases.id=commodityPrices.baseId -- we only want bases with commodities on them
       """)
 
       return self._rowToDict(cur.fetchone())

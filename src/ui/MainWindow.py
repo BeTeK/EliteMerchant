@@ -14,6 +14,7 @@ import EliteLogAnalyzer
 import ui.EdceVerification
 import EdceWrapper
 import SpaceTime
+import Sounds
 import time
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
@@ -35,6 +36,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.edceLastUpdateInfo = None
     self.verificationCode = None
     self.startVerification = False
+    self.sounds=Sounds.Sounds()
 
     self.timer = QtCore.QTimer(self)
     self.timer.timeout.connect(self.onTimerEvent)
@@ -46,12 +48,27 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.mainTab.setTabsClosable(True)
     self.mainTab.tabCloseRequested.connect(self._onTabClosing)
 
+    #self.mainTab.currentChanged.connect(self._onTabChanged)
+
+    newbutton=QtWidgets.QPushButton("New Search",self.mainTab)
+    newbutton.clicked.connect(self._addSearchTabSelected)
+    buttonlayout=QtWidgets.QStackedLayout()
+    buttonlayout.addWidget(newbutton)
+    buttonwidget=QtWidgets.QWidget()
+    buttonwidget.setLayout(buttonlayout)
+
+    self.mainTab.setCornerWidget ( buttonwidget, 0)
+
     self._readSettings()
+
     self._updateTabs()
+    self.sounds.play("startup")
+
+  def _onTabChanged(self, idx):
+    pass
 
   def _onTabClosing(self, closeIndex):
     del self.tabItems[closeIndex]
-
 
     for index, value in enumerate(self.tabItems):
       value[1].setTabName(index + 1)
@@ -60,12 +77,17 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self._updateTabs()
 
   def _updateTabs(self):
+    if len(self.tabItems)==0: # there should always be some tab open
+      self._addSearchTabSelected()
+      return
+
     self.mainTab.clear()
 
     index = 0
     for name, widget in self.tabItems:
       index += 1
       widget.setTabName(str(index))
+      #name=widget.searchTypeCombo.currentText()
       self.mainTab.addTab(widget, QtGui.QIcon(), name)
 
   def _addTab(self, widget):
@@ -146,20 +168,26 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       if len(systems) == 0:
           return
 
+      triggeredasearch=False
       for tab in self.tabItems:
         if tab[1].getType() != "search":
           continue
-
         if tab[1].searchType==0 and self.analyzer.hasDockPermissionGot():
           tab[1].currentSystem = systems[0]
           tab[1].currentSystemTxt.setText(systemName)
           tab[1].model.refeshData()
           tab[1].searchBtnPressed()
+          triggeredasearch=True
         if tab[1].searchType==1:
           tab[1].currentSystem = systems[0]
           tab[1].currentSystemTxt.setText(systemName)
           tab[1].model.refeshData()
           tab[1].searchBtnPressed()
+          triggeredasearch=True
+
+      if triggeredasearch:
+        self.sounds.play('searched')
+
 
   def onTimerEvent(self):
     self._updateIfNeededEDDB()
@@ -239,7 +267,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
 
   def _optionsMenuSelected(self):
-    options = ui.Options.Options(self.db, self.analyzer)
+    options = ui.Options.Options(self.db, self.analyzer,self)
     options.setModal(True)
     options.exec()
 
