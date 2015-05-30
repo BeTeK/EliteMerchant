@@ -15,9 +15,9 @@ class Sounds:
 
   def refreshSounds(self):
     # invalid filenames are ok - they will fail silently
-    self.sounds["startup"].setMedia( QtMultimedia.QMediaContent( QtCore.QUrl( Options.get("sounds-startup", "sounds/Windows Notify.wav") ) ) )
-    self.sounds["searched"].setMedia( QtMultimedia.QMediaContent( QtCore.QUrl( Options.get("sounds-searched", "sounds/Windows Shutdown.wav") ) ) )
-    self.sounds["error"].setMedia( QtMultimedia.QMediaContent( QtCore.QUrl( Options.get("sounds-error", "sounds/Windows Critical Stop.wav") ) ) )
+    self.sounds["startup"].setMedia( QtMultimedia.QMediaContent( QtCore.QUrl( Options.get("sounds-startup", "sounds/startup.wav") ) ) )
+    self.sounds["searched"].setMedia( QtMultimedia.QMediaContent( QtCore.QUrl( Options.get("sounds-searched", "sounds/search.wav") ) ) )
+    self.sounds["error"].setMedia( QtMultimedia.QMediaContent( QtCore.QUrl( Options.get("sounds-error", "sounds/error.wav") ) ) )
     #print("updated sounds")
 
   def play(self,sound):
