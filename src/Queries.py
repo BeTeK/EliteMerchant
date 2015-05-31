@@ -264,8 +264,8 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     queryparams['x']=x
     queryparams['y']=y
     queryparams['z']=z
-    queryparams['window']=100
-    queryparams['maxdistance']=50
+    queryparams['window']=maxdistance*2*2
+    queryparams['maxdistance']=maxdistance*2
     queryparams['minprofit']=0
     queryparams['minprofitPh']=0
     queryparams['landingPadSize']=landingPadSize
