@@ -1,11 +1,11 @@
 import os
 import sys
 import Options
-import CommonityPrice
+import CommodityPrice
 import threading
 
 class EdceWrapper:
-    _commonityNameTranslationTable = {
+    _commodityNameTranslationTable = {
         "Fruit And Vegetables" : "Fruit and Vegetables",
         "Atmospheric Extractors" : "Atmospheric Processors",
         "Marine Supplies" : "Marine Equipment",
@@ -148,19 +148,19 @@ class EdceWrapper:
 
         pricesLst = base.getPrices()
         newPrices = []
-        prices = dict(zip([i.getCommonity().getName() for i in pricesLst], pricesLst))
+        prices = dict(zip([i.getCommodity().getName() for i in pricesLst], pricesLst))
 
         print("Updating prices for base {0}({1}) at system {2}".format(starportName, base.getId(), systemName))
 
         for i in results.lastStarport.commodities:
-            localName = self._getLocalCommonityName(i.name)
+            localName = self._getLocalCommodityName(i.name)
             if not localName in prices:
                 print("Commity price '{0}' for base {1} is not in database... creating".format(localName, base.getName()))
-                commonity = self.db.getCommonityByName(localName)
-                if commonity is None:
+                commodity = self.db.getCommodityByName(localName)
+                if commodity is None:
                     print("Commity '{0}' for base {1} is not in database... skipping".format(localName, base.getName()))
                     continue
-                priceData = CommonityPrice.CommonityPrice(self.db, None, commonity.getId(), i.sellPrice, i.buyPrice, i.demand, 0, base.getId(), i.stock)
+                priceData = CommodityPrice.CommodityPrice(self.db, None, commodity.getId(), i.sellPrice, i.buyPrice, i.demand, 0, base.getId(), i.stock)
                 priceData.touch()
                 newPrices.append(priceData)
             else:
@@ -187,8 +187,8 @@ class EdceWrapper:
     def getResult(self):
         return self.result
 
-    def _getLocalCommonityName(self, name):
-        if name in EdceWrapper._commonityNameTranslationTable:
-            return EdceWrapper._commonityNameTranslationTable[name]
+    def _getLocalCommodityName(self, name):
+        if name in EdceWrapper._commodityNameTranslationTable:
+            return EdceWrapper._commodityNameTranslationTable[name]
         else:
             return name

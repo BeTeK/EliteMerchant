@@ -8,8 +8,8 @@ import System
 import Base
 import time
 import datetime
-import CommonityPrice
-import Commonity
+import CommodityPrice
+import Commodity
 import SpaceTime
 from math import *
 
@@ -20,7 +20,7 @@ class SQLiteDB(EliteDB.EliteDB):
     print(filename)
     self.filename = filename
     self.forceInit = forceInit
-    self.commonityCache = {}
+    self.commodityCache = {}
     self.lock = threading.RLock()
 
 
@@ -106,9 +106,9 @@ class SQLiteDB(EliteDB.EliteDB):
       else:
         return self._dictToSystem(self._rowToDict(result))
 
-  def getCommonityByName(self, name):
+  def getCommodityByName(self, name):
     with self.lock:
-      for i in self.commonityCache.values():
+      for i in self.commodityCache.values():
         if i.getName() == name:
           return i
 
@@ -120,8 +120,8 @@ class SQLiteDB(EliteDB.EliteDB):
           return None
 
         data = self._rowToDict(rows[0])
-        ret = self._dictToCommonity(data)
-        self.commonityCache[ret.getId()] = ret
+        ret = self._dictToCommodity(data)
+        self.commodityCache[ret.getId()] = ret
 
         return ret
 
@@ -137,16 +137,16 @@ class SQLiteDB(EliteDB.EliteDB):
 
       for row in rows:
         data = self._rowToDict(row)
-        if data['id'] not in self.commonityCache:
-          ret = self._dictToCommonity(data)
-          self.commonityCache[ret.getId()] = ret
+        if data['id'] not in self.commodityCache:
+          ret = self._dictToCommodity(data)
+          self.commodityCache[ret.getId()] = ret
 
-      return self.commonityCache
+      return self.commodityCache
 
 
-  def getCommonity(self, id):
+  def getCommodity(self, id):
     with self.lock:
-      if id not in self.commonityCache:
+      if id not in self.commodityCache:
         cur = self.conn.cursor()
 
         cur.execute("SELECT id, name, average FROM commodities WHERE commodities.id = ?", (id, ))
@@ -156,14 +156,14 @@ class SQLiteDB(EliteDB.EliteDB):
 
         data = self._rowToDict(rows[0])
 
-        self.commonityCache[id] = self._dictToCommonity(data)
+        self.commodityCache[id] = self._dictToCommodity(data)
 
-      return self.commonityCache[id]
+      return self.commodityCache[id]
   
-  def _dictToCommonity(self, data):
-    return Commonity.Commonity(self, data["id"], data["name"], data["average"])
+  def _dictToCommodity(self, data):
+    return Commodity.Commodity(self, data["id"], data["name"], data["average"])
 
-  def getPricesOfCommonitiesInBase(self, baseId):
+  def getPricesOfCommoditiesInBase(self, baseId):
     with self.lock:
       cur = self.conn.cursor()
       cur.execute("SELECT id, baseId, supply, commodityId, demand, importPrice, exportPrice, lastUpdated FROM commodityPrices WHERE commodityPrices.baseId = ?", (baseId, ))
@@ -171,7 +171,7 @@ class SQLiteDB(EliteDB.EliteDB):
       return [self._dictToPriceData(self._rowToDict(i)) for i in cur.fetchall()]
 
   def _dictToPriceData(self, data):
-    return CommonityPrice.CommonityPrice(self, data["id"], data["commodityId"], data["importPrice"], data["exportPrice"], data["demand"], datetime.date.fromtimestamp(data['lastUpdated']), data["baseId"], data["supply"])
+    return CommodityPrice.CommodityPrice(self, data["id"], data["commodityId"], data["importPrice"], data["exportPrice"], data["demand"], datetime.date.fromtimestamp(data['lastUpdated']), data["baseId"], data["supply"])
   
   def _dictToSystem(self, info):
     if info["x"] is not None and info["y"] is not None and info["z"] is not None:
@@ -252,7 +252,7 @@ class SQLiteDB(EliteDB.EliteDB):
     UNIQUE (baseId, commodityId)
     )""")
     cur.execute("""CREATE INDEX "commodityPricesIdIndex" on commodityPrices (id ASC)""")
-    cur.execute("""CREATE INDEX "commodityPricesCommonitIdIndex" on commodityPrices (commodityId ASC)""")
+    cur.execute("""CREATE INDEX "commodityPricesCommoditIdIndex" on commodityPrices (commodityId ASC)""")
     cur.execute("""CREATE INDEX "commodityPricesBaseIdIndex" on commodityPrices (baseId ASC)""")
 
     cur.execute("""CREATE TABLE bases (

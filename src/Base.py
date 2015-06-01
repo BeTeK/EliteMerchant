@@ -28,7 +28,7 @@ class Base:
     return self.distance
 
   def getPrices(self):
-    return self.conn.getPricesOfCommonitiesInBase(self.id)
+    return self.conn.getPricesOfCommoditiesInBase(self.id)
 
   def __str__(self):
     return self.__repr__()
