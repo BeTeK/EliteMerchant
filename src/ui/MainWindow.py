@@ -17,13 +17,18 @@ import EdceWrapper
 import SpaceTime
 import Sounds
 import time
+import sys
+import PassThroughFile
+from time import gmtime, strftime
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   _edceUpdateTimeout = 90 # 2 min timeout to keep fd happy
+  _logLinesToShow = 200
 
   def __init__(self, db):
     super(QtWidgets.QMainWindow, self).__init__()
     self.setupUi(self)
+    self._setupLog()
     self.currentStatus = None
     self.optionsMenu.triggered.connect(self._optionsMenuSelected)
     self.exitMenu.triggered.connect(self._exitMenuSelected)
@@ -67,6 +72,22 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self._updateTabs()
 
     self.edceState = "notStation"
+
+  def _setupLog(self):
+    curStdOut = sys.stdout
+    file = PassThroughFile.PassThroughFile(curStdOut)
+    sys.stdout = file
+    file.addListener(self._lineAddedToLog)
+
+  def _lineAddedToLog(self, txt):
+    now = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+    line = "[{0}] {1}".format(now, txt)
+    self.logCombo.insertItem(0, line)
+
+    while self.logCombo.count() > MainWindow._logLinesToShow:
+      self.logCombo.removeItem(self.logCombo.count() - 1)
+
+    self.logCombo.setCurrentIndex(0)
 
   def _onTabChanged(self, idx):
     pass
@@ -151,7 +172,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
     Options.set("MainWindow-geometry", self.saveGeometry())
     Options.set("MainWindow-state", self.saveState())
-    self._setInfoText("Waiting for EDCE fetch to complete")
+    print("Waiting for EDCE fetch to complete")
     self.timer.stop()
     if self.edce is not None:
       self.edce.join()
@@ -238,9 +259,6 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     result = self.edce.updateResults()
     info = self.edce.getLastUpdatedInfo()
 
-    if result:
-      self._setInfoText()
-
     if info["docked"]:
       self.edceLastUpdateInfo = info
 
@@ -257,7 +275,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
     self.edceLastUpdated = now
     self.edce.fetchNewInfo()
-    self._setInfoText("Fetching current station data from EDCE")
+    print("Fetching current station data from EDCE")
 
   def _checkCurrentStatus(self):
     if self.analyzer.poll():

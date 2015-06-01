@@ -26,6 +26,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.SearchResultTable.setModel(self.model)
         self.getCurrentBtn.clicked.connect(self._setCurrentSystemByname)
         self.analyzer = analyzer
+        self.minProfitTxt.setValidator(QtGui.QIntValidator(0, 100000000))
 
         systemlist=self.db.getSystemNameList()
         self.currentSystemCombo.clear()

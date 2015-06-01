@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1465</width>
-    <height>1042</height>
+    <width>1557</width>
+    <height>1077</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -181,11 +181,7 @@
      </layout>
     </item>
     <item>
-     <widget class="QLabel" name="statusMessageTxt">
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
+     <widget class="QComboBox" name="logCombo"/>
     </item>
    </layout>
   </widget>
@@ -194,7 +190,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1465</width>
+     <width>1557</width>
      <height>21</height>
     </rect>
    </property>
