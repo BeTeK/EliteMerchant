@@ -125,7 +125,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             self.result = Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
         elif searchType==0 or searchType==1:
             currentBase=None
-            if self.analyzer.getCurrentStatus()['System'] == self.currentSystem:
+            if self.analyzer.getCurrentStatus()['System'] == self.currentSystem.getName():
               #if self.analyzer.hasDockPermissionGot():
               currentBase=self.analyzer.getCurrentStatus()["Near"]
 
