@@ -332,9 +332,9 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
     routed=[]
     def walk(fromid,start,history,profit,hours):
       depth=len(history)+1
-      if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
-        return False
       if maxdepth<depth:
+        return False
+      if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
         return False
       for toid in prune[fromid]:
         if toid in history: # avoid internal loops on the way
@@ -486,11 +486,11 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
       depth=len(history)+1
       if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
         return False
-      if maxdepth<depth:
-        return False
-      if mindepth<=depth:
+      if mindepth<depth:
         mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
         loops.append([profit/hours,[start]+history])
+      if maxdepth<depth:
+        return False
       for toid in prune[fromid]:
         if toid in history: # avoid internal loops on the way
           #print("internal loop at "+str(toid))
@@ -532,7 +532,6 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
       for toid in prune[fromid]:
         if toid in prune:
           walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'])
-          #loopgraph[fromid]=walk(toid,fromid,[toid])
       routed.append(fromid)
 
     print("")
