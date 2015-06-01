@@ -336,6 +336,26 @@ class SQLiteDB(EliteDB.EliteDB):
 
       return self._rowToDict(cur.fetchone())
 
+  def getSystemNameList(self):
+    with self.lock:
+      cur = self.conn.cursor()
+
+      cur.execute("""
+      SELECT DISTINCT systems.name
+      FROM
+      systems,bases,commodityPrices
+      WHERE
+      bases.systemId=systems.id -- we only want systems with stations on them
+      AND
+      bases.id=commodityPrices.baseId -- we only want bases with commodities on them
+      """)
+      result=cur.fetchall()
+
+      result=[self._rowToDict(o) for o in result]
+      result=[row["name"] for row in result] # names only
+
+      return sorted(result)
+
   def getCommoditiesInRange(self,queryvals):
     with self.lock:
       cur = self.conn.cursor()
@@ -496,8 +516,8 @@ class SQLiteDB(EliteDB.EliteDB):
         A.exportPrice BETWEEN 1 AND A.average
         AND
         profit > :minprofit
-        AND
-        profit/hours > :minprofitPh
+        --AND
+        --profit/hours > :minprofitPh
         --ORDER BY profit DESC
         --LIMIT 0,10
       """

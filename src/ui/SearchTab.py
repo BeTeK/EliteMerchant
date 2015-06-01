@@ -27,6 +27,11 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.getCurrentBtn.clicked.connect(self._setCurrentSystemByname)
         self.analyzer = analyzer
 
+        systemlist=self.db.getSystemNameList()
+        self.currentSystemCombo.clear()
+        self.currentSystemCombo.addItems( systemlist )
+        self.targetSystemCombo.clear()
+        self.targetSystemCombo.addItems( systemlist )
         self._restoreSearchStatus()
 
     def setTabName(self, name):
@@ -45,7 +50,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         return "search_tab__{0}_{1}".format(name, self.tabName)
 
     def _restoreSearchStatus(self):
-        self.currentSystemTxt.setText(Options.get(self._optName("current_system"), "Sol"))
+        self.currentSystemCombo.setCurrentText(Options.get(self._optName("current_system"), "Sol"))
         self.maxDistanceTxt.setText(Options.get(self._optName("maximum_distance"), "50"))
         self.minProfitTxt.setText(Options.get(self._optName("minimum_profit"), "1000"))
         self.searchTypeCombo.setCurrentIndex(int(Options.get(self._optName("search_type"), "0")))
@@ -54,10 +59,10 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.graphMinDepthSpin.setValue(int(Options.get(self._optName("search_min_depth"), "1")))
         self.windowSizeTxt.setText(Options.get(self._optName("search_window_size"), "200"))
         self.windowCountTxt.setText(Options.get(self._optName("search_window_count"), "7"))
-        self.profitPhChk.setChecked(Options.get(self._optName("search_profitPh"),"0")=="1")
+        #self.profitPhChk.setChecked(Options.get(self._optName("search_profitPh"),"0")=="1")
 
     def _saveSearchStatus(self):
-        Options.set(self._optName("current_system"), self.currentSystemTxt.text())
+        Options.set(self._optName("current_system"), self.currentSystemCombo.currentText())
         Options.set(self._optName("maximum_distance"), self.maxDistanceTxt.text())
         Options.set(self._optName("minimum_profit"), self.minProfitTxt.text())
         Options.set(self._optName("search_window_size"), self.windowSizeTxt.text())
@@ -65,11 +70,11 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         Options.set(self._optName("search_type"), self.searchTypeCombo.currentIndex())
         Options.set(self._optName("search_max_depth"), self.graphDepthSpin.value())
         Options.set(self._optName("search_min_depth"), self.graphMinDepthSpin.value())
-        Options.set(self._optName("search_profitPh"), self.profitPhChk.isChecked() and "1" or "0")
+        #Options.set(self._optName("search_profitPh"), self.profitPhChk.isChecked() and "1" or "0")
 
     def _setCurrentSystemByname(self):
         systemName = self.analyzer.getCurrentStatus()["System"]
-        self.currentSystemTxt.setText(systemName)
+        self.currentSystemCombo.setCurrentText(systemName)
         systems = self.db.getSystemByName(systemName)
         if len(systems) == 0:
             return
@@ -81,22 +86,24 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         #print ("searchBtnPressed")
         #self.searchBtn.setText('- - - - S e a r c h i n g - - - -') # unfortunately these never show with synchronous ui
 
-        currentSystem = self.currentSystemTxt.text()
+        currentSystem = self.currentSystemCombo.currentText()
         windowSize = float(self.windowSizeTxt.text())
         windows = int(self.windowCountTxt.text())
         maxDistance = float(self.maxDistanceTxt.text())
         jumprange = float(self.mainwindow.jumpRangeTxt.text())
-        minProfit =None
+        minProfit = int(self.minProfitTxt.text())
+        #minProfit =None
         minProfitPh =None
-        if bool(self.profitPhChk.isChecked()):
-            minProfitPh = int(self.minProfitTxt.text())
-        else:
-            minProfit = int(self.minProfitTxt.text())
+        #if bool(self.profitPhChk.isChecked()):
+        #    minProfitPh = int(self.minProfitTxt.text())
+        #else:
+        #    minProfit = int(self.minProfitTxt.text())
         minPadSize = int(self.mainwindow.minPadSizeCombo.currentIndex())
         searchType = int(self.searchTypeCombo.currentIndex())
         graphDepth = int(self.graphMinDepthSpin.value())
         graphDepthmax = int(self.graphDepthSpin.value())
         #twoway = bool(self.twoWayBool.isChecked())
+        targetSystem = int(self.targetSystemCombo.currentIndex())
 
         if (graphDepth>graphDepthmax):
           print("min hops have to be less than max hops!")

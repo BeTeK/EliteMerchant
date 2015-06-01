@@ -28,9 +28,18 @@
        <item row="1" column="3">
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QLineEdit" name="currentSystemTxt">
-           <property name="text">
-            <string>Sol</string>
+          <widget class="QComboBox" name="currentSystemCombo">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="editable">
+            <bool>true</bool>
+           </property>
+           <property name="maxVisibleItems">
+            <number>100</number>
            </property>
           </widget>
          </item>
@@ -42,40 +51,6 @@
           </widget>
          </item>
         </layout>
-       </item>
-       <item row="2" column="5">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Commodity</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="6">
-        <widget class="QComboBox" name="commodityCombobox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="editable">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Max distance</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="3">
-        <widget class="QLineEdit" name="maxDistanceTxt">
-         <property name="text">
-          <string>100</string>
-         </property>
-        </widget>
        </item>
        <item row="2" column="4">
         <widget class="QComboBox" name="importComboBox">
@@ -89,6 +64,49 @@
            <string>Exports</string>
           </property>
          </item>
+        </widget>
+       </item>
+       <item row="1" column="6">
+        <widget class="QLineEdit" name="maxDistanceTxt">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>100</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="5">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Max distance</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Commodity</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QComboBox" name="commodityCombobox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="editable">
+          <bool>true</bool>
+         </property>
+         <property name="maxVisibleItems">
+          <number>100</number>
+         </property>
         </widget>
        </item>
       </layout>

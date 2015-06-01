@@ -27,11 +27,12 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
         self.getCurrentBtn.clicked.connect(self._setCurrentSystemByname)
         self.analyzer = analyzer
         self.commoditylist=list(db.getCommodities().values())
-        #sorted(self.commoditylist,key=operator.itemgetter("totalprofitPh"), reverse=True)
         self.commoditylist.sort(key=lambda x: x.name )
-        #self.commoditylist=[c.getName() for c in self.commoditylist.values()]
         self.commodityCombobox.clear()
         self.commodityCombobox.addItems( [c.getName() for c in self.commoditylist] )
+        systemlist=self.db.getSystemNameList()
+        self.currentSystemCombo.clear()
+        self.currentSystemCombo.addItems( systemlist )
         self._restoreSearchStatus()
 
     def setTabName(self, name):
@@ -50,20 +51,20 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
         return "search_tab__{0}_{1}".format(name, self.tabName)
 
     def _restoreSearchStatus(self):
-        self.currentSystemTxt.setText(Options.get(self._optName("current_system"), "Sol"))
+        self.currentSystemCombo.setCurrentText(Options.get(self._optName("current_system"), "Sol"))
         self.maxDistanceTxt.setText(Options.get(self._optName("maximum_distance"), "200"))
         self.importComboBox.setCurrentIndex(int(Options.get(self._optName("importexport"), "0")))
         self.commodityCombobox.setCurrentIndex(int(Options.get(self._optName("commodity"), "0")))
 
     def _saveSearchStatus(self):
-        Options.set(self._optName("current_system"), self.currentSystemTxt.text())
+        Options.set(self._optName("current_system"), self.currentSystemCombo.currentText())
         Options.set(self._optName("maximum_distance"), self.maxDistanceTxt.text())
         Options.set(self._optName("importexport"), self.importComboBox.currentIndex())
         Options.set(self._optName("commodity"), self.commodityCombobox.currentIndex())
 
     def _setCurrentSystemByname(self):
         systemName = self.analyzer.getCurrentStatus()["System"]
-        self.currentSystemTxt.setText(systemName)
+        self.currentSystemCombo.setCurrentText(systemName)
         systems = self.db.getSystemByName(systemName)
         if len(systems) == 0:
             return
@@ -75,7 +76,7 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
         #print ("searchBtnPressed")
         #self.searchBtn.setText('- - - - S e a r c h i n g - - - -') # unfortunately these never show with synchronous ui
 
-        currentSystem = self.currentSystemTxt.text()
+        currentSystem = self.currentSystemCombo.currentText()
 
         maxDistance = float(self.maxDistanceTxt.text())
         jumprange = float(self.mainwindow.jumpRangeTxt.text())

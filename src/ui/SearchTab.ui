@@ -18,114 +18,48 @@
     <layout class="QVBoxLayout" name="verticalLayout_5">
      <item>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Max distance</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="maxDistanceTxt">
-         <property name="text">
-          <string>50</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Min profit</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="QLineEdit" name="currentSystemTxt">
-           <property name="text">
-            <string>Sol</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="getCurrentBtn">
-           <property name="text">
-            <string>Get current</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Starting system</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QLineEdit" name="minProfitTxt">
-           <property name="text">
-            <string>1000</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="profitPhChk">
-           <property name="text">
-            <string>Cr/h</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="4" column="5">
-        <widget class="QLineEdit" name="windowCountTxt">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>7</string>
-         </property>
-        </widget>
-       </item>
        <item row="3" column="5">
-        <widget class="QLineEdit" name="windowSizeTxt">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>200</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="4">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>Search windows</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="4">
         <widget class="QLabel" name="label_2">
          <property name="text">
           <string>Search window size</string>
          </property>
         </widget>
        </item>
+       <item row="1" column="6">
+        <widget class="QLineEdit" name="maxDistanceTxt">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>50</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Target system</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>Max hops</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="3">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Search Type</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="4">
         <widget class="QComboBox" name="searchTypeCombo">
          <property name="currentIndex">
           <number>0</number>
@@ -157,21 +91,99 @@
          </item>
         </widget>
        </item>
+       <item row="4" column="5">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Search windows</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="6">
+        <widget class="QLineEdit" name="windowSizeTxt">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>200</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="6">
+        <widget class="QLineEdit" name="windowCountTxt">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>7</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLineEdit" name="minProfitTxt">
+           <property name="text">
+            <string>1000</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Starting system</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="2">
-        <widget class="QLabel" name="label_7">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QComboBox" name="currentSystemCombo">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="editable">
+            <bool>true</bool>
+           </property>
+           <property name="maxVisibleItems">
+            <number>100</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="getCurrentBtn">
+           <property name="text">
+            <string>Get current</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>Search Type</string>
+          <string>Min profit</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="2">
-        <widget class="QLabel" name="label_8">
+       <item row="1" column="5">
+        <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>Max hops</string>
+          <string>Max distance</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="3">
+       <item row="3" column="4">
         <widget class="QSpinBox" name="graphDepthSpin">
          <property name="minimum">
           <number>1</number>
@@ -184,7 +196,7 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="3">
+       <item row="4" column="4">
         <widget class="QSpinBox" name="graphMinDepthSpin">
          <property name="minimum">
           <number>1</number>
@@ -194,10 +206,20 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="2">
+       <item row="4" column="3">
         <widget class="QLabel" name="label_14">
          <property name="text">
           <string>Min hops</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QComboBox" name="targetSystemCombo">
+         <property name="editable">
+          <bool>true</bool>
+         </property>
+         <property name="maxVisibleItems">
+          <number>100</number>
          </property>
         </widget>
        </item>
