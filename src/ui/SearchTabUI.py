@@ -147,6 +147,17 @@ class Ui_Dialog(object):
         self.retranslateUi(Dialog)
         self.searchTypeCombo.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+        Dialog.setTabOrder(self.currentSystemCombo, self.getCurrentBtn)
+        Dialog.setTabOrder(self.getCurrentBtn, self.targetSystemCombo)
+        Dialog.setTabOrder(self.targetSystemCombo, self.minProfitTxt)
+        Dialog.setTabOrder(self.minProfitTxt, self.searchTypeCombo)
+        Dialog.setTabOrder(self.searchTypeCombo, self.graphDepthSpin)
+        Dialog.setTabOrder(self.graphDepthSpin, self.graphMinDepthSpin)
+        Dialog.setTabOrder(self.graphMinDepthSpin, self.maxDistanceTxt)
+        Dialog.setTabOrder(self.maxDistanceTxt, self.windowSizeTxt)
+        Dialog.setTabOrder(self.windowSizeTxt, self.windowCountTxt)
+        Dialog.setTabOrder(self.windowCountTxt, self.searchBtn)
+        Dialog.setTabOrder(self.searchBtn, self.SearchResultTable)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

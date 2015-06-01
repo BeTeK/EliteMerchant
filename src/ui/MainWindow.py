@@ -66,6 +66,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
     self._updateTabs()
 
+    self.edceState = "notStation"
+
   def _onTabChanged(self, idx):
     pass
 
@@ -157,7 +159,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def _updateEdceIntance(self):
     self.edce = None
     try:
-      self.edce = EdceWrapper.EdceWrapper(Options.get("EDCE-path", ""), self.db, self._verificationCheck)
+      postMarketData = Options.get("ECDE-uploads-results", "1") != "0"
+      self.edce = EdceWrapper.EdceWrapper(Options.get("EDCE-path", ""), self.db, postMarketData, self._verificationCheck)
     except Exception as ex:
       print(ex)
 
@@ -182,15 +185,13 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
         if tab[1].getType() != "search":
           continue
         if tab[1].searchType==0 and self.analyzer.hasDockPermissionGot():
-          tab[1].currentSystem = systems[0]
-          tab[1].currentSystemTxt.setText(systemName)
-          tab[1].model.refeshData()
+          tab[1].setCurrentSystem(systems[0])
+          tab[1].refreshData()
           tab[1].searchBtnPressed()
           triggeredasearch=True
         if tab[1].searchType==1:
-          tab[1].currentSystem = systems[0]
-          tab[1].currentSystemTxt.setText(systemName)
-          tab[1].model.refeshData()
+          tab[1].currentSystemTxt.setText(systems[0])
+          tab[1].refreshData()
           tab[1].searchBtnPressed()
           triggeredasearch=True
 
@@ -228,8 +229,11 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     return code
 
   def _checkEDCE(self):
+
     if self.edce is None:
       return
+
+    now = int(datetime.datetime.now().timestamp())
 
     result = self.edce.updateResults()
     info = self.edce.getLastUpdatedInfo()
@@ -238,17 +242,17 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       self._setInfoText()
 
     if info["docked"]:
-      self.edceLastUpdated = info
+      self.edceLastUpdateInfo = info
 
-    if self.analyzer.getCurrentStatus()["System"] == info["systemName"] and \
-        self.analyzer.getCurrentStatus()["Near"] == info["starportName"]:
+    if self.edceLastUpdateInfo is not None and \
+        self.analyzer.getCurrentStatus()["System"] == self.edceLastUpdateInfo["systemName"] and \
+        self.analyzer.getCurrentStatus()["Near"] == self.edceLastUpdateInfo["starportName"]:
+      return
+
+    if now - self.edceLastUpdated < MainWindow._edceUpdateTimeout:
       return
 
     if not self.analyzer.hasDockPermissionGot():
-      return
-
-    now = int(datetime.datetime.now().timestamp())
-    if now - self.edceLastUpdated < MainWindow._edceUpdateTimeout:
       return
 
     self.edceLastUpdated = now

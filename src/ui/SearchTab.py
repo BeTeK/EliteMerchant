@@ -49,6 +49,13 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
     def _optName(self, name):
         return "search_tab__{0}_{1}".format(name, self.tabName)
 
+    def refreshData(self):
+        self.model.refeshData()
+
+    def setCurrentSystem(self, system):
+        self.currentSystem = system
+        self.currentSystemCombo.setEditText(system.getName())
+
     def _restoreSearchStatus(self):
         self.currentSystemCombo.setCurrentText(Options.get(self._optName("current_system"), "Sol"))
         self.maxDistanceTxt.setText(Options.get(self._optName("maximum_distance"), "50"))

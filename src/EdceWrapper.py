@@ -20,7 +20,7 @@ class EdceWrapper:
         "Auto Fabricators" : "Auto-Fabricators"
     }
 
-    def __init__(self, edcePath, db, verificationCodeInputFn):
+    def __init__(self, edcePath, db, postMarketData, verificationCodeInputFn):
         self.verificationFn = verificationCodeInputFn
         self.db = db
         self.lock = threading.RLock()
@@ -45,6 +45,7 @@ class EdceWrapper:
         self.resultsUpdated = True
         self.activeThreads = []
         self.result = None
+        self.postMarkedData = postMarketData
         self.lastUpdatedInfo = {"starportName" : "",
                                 "systemName" : "",
                                 "docked" : False}

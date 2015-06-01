@@ -291,6 +291,20 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>currentSystemCombo</tabstop>
+  <tabstop>getCurrentBtn</tabstop>
+  <tabstop>targetSystemCombo</tabstop>
+  <tabstop>minProfitTxt</tabstop>
+  <tabstop>searchTypeCombo</tabstop>
+  <tabstop>graphDepthSpin</tabstop>
+  <tabstop>graphMinDepthSpin</tabstop>
+  <tabstop>maxDistanceTxt</tabstop>
+  <tabstop>windowSizeTxt</tabstop>
+  <tabstop>windowCountTxt</tabstop>
+  <tabstop>searchBtn</tabstop>
+  <tabstop>SearchResultTable</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
