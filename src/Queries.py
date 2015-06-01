@@ -249,7 +249,7 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     queryparams['window']=windowsize
     queryparams['maxdistance']=maxdistance
     queryparams['minprofit']=minprofit
-    queryparams['minprofitPh']=minprofitPh
+    queryparams['minprofitPh']=minprofitPh # todo:  remove
     queryparams['landingPadSize']=landingPadSize
     queryparams['jumprange']=jumprange
     queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
@@ -264,10 +264,10 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     queryparams['x']=x
     queryparams['y']=y
     queryparams['z']=z
-    queryparams['window']=maxdistance*2*2
-    queryparams['maxdistance']=maxdistance*2
+    queryparams['window']=maxdistance
+    queryparams['maxdistance']=maxdistance
     queryparams['minprofit']=0
-    queryparams['minprofitPh']=0
+    queryparams['minprofitPh']=0 # todo:  remove
     queryparams['landingPadSize']=landingPadSize
     queryparams['jumprange']=jumprange
     queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
@@ -576,6 +576,191 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
     traderoutes.append(route)
 
   traderoutes = sorted(traderoutes,key=operator.itemgetter("totalprofitPh"),reverse=True) # sort by profit
+
+  traderoutes=traderoutes[:5000] # don't overload the window
+
+  returnarray=[]
+  for loop in traderoutes:
+    for hop in loop["hops"]:
+      returnarray.append(dict({
+        "celltype":'emptyrow',
+        "averageprofit":loop["averageprofit"],
+        "loopminprofit":loop["loopminprofit"],
+        "loopmaxprofit":loop["loopmaxprofit"]
+      }))
+      for commodity in hop:
+        commodity["averageprofit"]=loop["averageprofit"]
+        commodity["loopminprofit"]=loop["loopminprofit"]
+        commodity["loopmaxprofit"]=loop["loopmaxprofit"]
+        returnarray.append(commodity)
+    returnarray.append(dict({
+      "celltype":'separatorrow',
+      "averageprofit":loop["averageprofit"],
+      "loopminprofit":loop["loopminprofit"],
+      "loopmaxprofit":loop["loopmaxprofit"],
+      "totalprofitPh":loop["totalprofitPh"],
+      "totalhours":loop["totalhours"]
+    }))
+    #returnarray.append('separatorrow')
+  return returnarray
+
+def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth,sourcesystem=None,sourcebase=None):
+  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange,sourcesystem,sourcebase)
+
+
+  def distance3d(x,y,z,i,j,k):
+    return ((x-i)**2+(y-j)**2+(z-k)**2)**.5
+
+  totaldistance=distance3d(x2,y2,z2,x,y,z) -1 # extra for possible rounding errors
+
+  #oneway=[way for way in oneway if distance3d(way["Bx"],way["By"],way["Bz"],x2,y2,z2)<=totaldistance ]
+
+  prune=ProfitArrayToHierarchy_profitPh(oneway)
+
+  profitfailuredepth=3
+  profitmargin=0.95
+  profitpotential=0
+  for way in oneway:
+    profitpotential=max(profitpotential,way["profitPh"])
+  mintotalprofitPh=[profitpotential] # using array index to get around function scope issues
+
+
+  bases=list(set([way["AbaseId"] for way in oneway]))
+  if sourcebase is not None:
+    print("trying to select with station")
+    profitfailuredepth+=1 # forgive the first jump
+    profitmargin=0.99
+    mintotalprofitPh=[0]
+    bases=list(set([way["AbaseId"] for way in oneway if way["Abasename"].lower().strip()==sourcebase.lower().strip()]))
+  if (sourcebase is None or len(bases)==0) and sourcesystem is not None:
+    print("trying to select with system")
+    profitfailuredepth+=1 # forgive the first jump
+    profitmargin=0.99
+    mintotalprofitPh=[0]
+    bases=list(set([way["AbaseId"] for way in oneway if way["Asystemname"].lower().strip()==sourcesystem.lower().strip()]))
+
+
+  print(str(len(oneway))+" viable trade hops")
+  if len(oneway)==0:
+    return []
+
+
+
+
+  print("walking galaxy-graph for loops")
+
+  querystart=time.time()
+
+  loops=[]
+  satisfiedwithresult=False
+  while not satisfiedwithresult and profitmargin>0.05:
+    loops=[]
+    routed=[]
+    def walk(fromid,start,history,profit,hours,lastdistance):
+      depth=len(history)+1
+      if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
+        return False
+      if maxdepth<depth:
+        return False
+      for toid in prune[fromid]:
+        #distance check
+        cx,cy,cz=prune[fromid][toid]["Bx"],prune[fromid][toid]["By"],prune[fromid][toid]["Bz"]
+        currentdistance=distance3d(x2,y2,z2,cx,cy,cz)
+        if lastdistance<currentdistance:
+          continue
+        if currentdistance<1:
+          if depth%2==0:
+            sys.stdout.write("\r\\")
+          else:
+            sys.stdout.write("\r/")
+          profit+=prune[fromid][toid]['profit']
+          hours+=prune[fromid][toid]['hours']
+          mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+          loops.append([profit/hours,[start]+history+[toid]])
+        elif toid in history: # avoid internal loops on the way
+          #print("internal loop at "+str(toid))
+          continue
+        elif toid in routed: # avoid multiple entries
+          continue
+        elif toid==start: # found loop
+          return False # loops shouldn't even be possible
+        elif toid in prune: # new target - walk it
+          walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'],currentdistance)
+        else: # deadend
+          if mindepth<=depth:
+            if depth%2==0:
+              sys.stdout.write("\r\\")
+            else:
+              sys.stdout.write("\r/")
+            profit+=prune[fromid][toid]['profit']
+            hours+=prune[fromid][toid]['hours']
+            mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+            loops.append([profit/hours,[start]+history+[toid]])
+
+    lastupdate=0
+    updateinterval=1
+    for bi in range(len(bases)):
+      fromid=bases[bi]
+      if time.time()-updateinterval > lastupdate: # console may slow us down so keep update intervals
+        lastupdate=time.time()
+        sys.stdout.write("\r   "+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
+        #print(str("%.2f"%(bi/len(bases)*100))+"%")
+      for toid in prune[fromid]:
+        if toid in prune:
+          cx,cy,cz=prune[fromid][toid]["Bx"],prune[fromid][toid]["By"],prune[fromid][toid]["Bz"]
+          currentdistance=distance3d(x2,y2,z2,cx,cy,cz)
+          if currentdistance<totaldistance:
+            walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'],currentdistance)
+      routed.append(fromid)
+
+    print("")
+
+    if len(loops)<3000:
+      profitmargin-=0.03
+      print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
+    else:
+      satisfiedwithresult=True
+
+
+
+  print("Found "+str(len(loops))+" long trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
+
+  loops = sorted(loops,key=lambda ar:ar[0],reverse=True) # sort by profit
+  loops=loops[:5000] # don't overload the window
+  loops=[i[1] for i in loops]
+
+  prune=ProfitArrayToHierarchy(oneway)
+
+  print("Gathering hops...")
+  traderoutes=[]
+  for loop in loops:
+    route=dict()
+    route["loopminprofit"]=0
+    route["loopmaxprofit"]=0
+    route["totalprofitPh"]=0
+    route["totalhours"]=0
+    route["hops"]=[]
+    route["distancefromlast"]=-1
+    prev=loop[0]
+    for ni in range(1,len(loop)): # by hop
+      next=loop[ni]
+      hoptrades = prune[prev][next].values() # all possible commodities on this route
+      hoptrades = sorted(hoptrades,key=operator.itemgetter("profitPh"),reverse=True) # sort by profit
+      route["loopminprofit"]+=hoptrades[-1]["profit"]
+      route["loopmaxprofit"]+=hoptrades[0]["profit"]
+      route["totalhours"]+=hoptrades[0]["hours"]
+      cx,cy,cz=hoptrades[0]["Bx"],hoptrades[0]["By"],hoptrades[0]["Bz"]
+      currentdistance=distance3d(x2,y2,z2,cx,cy,cz)
+      route["distancefromlast"]=currentdistance
+      prev=next
+      route["hops"].append(hoptrades) # store hops
+    route["averageprofit"]=int(route["loopmaxprofit"]/len(route["hops"]))
+    route["totalprofitPh"]=int(route["loopmaxprofit"]/route["totalhours"])
+    traderoutes.append(route)
+
+  traderoutes.sort(key=operator.itemgetter("totalprofitPh"),reverse=True) # sort by profit
+  traderoutes.sort(key=lambda r:len(r["hops"])) # sort by hops
+  traderoutes.sort(key=operator.itemgetter("distancefromlast")) # sort by distance
 
   traderoutes=traderoutes[:5000] # don't overload the window
 
