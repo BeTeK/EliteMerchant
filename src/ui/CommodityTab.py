@@ -114,11 +114,11 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
                     "hours",
                     "systemname",
                     "basename",
-                    "exportPrice",
-                    "exportPavg",
-                    "commodityname",
                     "importPrice",
                     "importPavg",
+                    "commodityname",
+                    "exportPrice",
+                    "exportPavg",
                     #"averagedeviation"
                 ]
             self.columnorder=[

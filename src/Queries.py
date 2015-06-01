@@ -436,7 +436,8 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
       "averageprofit":loop["averageprofit"],
       "loopminprofit":loop["loopminprofit"],
       "loopmaxprofit":loop["loopmaxprofit"],
-      "totalprofitPh":loop["totalprofitPh"]
+      "totalprofitPh":loop["totalprofitPh"],
+      "totalhours":loop["totalhours"]
     }))
     #returnarray.append('separatorrow')
   return returnarray
@@ -598,7 +599,8 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
       "averageprofit":loop["averageprofit"],
       "loopminprofit":loop["loopminprofit"],
       "loopmaxprofit":loop["loopmaxprofit"],
-      "totalprofitPh":loop["totalprofitPh"]
+      "totalprofitPh":loop["totalprofitPh"],
+      "totalhours":loop["totalhours"]
     }))
     #returnarray.append('separatorrow')
   return returnarray

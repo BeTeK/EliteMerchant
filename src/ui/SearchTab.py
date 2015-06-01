@@ -158,6 +158,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     "Bbasename",
                     #"DistanceSq",
                     "SystemDistance",
+                    "hours",
                     "profit",
                     "profitPh"
                 ]
@@ -352,6 +353,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                             return "Average: "+str(data["averageprofit"])+"cr"
                         elif columnorder[section]=='profitPh':
                             return str(data["totalprofitPh"])+"cr/h"
+                        elif columnorder[section] == "hours":
+                          return str(int(data["totalhours"]*60*10)/10)
                         else:
                             return None
                     else:
@@ -377,6 +380,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     return data["SystemDistance"]
                 elif columnorder[section] == "profitPh":
                     return str(int(data["profit"]/data["hours"]))
+                elif columnorder[section] == "hours":
+                    return str(int(data["hours"]*60*10)/10)
                 else:
                     return data[columnorder[section]]
 
@@ -421,6 +426,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     field="Return Profit Cr"
                 elif columnorder[section] == "totalprofit":
                     field="Total Profit Cr"
+                elif columnorder[section] == "hours":
+                    field="Minutes travel"
                 elif columnorder[section] == "profitPh":
                     field="Profit Cr/h"
                 else:
