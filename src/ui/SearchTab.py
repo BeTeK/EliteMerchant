@@ -20,6 +20,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.mainwindow = mainwindow
         self.result = []
         self.currentSystem = None
+        self.targetSystem = None
         self.searchType=1
         self.searchBtn.clicked.connect(self.searchBtnPressed)
         self.model = SearchTab.TableModel(None, self)
@@ -58,6 +59,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
     def _restoreSearchStatus(self):
         self.currentSystemCombo.setCurrentText(Options.get(self._optName("current_system"), "Sol"))
+        self.targetSystemCombo.setCurrentText(Options.get(self._optName("target_system"), "Lave"))
         self.maxDistanceTxt.setText(Options.get(self._optName("maximum_distance"), "50"))
         self.minProfitTxt.setText(Options.get(self._optName("minimum_profit"), "1000"))
         self.searchTypeCombo.setCurrentIndex(int(Options.get(self._optName("search_type"), "0")))
@@ -70,6 +72,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
     def _saveSearchStatus(self):
         Options.set(self._optName("current_system"), self.currentSystemCombo.currentText())
+        Options.set(self._optName("target_system"), self.targetSystemCombo.currentText())
         Options.set(self._optName("maximum_distance"), self.maxDistanceTxt.text())
         Options.set(self._optName("minimum_profit"), self.minProfitTxt.text())
         Options.set(self._optName("search_window_size"), self.windowSizeTxt.text())
@@ -137,6 +140,22 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         elif searchType==3:
             print("queryProfitGraphDeadends")
             self.result = Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
+        elif searchType==5:
+            print("queryProfitGraphTarget")
+            currentBase=None
+            if self.analyzer.getCurrentStatus()['System'] == self.currentSystem.getName():
+              #if self.analyzer.hasDockPermissionGot():
+              currentBase=self.analyzer.getCurrentStatus()["Near"]
+
+            targetSystem=self.targetSystemCombo.currentText()
+            targetsystems = self.db.getSystemByName(targetSystem)
+            if len(targetsystems) == 0:
+              print("target system not found!")
+              return
+            self.targetSystem = targetsystems[0]
+            tpos=targetsystems[0].getPosition()
+            directionality=0.0
+            self.result = Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
         elif searchType==0 or searchType==1:
             currentBase=None
             if self.analyzer.getCurrentStatus()['System'] == self.currentSystem.getName():
@@ -176,6 +195,21 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     "profit",
                     "profitPh"
                 ]
+            basictradetable_target=[
+                    "Asystemname",
+                    "Abasename",
+                    "AexportPrice",
+                    "commodityname",
+                    "BimportPrice",
+                    "Bsystemname",
+                    "Bbasename",
+                    #"DistanceSq",
+                    "SystemDistance",
+                    "hours",
+                    "profit",
+                    "profitPh",
+                    "_targetdist"
+                ]
             twowaytradetable=[
                     "_curdist",
                     "Asystemname",
@@ -197,7 +231,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 basictradetable,
                 basictradetable,
                 basictradetable,
-                basictradetable
+                basictradetable,
+                basictradetable_target
             ]
 
 
@@ -398,6 +433,13 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                         pos=self.mw.currentSystem.getPosition()
                         dist=( (pos[0]-data["Bx"])**2 + (pos[1]-data["By"])**2 + (pos[2]-data["Bz"])**2 ) ** 0.5
                         return "%.2f" % dist # two decimals
+                elif columnorder[section] == "_targetdist":
+                    if self.mw.targetSystemCombo.currentText() is None:
+                        return '?'
+                    else:
+                        pos=self.mw.targetSystem.getPosition()
+                        dist=( (pos[0]-data["Bx"])**2 + (pos[1]-data["By"])**2 + (pos[2]-data["Bz"])**2 ) ** 0.5
+                        return "%.2f" % dist # two decimals
                 elif columnorder[section] == "DistanceSq":
                     return data["DistanceSq"] ** 0.5
                 elif columnorder[section] == "SystemDistance":
@@ -418,6 +460,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     return None
 
                 columnorder=self.columnorder[self.mw.searchType]
+                if section>=len(columnorder):
+                  return
 
                 if columnorder[section] in ["_curdist","_Bcurdist"]:
                     #field="Curr.Dist."
@@ -425,7 +469,14 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                         sysname = 'here'
                     else:
                         sysname = self.mw.currentSystem.getName()
-                    field="Dist.from "+sysname
+                    field="Ly from "+sysname
+                if columnorder[section] in ["_targetdist"]:
+                    #field="Curr.Dist."
+                    if self.mw.targetSystem is None:
+                        sysname = 'target'
+                    else:
+                        sysname = self.mw.targetSystem.getName()
+                    field="Ly to "+sysname
                 elif columnorder[section] == "Asystemname":
                     field="From System"
                 elif columnorder[section] == "Abasename":

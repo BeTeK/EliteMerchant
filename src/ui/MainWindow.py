@@ -190,7 +190,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           tab[1].searchBtnPressed()
           triggeredasearch=True
         if tab[1].searchType==1:
-          tab[1].currentSystemTxt.setText(systems[0])
+          tab[1].setCurrentSystem(systems[0])
           tab[1].refreshData()
           tab[1].searchBtnPressed()
           triggeredasearch=True
