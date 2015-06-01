@@ -1,6 +1,6 @@
 ; example1.nsi
 !include x64.nsh 
-
+SetCompressor /SOLID /FINAL LZMA
 ;--------------------------------
 
 ; The name of the installer
