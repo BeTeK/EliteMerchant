@@ -453,3 +453,5 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             self.endResetModel()
             #self.dataChanged.emit(self.createIndex(0,0), self.createIndex(self.columnCount(1), len(self.mw.result)), [])
             self.dataChanged.emit(self.createIndex(0,0), self.createIndex(8, len(self.mw.result)), [])
+            # reset scroll
+            self.mw.SearchResultTable.verticalScrollBar().setSliderPosition(0)
