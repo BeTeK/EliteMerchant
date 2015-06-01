@@ -125,6 +125,24 @@ class SQLiteDB(EliteDB.EliteDB):
 
         return ret
 
+  def getCommodities(self):
+    with self.lock:
+
+      cur = self.conn.cursor()
+
+      cur.execute("SELECT id, name, average FROM commodities")
+      rows = cur.fetchall()
+      if len(rows) == 0:
+        return None
+
+      for row in rows:
+        data = self._rowToDict(row)
+        if data['id'] not in self.commonityCache:
+          ret = self._dictToCommonity(data)
+          self.commonityCache[ret.getId()] = ret
+
+      return self.commonityCache
+
 
   def getCommonity(self, id):
     with self.lock:
@@ -318,6 +336,84 @@ class SQLiteDB(EliteDB.EliteDB):
 
       return self._rowToDict(cur.fetchone())
 
+  def getCommoditiesInRange(self,queryvals):
+    with self.lock:
+      cur = self.conn.cursor()
+
+      queryvals['maxdistance'] = 'maxdistance' in queryvals and queryvals['maxdistance'] or 30
+      queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
+      queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
+      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
+      queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
+      queryvals['importexport'] = 'importexport' in queryvals and queryvals['importexport'] or 0 # check if exists and set to 1 or 0
+      if 'commodityId' not in queryvals:
+        return []
+
+      querystring="""
+      SELECT *,
+      systems.name AS systemname,
+      bases.name AS basename,
+      exportPrice,
+      commodities.name AS commodityname,
+      importPrice,
+      Distance3D( :x, :y, :z, x, y, z) AS SystemDistance,
+      (
+        (
+          StarToBase( distance )
+          +
+          BaseToBase( Distance3D( :x, :y, :z, x, y, z) ,:jumprange)
+        )/60/60
+      ) AS hours,
+      (
+        (:x - x)*(:x - x)
+        +
+        (:y - y)*(:y - y)
+        +
+        (:z - z)*(:z - z)
+      ) AS DistanceSq,
+      CASE
+        WHEN :importexport=0 THEN (importPrice/average)
+        ELSE (average/exportPrice)
+      END AS potentialsort,
+      CASE
+        WHEN :importexport=0 THEN importPrice
+        ELSE exportPrice
+      END AS notzero,
+      (100*exportPrice/average) AS exportPavg,
+      (100*importPrice/average) AS importPavg
+      FROM commodityPrices, bases, baseInfo, systems, commodities
+      WHERE
+      DistanceSQ<:maxdistance*:maxdistance
+      AND
+      commodityPrices.commodityId=:commodityId
+      AND
+      commodityPrices.baseId=bases.id
+      AND
+      bases.systemId=systems.id
+      AND
+      bases.id=baseInfo.baseId
+      AND
+      commodities.id=commodityPrices.commodityId
+      AND
+      notzero>0
+      ORDER BY hours DESC
+      --ORDER BY notzero DESC
+      --LIMIT 0,50000
+      """
+
+      querystart=time.time()
+      result=cur.execute(querystring,queryvals).fetchall()
+      querytime=time.time()-querystart
+
+      asdict=[self._rowToDict(o) for o in result]
+      for ass in asdict:
+        ass["potential"]=ass["potentialsort"]/(ass["hours"]/60)
+
+      asdict.sort(key=operator.itemgetter("potential"),reverse=True) # sort by value deviation from avg per hours
+
+      print("getCommoditiesInRange, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
+      return asdict
+
   def getWindowProfit(self,queryvals):
     with self.lock:
       cur = self.conn.cursor()
@@ -331,7 +427,6 @@ class SQLiteDB(EliteDB.EliteDB):
       queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
       queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
 
-      # TODO: distance from star limit
 
       querystring="""
       WITH systemwindow AS (

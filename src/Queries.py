@@ -606,3 +606,20 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
 
 
 
+def queryCommodities(db, x, y, z, maxDistance, minPadSize,jumprange ,importexport,commodityid):
+
+  queryparams=dict()
+  queryparams['x']=x
+  queryparams['y']=y
+  queryparams['z']=z
+  queryparams['maxdistance']=maxDistance
+  queryparams['landingPadSize']=minPadSize
+  queryparams['jumprange']=jumprange
+  queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
+  queryparams['importexport']=importexport
+  queryparams['commodityId']=commodityid
+
+
+  results=db.getCommoditiesInRange(queryparams)
+
+  return results[:5000] # only winners go home

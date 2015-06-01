@@ -2,6 +2,7 @@
 import ui.MainWindowUI
 import ui.Options
 import ui.SearchTab
+import ui.CommodityTab
 import ui.Status
 import ui.Options
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -28,6 +29,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.exitMenu.triggered.connect(self._exitMenuSelected)
     self.searchMenuItem.triggered.connect(self._addSearchTabSelected)
     self.statusMenuItem.triggered.connect(self._addStatusTabSelected)
+    self.commodityMenuItem.triggered.connect(self._addCommodityTabSelected)
     self.db = db
     self.analyzer = EliteLogAnalyzer.EliteLogAnalyzer()
     self.analyzer.setPath(Options.get("Elite-path", ""))
@@ -103,6 +105,9 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def _addSearchTabSelected(self):
     self._addTab(ui.SearchTab.SearchTab(self.db, self.analyzer, "", self))
 
+  def _addCommodityTabSelected(self):
+    self._addTab(ui.CommodityTab.CommodityTab(self.db, self.analyzer, "", self))
+
   def _exitMenuSelected(self):
     self.close()
 
@@ -123,6 +128,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
         item = ("Search {0}".format(index + 1), ui.SearchTab.SearchTab(self.db, self.analyzer, str(index + 1),self))
       elif type == "status":
         item = ("Status {0}".format(index + 1), ui.Status.Status(self.db, self.analyzer, str(index + 1),self))
+      elif type == "commodity":
+        item = ("Commodities {0}".format(index + 1), ui.CommodityTab.CommodityTab(self.db, self.analyzer, str(index + 1),self))
 
       self.tabItems.append(item)
 

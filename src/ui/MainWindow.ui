@@ -216,6 +216,7 @@
     </property>
     <addaction name="searchMenuItem"/>
     <addaction name="statusMenuItem"/>
+    <addaction name="commodityMenuItem"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="editMenu"/>
@@ -240,6 +241,11 @@
   <action name="statusMenuItem">
    <property name="text">
     <string>Add Status</string>
+   </property>
+  </action>
+  <action name="commodityMenuItem">
+   <property name="text">
+    <string>Add Commodity search</string>
    </property>
   </action>
  </widget>
