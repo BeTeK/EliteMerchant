@@ -26,6 +26,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.model = SearchTab.TableModel(None, self)
         self.SearchResultTable.setModel(self.model)
         self.getCurrentBtn.clicked.connect(self._setCurrentSystemByname)
+        self.searchTypeCombo.currentIndexChanged.connect(self._searchtypeChanged)
         self.analyzer = analyzer
 
         systemlist=self.db.getSystemNameList()
@@ -34,6 +35,22 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.targetSystemCombo.clear()
         self.targetSystemCombo.addItems( systemlist )
         self._restoreSearchStatus()
+
+    def _searchtypeChanged(self,idx):
+        #searchtype=self.searchTypeCombo.currentIndex()
+        searchtype=idx
+        if searchtype in [5]:
+          self.targetSystemCombo.setEnabled(True)
+        else:
+          self.targetSystemCombo.setEnabled(False)
+        if searchtype in [4]:
+          self.graphDepthSpin.setEnabled(False)
+          self.graphMinDepthSpin.setEnabled(False)
+        else:
+          self.graphDepthSpin.setEnabled(True)
+          self.graphMinDepthSpin.setEnabled(True)
+
+
 
     def setTabName(self, name):
         self.tabName = name
@@ -69,6 +86,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.windowSizeTxt.setText(Options.get(self._optName("search_window_size"), "200"))
         self.windowCountTxt.setText(Options.get(self._optName("search_window_count"), "7"))
         #self.profitPhChk.setChecked(Options.get(self._optName("search_profitPh"),"0")=="1")
+
+        self._searchtypeChanged(int(Options.get(self._optName("search_type"), "0")))
 
     def _saveSearchStatus(self):
         Options.set(self._optName("current_system"), self.currentSystemCombo.currentText())
