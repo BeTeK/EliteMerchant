@@ -219,7 +219,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 if columnorder[section] in ["Asystemname","Abasename","Bsystemname","Bbasename"]:
                     return QtGui.QBrush(QtGui.QColor(255,255,230))
                 if columnorder[section] in ["commodityname","Ccommodityname"]:
-                    return QtGui.QBrush(QtGui.QColor(230,255,255))
+                    r,g,b=self.mw.AgeToColor(min(data['AlastUpdated'],data['BlastUpdated']))
+                    return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["profit","Cprofit","totalprofit"]:
                     return QtGui.QBrush(QtGui.QColor(255,230,255))
 
@@ -288,9 +289,18 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 elif columnorder[section] == "BexportPrice":
                     return "Export sales price: "+str(data["BexportPrice"])+"\nSupply: "+str(data["Bsupply"])
                 elif columnorder[section] == "commodityname":
-                    return "Commodity "+data["commodityname"]+ "\nBuy for "+str(data["AexportPrice"])+"\nSell for "+str(data["BimportPrice"])+"\nProfit:    "+str(data["profit"])+"\nGalactic average price: "+str(data["average"])
+                    return "Commodity "+data["commodityname"]\
+                           +"\nData "+str("%.2f" %((time.time()-min(data['AlastUpdated'],data['BlastUpdated']))/(60*60*24)))+" days old"\
+                           +"\nBuy for "+str(data["AexportPrice"])\
+                           +"\nSell for "+str(data["BimportPrice"])\
+                           +"\nProfit:    "+str(data["profit"])\
+                           +"\nGalactic average price: "+str(data["average"])
                 elif columnorder[section] == "Ccommodityname":
-                    return "Commodity "+data["Ccommodityname"]+ "\nBuy for "+str(data["BexportPrice"])+"\nSell for "+str(data["CimportPrice"])+"\nProfit:    "+str(data["Cprofit"])+"\nGalactic average price: "+str(data["Caverage"])
+                    return "Commodity "+data["Ccommodityname"]\
+                           +"\nBuy for "+str(data["BexportPrice"])\
+                           +"\nSell for "+str(data["CimportPrice"])\
+                           +"\nProfit:    "+str(data["Cprofit"])\
+                           +"\nGalactic average price: "+str(data["Caverage"])
                 elif columnorder[section] == "BimportPrice":
                     return "Import buy price: "+str(data["BimportPrice"])+"\nDemand: "+str(data["Bdemand"])
                 elif columnorder[section] == "CimportPrice":

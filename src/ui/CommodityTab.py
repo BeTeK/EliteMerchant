@@ -155,10 +155,11 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
                         return QtGui.QBrush(QtGui.QColor(255,255,255))
                     if data["celltype"]=='separatorrow':
                         return QtGui.QBrush(QtGui.QColor(200,200,200))
-                if columnorder[section] in ["Asystemname","Abasename","Bsystemname","Bbasename"]:
+                if columnorder[section] in ["systemname","basename"]:
                     return QtGui.QBrush(QtGui.QColor(255,255,230))
-                if columnorder[section] in ["commodityname","Ccommodityname"]:
-                    return QtGui.QBrush(QtGui.QColor(230,255,255))
+                if columnorder[section] in ["commodityname"]:
+                    r,g,b=self.mw.AgeToColor(data['lastUpdated'])
+                    return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["profit","Cprofit","totalprofit"]:
                     return QtGui.QBrush(QtGui.QColor(255,230,255))
 
@@ -170,21 +171,11 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
                     else:
                         curname=self.mw.currentSystem.getName() # todo: ship range
                         pos=self.mw.currentSystem.getPosition()
-                        dist=( (pos[0]-data["Ax"])**2 + (pos[1]-data["Ay"])**2 + (pos[2]-data["Az"])**2 ) ** 0.5
+                        dist=( (pos[0]-data["x"])**2 + (pos[1]-data["y"])**2 + (pos[2]-data["z"])**2 ) ** 0.5
                         return "Distance from "+curname+" (current system)\n" \
-                            "to "+data["Asystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly " \
+                            "to "+data["systemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly " \
                             "("+str("%.2f" % (SpaceTime.BaseToBase(dist)/60))+"min)"
-                elif columnorder[section] == "_Bcurdist":
-                    if self.mw.currentSystem is None:
-                        return
-                    else:
-                        curname=self.mw.currentSystem.getName() # todo: ship range
-                        pos=self.mw.currentSystem.getPosition()
-                        dist=( (pos[0]-data["Bx"])**2 + (pos[1]-data["By"])**2 + (pos[2]-data["Bz"])**2 ) ** 0.5
-                        return "Distance from "+curname+" (current system)\n" \
-                            "to "+data["Bsystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly " \
-                            "("+str("%.2f" % (SpaceTime.BaseToBase(dist)/60))+"min)"
-                elif columnorder[section] in ["Asystemname","Abasename"]:
+                elif columnorder[section] in ["systemname","basename"]:
                     padsize={
                         None:"unknown",
                         0:'S',
@@ -192,61 +183,35 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
                         2:'L'
                     }
                     returnstring=""
-                    returnstring+="System: "+data["Asystemname"]+"\n"
-                    returnstring+="Station: "+data["Abasename"]+"\n"
-                    returnstring+="Distance to star: "+str(data["Adistance"] is not None and (str(data["Adistance"])
-                    +" ("+str("%.2f" % (SpaceTime.StarToBase(data["Adistance"])/60))+"min)") or "unknown")+"\n"
-                    returnstring+="Landing pad size: "+padsize[data["AlandingPadSize"]]
+                    returnstring+="System: "+data["systemname"]+"\n"
+                    returnstring+="Station: "+data["basename"]+"\n"
+                    returnstring+="Distance to star: "+str(data["distance"] is not None and (str(data["distance"])
+                    +" ("+str("%.2f" % (SpaceTime.StarToBase(data["distance"])/60))+"min)") or "unknown")+"\n"
+                    returnstring+="Landing pad size: "+padsize[data["landingPadSize"]]
                     return returnstring
-                elif columnorder[section] == "AexportPrice":
-                    return "Export sales price: "+str(data["AexportPrice"])+"\nSupply: "+str(data["Asupply"])
-                elif columnorder[section] == "BexportPrice":
-                    return "Export sales price: "+str(data["BexportPrice"])+"\nSupply: "+str(data["Bsupply"])
+                elif columnorder[section] == "exportPrice":
+                    return "Export sales price: "+str(data["exportPrice"])+"\nSupply: "+str(data["supply"])
                 elif columnorder[section] == "commodityname":
-                    return "Commodity "+data["commodityname"]+ "\nBuy for "+str(data["AexportPrice"])+"\nSell for "+str(data["BimportPrice"])+"\nProfit:    "+str(data["profit"])+"\nGalactic average price: "+str(data["average"])
-                elif columnorder[section] == "Ccommodityname":
-                    return "Commodity "+data["Ccommodityname"]+ "\nBuy for "+str(data["BexportPrice"])+"\nSell for "+str(data["CimportPrice"])+"\nProfit:    "+str(data["Cprofit"])+"\nGalactic average price: "+str(data["Caverage"])
-                elif columnorder[section] == "BimportPrice":
-                    return "Import buy price: "+str(data["BimportPrice"])+"\nDemand: "+str(data["Bdemand"])
-                elif columnorder[section] == "CimportPrice":
-                    return "Import buy price: "+str(data["CimportPrice"])+"\nDemand: "+str(data["Cdemand"])
-                elif columnorder[section] in ["Bsystemname","Bbasename"]:
-                    padsize={
-                        None:"unknown",
-                        0:'S',
-                        1:'M',
-                        2:'L'
-                    }
-                    returnstring=""
-                    returnstring+="System: "+data["Bsystemname"]+"\n"
-                    returnstring+="Station: "+data["Bbasename"]+"\n"
-                    returnstring+="Distance to star: "+str(data["Bdistance"] is not None and (str(data["Bdistance"])
-                    + " ("+str("%.2f" %(SpaceTime.StarToBase(data["Bdistance"])/60))+"min)") or "unknown")+"\n"
-                    returnstring+="Landing pad size: "+padsize[data["BlandingPadSize"]]
-                    return returnstring
+                    return "Commodity "+data["commodityname"]\
+                           +"\nData "+str("%.2f" %((time.time()-data['lastUpdated'])/(60*60*24)))+" days old"\
+                           +"\nBuy for "+str(data["exportPrice"])\
+                           +"\nSell for "+str(data["importPrice"])\
+                           +"\nGalactic average price: "+str(data["average"])
+                elif columnorder[section] == "importPrice":
+                    return "Import buy price: "+str(data["importPrice"])+"\nDemand: "+str(data["demand"])
                 elif columnorder[section] == "DistanceSq":
                     return "Travel distance "+str(data["DistanceSq"]**0.5)+"ly + "+\
-                                str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"ls from star to station"
+                                str(data["distance"] is not None and data["distance"] or "unknown")+"ls from star to station"
                 elif columnorder[section] == "SystemDistance":
                     return "Travel distance "+str(data["SystemDistance"])+"ly + "+\
-                                str(data["Bdistance"] is not None and data["Bdistance"] or "unknown")+"ls from star to station\n"+\
-                                str(data["Bdistance"] is not None and str("%.2f" % (SpaceTime.StarToBase(data["Bdistance"])/60))+"min" or "")
+                                str(data["distance"] is not None and data["distance"] or "unknown")+"ls from star to station\n"+\
+                                str(data["distance"] is not None and str("%.2f" % (SpaceTime.StarToBase(data["distance"])/60))+"min" or "")
                 elif columnorder[section] == "profit":
-                    return "Buy for "+str(data["AexportPrice"])\
-                                 +"\nSell for "+str(data["BimportPrice"])\
-                                 +"\nProfit:    "+str(data["profit"])
+                    return "Buy for "+str(data["exportPrice"])\
+                                 +"\nSell for "+str(data["importPrice"])
                 elif columnorder[section] == "Cprofit":
                     return "Buy for "+str(data["BexportPrice"])\
-                                 +"\nSell for "+str(data["CimportPrice"])\
-                                 +"\nProfit:    "+str(data["Cprofit"])
-                elif columnorder[section] == "profitPh":
-                    returnstring="Profit:"+str(data["profit"])+"\n"
-                    returnstring+="System: "+data["Bsystemname"]+"\n"
-                    returnstring+=str(data["SystemDistance"])+"ly\n"
-                    returnstring+="Station: "+data["Bbasename"]+"\n"
-                    returnstring+=str(data["Bdistance"] is not None and str(data["Bdistance"])+"ls\n" or "")
-                    returnstring+=str(data["Bdistance"] is not None and str("%.2f" % (SpaceTime.StarToBase(data["Bdistance"])/60))+"min" or "")
-                    return returnstring
+                                 +"\nSell for "+str(data["CimportPrice"])
                 else:
                     return None
 
@@ -261,8 +226,6 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
                         pos=self.mw.currentSystem.getPosition()
                         dist=( (pos[0]-data["x"])**2 + (pos[1]-data["y"])**2 + (pos[2]-data["z"])**2 ) ** 0.5
                         return "%.2f" % dist # two decimals
-                elif columnorder[section] == "profitPh":
-                    return str(int(data["profit"]/data["hours"]))
                 elif columnorder[section] == "hours":
                     return str(int(data["hours"]*60*10)/10)
                 else:
