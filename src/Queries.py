@@ -264,8 +264,8 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     queryparams['x']=x
     queryparams['y']=y
     queryparams['z']=z
-    queryparams['window']=100
-    queryparams['maxdistance']=50
+    queryparams['window']=maxdistance*2*2
+    queryparams['maxdistance']=maxdistance*2
     queryparams['minprofit']=0
     queryparams['minprofitPh']=0
     queryparams['landingPadSize']=landingPadSize
@@ -332,9 +332,9 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
     routed=[]
     def walk(fromid,start,history,profit,hours):
       depth=len(history)+1
-      if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
-        return False
       if maxdepth<depth:
+        return False
+      if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
         return False
       for toid in prune[fromid]:
         if toid in history: # avoid internal loops on the way
@@ -436,7 +436,8 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
       "averageprofit":loop["averageprofit"],
       "loopminprofit":loop["loopminprofit"],
       "loopmaxprofit":loop["loopmaxprofit"],
-      "totalprofitPh":loop["totalprofitPh"]
+      "totalprofitPh":loop["totalprofitPh"],
+      "totalhours":loop["totalhours"]
     }))
     #returnarray.append('separatorrow')
   return returnarray
@@ -485,11 +486,11 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
       depth=len(history)+1
       if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
         return False
-      if maxdepth<depth:
-        return False
-      if mindepth<=depth:
+      if mindepth<depth:
         mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
         loops.append([profit/hours,[start]+history])
+      if maxdepth<depth:
+        return False
       for toid in prune[fromid]:
         if toid in history: # avoid internal loops on the way
           #print("internal loop at "+str(toid))
@@ -531,7 +532,6 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
       for toid in prune[fromid]:
         if toid in prune:
           walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'])
-          #loopgraph[fromid]=walk(toid,fromid,[toid])
       routed.append(fromid)
 
     print("")
@@ -598,7 +598,8 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
       "averageprofit":loop["averageprofit"],
       "loopminprofit":loop["loopminprofit"],
       "loopmaxprofit":loop["loopmaxprofit"],
-      "totalprofitPh":loop["totalprofitPh"]
+      "totalprofitPh":loop["totalprofitPh"],
+      "totalhours":loop["totalhours"]
     }))
     #returnarray.append('separatorrow')
   return returnarray
@@ -606,3 +607,20 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
 
 
 
+def queryCommodities(db, x, y, z, maxDistance, minPadSize,jumprange ,importexport,commodityid):
+
+  queryparams=dict()
+  queryparams['x']=x
+  queryparams['y']=y
+  queryparams['z']=z
+  queryparams['maxdistance']=maxDistance
+  queryparams['landingPadSize']=minPadSize
+  queryparams['jumprange']=jumprange
+  queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
+  queryparams['importexport']=importexport
+  queryparams['commodityId']=commodityid
+
+
+  results=db.getCommoditiesInRange(queryparams)
+
+  return results[:5000] # only winners go home

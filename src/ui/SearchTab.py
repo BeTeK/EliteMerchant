@@ -27,6 +27,11 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.getCurrentBtn.clicked.connect(self._setCurrentSystemByname)
         self.analyzer = analyzer
 
+        systemlist=self.db.getSystemNameList()
+        self.currentSystemCombo.clear()
+        self.currentSystemCombo.addItems( systemlist )
+        self.targetSystemCombo.clear()
+        self.targetSystemCombo.addItems( systemlist )
         self._restoreSearchStatus()
 
     def setTabName(self, name):
@@ -45,7 +50,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         return "search_tab__{0}_{1}".format(name, self.tabName)
 
     def _restoreSearchStatus(self):
-        self.currentSystemTxt.setText(Options.get(self._optName("current_system"), "Sol"))
+        self.currentSystemCombo.setCurrentText(Options.get(self._optName("current_system"), "Sol"))
         self.maxDistanceTxt.setText(Options.get(self._optName("maximum_distance"), "50"))
         self.minProfitTxt.setText(Options.get(self._optName("minimum_profit"), "1000"))
         self.searchTypeCombo.setCurrentIndex(int(Options.get(self._optName("search_type"), "0")))
@@ -54,10 +59,10 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.graphMinDepthSpin.setValue(int(Options.get(self._optName("search_min_depth"), "1")))
         self.windowSizeTxt.setText(Options.get(self._optName("search_window_size"), "200"))
         self.windowCountTxt.setText(Options.get(self._optName("search_window_count"), "7"))
-        self.profitPhChk.setChecked(Options.get(self._optName("search_profitPh"),"0")=="1")
+        #self.profitPhChk.setChecked(Options.get(self._optName("search_profitPh"),"0")=="1")
 
     def _saveSearchStatus(self):
-        Options.set(self._optName("current_system"), self.currentSystemTxt.text())
+        Options.set(self._optName("current_system"), self.currentSystemCombo.currentText())
         Options.set(self._optName("maximum_distance"), self.maxDistanceTxt.text())
         Options.set(self._optName("minimum_profit"), self.minProfitTxt.text())
         Options.set(self._optName("search_window_size"), self.windowSizeTxt.text())
@@ -65,11 +70,11 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         Options.set(self._optName("search_type"), self.searchTypeCombo.currentIndex())
         Options.set(self._optName("search_max_depth"), self.graphDepthSpin.value())
         Options.set(self._optName("search_min_depth"), self.graphMinDepthSpin.value())
-        Options.set(self._optName("search_profitPh"), self.profitPhChk.isChecked() and "1" or "0")
+        #Options.set(self._optName("search_profitPh"), self.profitPhChk.isChecked() and "1" or "0")
 
     def _setCurrentSystemByname(self):
         systemName = self.analyzer.getCurrentStatus()["System"]
-        self.currentSystemTxt.setText(systemName)
+        self.currentSystemCombo.setCurrentText(systemName)
         systems = self.db.getSystemByName(systemName)
         if len(systems) == 0:
             return
@@ -81,22 +86,24 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         #print ("searchBtnPressed")
         #self.searchBtn.setText('- - - - S e a r c h i n g - - - -') # unfortunately these never show with synchronous ui
 
-        currentSystem = self.currentSystemTxt.text()
+        currentSystem = self.currentSystemCombo.currentText()
         windowSize = float(self.windowSizeTxt.text())
         windows = int(self.windowCountTxt.text())
         maxDistance = float(self.maxDistanceTxt.text())
         jumprange = float(self.mainwindow.jumpRangeTxt.text())
-        minProfit =None
+        minProfit = int(self.minProfitTxt.text())
+        #minProfit =None
         minProfitPh =None
-        if bool(self.profitPhChk.isChecked()):
-            minProfitPh = int(self.minProfitTxt.text())
-        else:
-            minProfit = int(self.minProfitTxt.text())
+        #if bool(self.profitPhChk.isChecked()):
+        #    minProfitPh = int(self.minProfitTxt.text())
+        #else:
+        #    minProfit = int(self.minProfitTxt.text())
         minPadSize = int(self.mainwindow.minPadSizeCombo.currentIndex())
         searchType = int(self.searchTypeCombo.currentIndex())
         graphDepth = int(self.graphMinDepthSpin.value())
         graphDepthmax = int(self.graphDepthSpin.value())
         #twoway = bool(self.twoWayBool.isChecked())
+        targetSystem = int(self.targetSystemCombo.currentIndex())
 
         if (graphDepth>graphDepthmax):
           print("min hops have to be less than max hops!")
@@ -125,7 +132,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             self.result = Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
         elif searchType==0 or searchType==1:
             currentBase=None
-            if self.analyzer.getCurrentStatus()['System'] == self.currentSystem:
+            if self.analyzer.getCurrentStatus()['System'] == self.currentSystem.getName():
               #if self.analyzer.hasDockPermissionGot():
               currentBase=self.analyzer.getCurrentStatus()["Near"]
 
@@ -158,6 +165,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     "Bbasename",
                     #"DistanceSq",
                     "SystemDistance",
+                    "hours",
                     "profit",
                     "profitPh"
                 ]
@@ -218,7 +226,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 if columnorder[section] in ["Asystemname","Abasename","Bsystemname","Bbasename"]:
                     return QtGui.QBrush(QtGui.QColor(255,255,230))
                 if columnorder[section] in ["commodityname","Ccommodityname"]:
-                    return QtGui.QBrush(QtGui.QColor(230,255,255))
+                    r,g,b=self.mw.AgeToColor(min(data['AlastUpdated'],data['BlastUpdated']))
+                    return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["profit","Cprofit","totalprofit"]:
                     return QtGui.QBrush(QtGui.QColor(255,230,255))
 
@@ -287,9 +296,18 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 elif columnorder[section] == "BexportPrice":
                     return "Export sales price: "+str(data["BexportPrice"])+"\nSupply: "+str(data["Bsupply"])
                 elif columnorder[section] == "commodityname":
-                    return "Commodity "+data["commodityname"]+ "\nBuy for "+str(data["AexportPrice"])+"\nSell for "+str(data["BimportPrice"])+"\nProfit:    "+str(data["profit"])+"\nGalactic average price: "+str(data["average"])
+                    return "Commodity "+data["commodityname"]\
+                           +"\nData "+str("%.2f" %((time.time()-min(data['AlastUpdated'],data['BlastUpdated']))/(60*60*24)))+" days old"\
+                           +"\nBuy for "+str(data["AexportPrice"])\
+                           +"\nSell for "+str(data["BimportPrice"])\
+                           +"\nProfit:    "+str(data["profit"])\
+                           +"\nGalactic average price: "+str(data["average"])
                 elif columnorder[section] == "Ccommodityname":
-                    return "Commodity "+data["Ccommodityname"]+ "\nBuy for "+str(data["BexportPrice"])+"\nSell for "+str(data["CimportPrice"])+"\nProfit:    "+str(data["Cprofit"])+"\nGalactic average price: "+str(data["Caverage"])
+                    return "Commodity "+data["Ccommodityname"]\
+                           +"\nBuy for "+str(data["BexportPrice"])\
+                           +"\nSell for "+str(data["CimportPrice"])\
+                           +"\nProfit:    "+str(data["Cprofit"])\
+                           +"\nGalactic average price: "+str(data["Caverage"])
                 elif columnorder[section] == "BimportPrice":
                     return "Import buy price: "+str(data["BimportPrice"])+"\nDemand: "+str(data["Bdemand"])
                 elif columnorder[section] == "CimportPrice":
@@ -352,6 +370,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                             return "Average: "+str(data["averageprofit"])+"cr"
                         elif columnorder[section]=='profitPh':
                             return str(data["totalprofitPh"])+"cr/h"
+                        elif columnorder[section] == "hours":
+                          return str(int(data["totalhours"]*60*10)/10)
                         else:
                             return None
                     else:
@@ -377,6 +397,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     return data["SystemDistance"]
                 elif columnorder[section] == "profitPh":
                     return str(int(data["profit"]/data["hours"]))
+                elif columnorder[section] == "hours":
+                    return str(int(data["hours"]*60*10)/10)
                 else:
                     return data[columnorder[section]]
 
@@ -421,6 +443,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     field="Return Profit Cr"
                 elif columnorder[section] == "totalprofit":
                     field="Total Profit Cr"
+                elif columnorder[section] == "hours":
+                    field="Minutes travel"
                 elif columnorder[section] == "profitPh":
                     field="Profit Cr/h"
                 else:
@@ -436,3 +460,5 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             self.endResetModel()
             #self.dataChanged.emit(self.createIndex(0,0), self.createIndex(self.columnCount(1), len(self.mw.result)), [])
             self.dataChanged.emit(self.createIndex(0,0), self.createIndex(8, len(self.mw.result)), [])
+            # reset scroll
+            self.mw.SearchResultTable.verticalScrollBar().setSliderPosition(0)

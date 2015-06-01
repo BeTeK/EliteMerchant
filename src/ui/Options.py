@@ -43,13 +43,13 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         self.passwordTxt.textEdited.connect(self.onPasswordEdited)
         self.passwordTxt.setText(OptionsParams.get("elite-password", ""))
 
-        self.soundStartupTxt.setText(OptionsParams.get("sounds-startup", "sounds/Windows Notify.wav"))
+        self.soundStartupTxt.setText(OptionsParams.get("sounds-startup", "sounds/startup.wav"))
         self.soundStartupTxt.textEdited.connect(self.onSoundsChanged)
         self.soundStartupBtn.clicked.connect(self.onSoundStartupClicked)
-        self.soundSearchTxt.setText(OptionsParams.get("sounds-searched", "sounds/Windows Shutdown.wav"))
+        self.soundSearchTxt.setText(OptionsParams.get("sounds-search", "sounds/search.wav"))
         self.soundSearchTxt.textEdited.connect(self.onSoundsChanged)
         self.soundSearchBtn.clicked.connect(self.onSoundSearchClicked)
-        self.soundErrorTxt.setText(OptionsParams.get("sounds-error", "sounds/Windows Critical Stop.wav"))
+        self.soundErrorTxt.setText(OptionsParams.get("sounds-error", "sounds/error.wav"))
         self.soundErrorTxt.textEdited.connect(self.onSoundsChanged)
         self.soundErrorBtn.clicked.connect(self.onSoundErrorClicked)
         self.soundEnabledChk.setChecked( OptionsParams.get("sounds-enabled", "0")=="1" )
@@ -123,7 +123,7 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         path = self._selectFileDialog("Select Sound", self.soundSearchTxt.text(),"Sounds (*.wav)")
         if path is not None:
             self.soundSearchTxt.setText(path)
-            OptionsParams.set("sounds-searched", path)
+            OptionsParams.set("sounds-search", path)
 
     def onSoundErrorClicked(self):
         path = self._selectFileDialog("Select Sound", self.soundErrorTxt.text(),"Sounds (*.wav)")
@@ -133,7 +133,7 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
 
     def onSoundsChanged(self):
         OptionsParams.set("sounds-startup", self.soundStartupTxt.text() )
-        OptionsParams.set("sounds-searched",self.soundSearchTxt.text() )
+        OptionsParams.set("sounds-search",self.soundSearchTxt.text() )
         OptionsParams.set("sounds-error",self.soundErrorTxt.text() )
         OptionsParams.set("sounds-enabled", self.soundEnabledChk.isChecked() and "1" or "0" )
         OptionsParams.set("sounds-volume", self.soundVolumeSlider.value() )

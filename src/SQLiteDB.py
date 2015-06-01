@@ -8,8 +8,8 @@ import System
 import Base
 import time
 import datetime
-import CommonityPrice
-import Commonity
+import CommodityPrice
+import Commodity
 import SpaceTime
 from math import *
 
@@ -20,7 +20,7 @@ class SQLiteDB(EliteDB.EliteDB):
     print(filename)
     self.filename = filename
     self.forceInit = forceInit
-    self.commonityCache = {}
+    self.commodityCache = {}
     self.lock = threading.RLock()
 
 
@@ -106,9 +106,9 @@ class SQLiteDB(EliteDB.EliteDB):
       else:
         return self._dictToSystem(self._rowToDict(result))
 
-  def getCommonityByName(self, name):
+  def getCommodityByName(self, name):
     with self.lock:
-      for i in self.commonityCache.values():
+      for i in self.commodityCache.values():
         if i.getName() == name:
           return i
 
@@ -120,15 +120,33 @@ class SQLiteDB(EliteDB.EliteDB):
           return None
 
         data = self._rowToDict(rows[0])
-        ret = self._dictToCommonity(data)
-        self.commonityCache[ret.getId()] = ret
+        ret = self._dictToCommodity(data)
+        self.commodityCache[ret.getId()] = ret
 
         return ret
 
-
-  def getCommonity(self, id):
+  def getCommodities(self):
     with self.lock:
-      if id not in self.commonityCache:
+
+      cur = self.conn.cursor()
+
+      cur.execute("SELECT id, name, average FROM commodities")
+      rows = cur.fetchall()
+      if len(rows) == 0:
+        return None
+
+      for row in rows:
+        data = self._rowToDict(row)
+        if data['id'] not in self.commodityCache:
+          ret = self._dictToCommodity(data)
+          self.commodityCache[ret.getId()] = ret
+
+      return self.commodityCache
+
+
+  def getCommodity(self, id):
+    with self.lock:
+      if id not in self.commodityCache:
         cur = self.conn.cursor()
 
         cur.execute("SELECT id, name, average FROM commodities WHERE commodities.id = ?", (id, ))
@@ -138,14 +156,14 @@ class SQLiteDB(EliteDB.EliteDB):
 
         data = self._rowToDict(rows[0])
 
-        self.commonityCache[id] = self._dictToCommonity(data)
+        self.commodityCache[id] = self._dictToCommodity(data)
 
-      return self.commonityCache[id]
+      return self.commodityCache[id]
   
-  def _dictToCommonity(self, data):
-    return Commonity.Commonity(self, data["id"], data["name"], data["average"])
+  def _dictToCommodity(self, data):
+    return Commodity.Commodity(self, data["id"], data["name"], data["average"])
 
-  def getPricesOfCommonitiesInBase(self, baseId):
+  def getPricesOfCommoditiesInBase(self, baseId):
     with self.lock:
       cur = self.conn.cursor()
       cur.execute("SELECT id, baseId, supply, commodityId, demand, importPrice, exportPrice, lastUpdated FROM commodityPrices WHERE commodityPrices.baseId = ?", (baseId, ))
@@ -153,7 +171,7 @@ class SQLiteDB(EliteDB.EliteDB):
       return [self._dictToPriceData(self._rowToDict(i)) for i in cur.fetchall()]
 
   def _dictToPriceData(self, data):
-    return CommonityPrice.CommonityPrice(self, data["id"], data["commodityId"], data["importPrice"], data["exportPrice"], data["demand"], datetime.date.fromtimestamp(data['lastUpdated']), data["baseId"], data["supply"])
+    return CommodityPrice.CommodityPrice(self, data["id"], data["commodityId"], data["importPrice"], data["exportPrice"], data["demand"], datetime.date.fromtimestamp(data['lastUpdated']), data["baseId"], data["supply"])
   
   def _dictToSystem(self, info):
     if info["x"] is not None and info["y"] is not None and info["z"] is not None:
@@ -234,7 +252,7 @@ class SQLiteDB(EliteDB.EliteDB):
     UNIQUE (baseId, commodityId)
     )""")
     cur.execute("""CREATE INDEX "commodityPricesIdIndex" on commodityPrices (id ASC)""")
-    cur.execute("""CREATE INDEX "commodityPricesCommonitIdIndex" on commodityPrices (commodityId ASC)""")
+    cur.execute("""CREATE INDEX "commodityPricesCommoditIdIndex" on commodityPrices (commodityId ASC)""")
     cur.execute("""CREATE INDEX "commodityPricesBaseIdIndex" on commodityPrices (baseId ASC)""")
 
     cur.execute("""CREATE TABLE bases (
@@ -318,6 +336,104 @@ class SQLiteDB(EliteDB.EliteDB):
 
       return self._rowToDict(cur.fetchone())
 
+  def getSystemNameList(self):
+    with self.lock:
+      cur = self.conn.cursor()
+
+      cur.execute("""
+      SELECT DISTINCT systems.name
+      FROM
+      systems,bases,commodityPrices
+      WHERE
+      bases.systemId=systems.id -- we only want systems with stations on them
+      AND
+      bases.id=commodityPrices.baseId -- we only want bases with commodities on them
+      """)
+      result=cur.fetchall()
+
+      result=[self._rowToDict(o) for o in result]
+      result=[row["name"] for row in result] # names only
+
+      return sorted(result)
+
+  def getCommoditiesInRange(self,queryvals):
+    with self.lock:
+      cur = self.conn.cursor()
+
+      queryvals['maxdistance'] = 'maxdistance' in queryvals and queryvals['maxdistance'] or 30
+      queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
+      queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
+      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
+      queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
+      queryvals['importexport'] = 'importexport' in queryvals and queryvals['importexport'] or 0 # check if exists and set to 1 or 0
+      if 'commodityId' not in queryvals:
+        return []
+
+      querystring="""
+      SELECT *,
+      systems.name AS systemname,
+      bases.name AS basename,
+      exportPrice,
+      commodities.name AS commodityname,
+      importPrice,
+      Distance3D( :x, :y, :z, x, y, z) AS SystemDistance,
+      (
+        (
+          StarToBase( distance )
+          +
+          BaseToBase( Distance3D( :x, :y, :z, x, y, z) ,:jumprange)
+        )/60/60
+      ) AS hours,
+      (
+        (:x - x)*(:x - x)
+        +
+        (:y - y)*(:y - y)
+        +
+        (:z - z)*(:z - z)
+      ) AS DistanceSq,
+      CASE
+        WHEN :importexport=0 THEN (importPrice/average)
+        ELSE (average/exportPrice)
+      END AS potentialsort,
+      CASE
+        WHEN :importexport=0 THEN importPrice
+        ELSE exportPrice
+      END AS notzero,
+      (100*exportPrice/average) AS exportPavg,
+      (100*importPrice/average) AS importPavg
+      FROM commodityPrices, bases, baseInfo, systems, commodities
+      WHERE
+      DistanceSQ<:maxdistance*:maxdistance
+      AND
+      commodityPrices.commodityId=:commodityId
+      AND
+      commodityPrices.baseId=bases.id
+      AND
+      bases.systemId=systems.id
+      AND
+      bases.id=baseInfo.baseId
+      AND
+      commodities.id=commodityPrices.commodityId
+      AND
+      notzero>0
+      ORDER BY hours DESC
+      --ORDER BY notzero DESC
+      --LIMIT 0,50000
+      """
+
+      querystart=time.time()
+      result=cur.execute(querystring,queryvals).fetchall()
+      querytime=time.time()-querystart
+
+      asdict=[self._rowToDict(o) for o in result]
+      for ass in asdict:
+        ass["potential"]=ass["potentialsort"]/(ass["hours"]/60)
+
+      asdict.sort(key=operator.itemgetter("potential"),reverse=True) # sort by value deviation from avg per hours
+
+      print("getCommoditiesInRange, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
+      return asdict
+
   def getWindowProfit(self,queryvals):
     with self.lock:
       cur = self.conn.cursor()
@@ -331,13 +447,12 @@ class SQLiteDB(EliteDB.EliteDB):
       queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
       queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
 
-      # TODO: distance from star limit
 
       querystring="""
       WITH systemwindow AS (
       SELECT
         systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
-        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average
+        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated
       FROM
         commodities,
         commodityPrices,
@@ -382,10 +497,10 @@ class SQLiteDB(EliteDB.EliteDB):
         A.commodityId AS commodityId,
         A.average AS average,
         A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
-        A.exportPrice AS AexportPrice, A.supply AS Asupply,
+        A.exportPrice AS AexportPrice, A.supply AS Asupply, A.lastUpdated AS AlastUpdated,
         A.x AS Ax, A.y AS Ay, A.z AS Az,
         B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
-        B.importPrice AS BimportPrice, B.demand AS Bdemand,
+        B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
         B.x AS Bx, B.y AS By, B.z AS Bz
       FROM
         systemwindow AS A,
@@ -401,8 +516,8 @@ class SQLiteDB(EliteDB.EliteDB):
         A.exportPrice BETWEEN 1 AND A.average
         AND
         profit > :minprofit
-        AND
-        profit/hours > :minprofitPh
+        --AND
+        --profit/hours > :minprofitPh
         --ORDER BY profit DESC
         --LIMIT 0,10
       """
@@ -425,7 +540,7 @@ class SQLiteDB(EliteDB.EliteDB):
       queryvals['minprofitPh'] = 'minprofitPh' in queryvals and queryvals['minprofitPh'] or 0
       queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
       queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
-      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated']*2 )) # allow twice as old
+      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] )) # allow twice as old
       queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
       queryvals['sourcesystem'] = 'sourcesystem' in queryvals and queryvals['sourcesystem'] or '%'
 
@@ -433,7 +548,7 @@ class SQLiteDB(EliteDB.EliteDB):
       WITH systemwindow AS (
       SELECT
         systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
-        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average
+        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated
       FROM
         commodities,
         commodityPrices,
@@ -476,10 +591,10 @@ class SQLiteDB(EliteDB.EliteDB):
         A.commodityId AS commodityId,
         A.average AS average,
         A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
-        A.exportPrice AS AexportPrice, A.supply AS Asupply,
+        A.exportPrice AS AexportPrice, A.supply AS Asupply, A.lastUpdated AS AlastUpdated,
         A.x AS Ax, A.y AS Ay, A.z AS Az,
         B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
-        B.importPrice AS BimportPrice, B.demand AS Bdemand,
+        B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
         B.x AS Bx, B.y AS By, B.z AS Bz
       FROM
         systemwindow AS A,
