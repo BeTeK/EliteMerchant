@@ -54,6 +54,15 @@ Section "Elite Merchant (required)" ;No components page, name is not important
   SetOutPath $INSTDIR\requests
   File src\dist\requests\*
   
+  SetOutPath $INSTDIR\imageformats
+  File src\dist\imageformats\*
+  
+  SetOutPath $INSTDIR\mediaservice
+  File src\dist\mediaservice\*
+  
+  SetOutPath $INSTDIR\sounds
+  File src\dist\sounds\*
+  
   WriteRegStr HKLM SOFTWARE\Software\EliteMerchant "Install_Dir" "$INSTDIR"
   
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\EliteMerchant" "DisplayName" "Elite Merchant"
@@ -80,6 +89,9 @@ Section "Uninstall"
 
   ; Remove files and uninstaller
   Delete $INSTDIR\*
+  Delete $INSTDIR\sounds\*
+  Delete $INSTDIR\mediaservice\*
+  Delete $INSTDIR\imageformats\*
   Delete $INSTDIR\platforms\*
   Delete $INSTDIR\requests\*
 
@@ -88,6 +100,9 @@ Section "Uninstall"
 
   ; Remove directories used
   RMDir "$SMPROGRAMS\Elite Merchant"
+  RMDir "$INSTDIR\sounds"
+  RMDir "$INSTDIR\mediaservice"
+  RMDir "$INSTDIR\imageformats"
   RMDir "$INSTDIR\platforms"
   RMDir "$INSTDIR\requests"
   RMDir "$INSTDIR"
