@@ -17,7 +17,7 @@ eddbUrls={
 
 def readJSON(filename):
   try:
-    with open(filename, "r") as file:
+    with open(Options.getPath(filename), "r") as file:
       return json.loads(file.read())
   except Exception as ex:
     print(ex)
@@ -68,7 +68,7 @@ def downloadFile(url):
           lastupdate=time.time()
           sys.stdout.write(formatprogress(len(filebuffer),file_size))
 
-    with open(file_name, 'wb') as file:
+    with open(Options.getPath(file_name), 'wb') as file:
       if meta.get('Content-Encoding') == 'gzip': # gunzip
         #buf = StringIO( filebuffer )
         buf = BytesIO( filebuffer )
@@ -108,7 +108,7 @@ def checkUpdated(file,url):
   return False
 
 def importDownloaded(db):
-  if not os.path.exists('systems.json') or not os.path.exists('commodities.json') or not os.path.exists('stations.json'):
+  if not os.path.exists(Options.getPath('systems.json')) or not os.path.exists(Options.getPath('commodities.json')) or not os.path.exists(Options.getPath('stations.json')):
     print("eddb json files missing! - required: systems.json, commodities.json, stations.json")
     return False
 
