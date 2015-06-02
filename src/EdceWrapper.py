@@ -64,7 +64,7 @@ class EdceWrapper:
 
             res = edce.query.performQuery(verificationCodeSupplyFn = self.verificationFn)
             result = edce.util.edict(res)
-            if edce.config.getString('preferences','enable_eddn').lower().find('y') >= 0:
+            if self.postMarkedData:
                 if "docked" in result.commander and result.commander.docked:
                     edce.eddn.postMarketData(result)
 
