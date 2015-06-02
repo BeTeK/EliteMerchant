@@ -3,6 +3,7 @@ import sys
 import Options
 import CommodityPrice
 import threading
+import time
 
 class EdceWrapper:
     _commodityNameTranslationTable = {
@@ -43,6 +44,7 @@ class EdceWrapper:
         edce.config.setConfigFile(Options.getPath("edce.ini"))
         edce.config.writeConfig(Options.get("elite-username", ""), Options.get("elite-password", ""), True, Options.getPath(), Options.getPath(), Options.getPath())
         self.resultsUpdated = True
+        self.resultsLastUpdated=0
         self.activeThreads = []
         self.result = None
         self.postMarkedData = postMarketData
@@ -178,6 +180,7 @@ class EdceWrapper:
             i.commitChanges()
 
         print("prices updated from edce!")
+        self.resultsLastUpdated=time.time()
         self.lastUpdatedInfo = {"starportName" : starportName,
                                 "systemName" : systemName,
                                 "docked" : docked}

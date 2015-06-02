@@ -18,14 +18,14 @@ def Sounds():
     return SoundsQtMultimedia.SoundsQtMultimedia()
   except:
     pass
-
+  """
   # pyglet has easy syntax but is a fucking nazi with file formats and doesn't even follow standards
   try:
     import SoundsPyglet
     return SoundsPyglet.SoundsPyglet()
   except:
     pass
-
+  """
   print("No soundsystem module loaded - sound functions disabled...")
 
   return SoundsAbstract.SoundsAbstract() # return dummy to eat calls

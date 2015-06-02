@@ -56,7 +56,7 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         self.soundEnabledChk.stateChanged.connect(self.onSoundsChanged)
         self.soundVolumeSlider.setValue( int(OptionsParams.get("sounds-volume", 100)) )
         self.soundVolumeSlider.sliderReleased.connect(self.onSoundsChanged)
-        self.edceUploadsResultsCheck.setChecked(OptionsParams.get("ECDE-uploads-results", "1") != "0")
+        self.edceUploadsResultsCheck.setChecked(OptionsParams.get("EDCE-uploads-results", "1") != "0")
         self.edceUploadsResultsCheck.stateChanged.connect(self.onEdceUploadsChanged)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self._onTimerEvent)
@@ -69,13 +69,13 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
 
 
     def onEdceUploadsChanged(self):
-        OptionsParams.set("ECDE-uploads-results", "1" if self.edceUploadsResultsCheck.isChecked() else "0")
+        OptionsParams.set("EDCE-uploads-results", "1" if self.edceUploadsResultsCheck.isChecked() else "0")
 
     def onTestEdceConnectionClicked(self):
         path = OptionsParams.get("EDCE-path", "")
         try:
             self.edceConnectionStatusTxt.setText("Testing connection...")
-            postMarketData = OptionsParams.get("ECDE-uploads-results", "1") != "0"
+            postMarketData = OptionsParams.get("EDCE-uploads-results", "1") != "0"
             self.edceWrapper = EdceWrapper.EdceWrapper(path, self.db, postMarketData, self._verificationCheck)
             self.edceWrapper.fetchNewInfo()
         except Exception as ex:
