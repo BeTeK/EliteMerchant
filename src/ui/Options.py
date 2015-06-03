@@ -56,8 +56,12 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         self.soundEnabledChk.stateChanged.connect(self.onSoundsChanged)
         self.soundVolumeSlider.setValue( int(OptionsParams.get("sounds-volume", 100)) )
         self.soundVolumeSlider.sliderReleased.connect(self.onSoundsChanged)
-        self.edceUploadsResultsCheck.setChecked(OptionsParams.get("ECDE-uploads-results", "1") != "0")
+        self.edceUploadsResultsCheck.setChecked(OptionsParams.get("EDCE-uploads-results", "1") != "0")
         self.edceUploadsResultsCheck.stateChanged.connect(self.onEdceUploadsChanged)
+        self.searchAutoLogChk.setChecked(OptionsParams.get("search-auto-log-enabled", "1") != "0")
+        self.searchAutoLogChk.stateChanged.connect(self.onSearchAutoLogChanged)
+        self.searchAutoEDCEChk.setChecked(OptionsParams.get("search-auto-edce-enabled", "0") != "0")
+        self.searchAutoEDCEChk.stateChanged.connect(self.onSearchAutoEDCEChanged)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self._onTimerEvent)
         self.timer.start(1000)
@@ -69,13 +73,13 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
 
 
     def onEdceUploadsChanged(self):
-        OptionsParams.set("ECDE-uploads-results", "1" if self.edceUploadsResultsCheck.isChecked() else "0")
+        OptionsParams.set("EDCE-uploads-results", "1" if self.edceUploadsResultsCheck.isChecked() else "0")
 
     def onTestEdceConnectionClicked(self):
         path = OptionsParams.get("EDCE-path", "")
         try:
             self.edceConnectionStatusTxt.setText("Testing connection...")
-            postMarketData = OptionsParams.get("ECDE-uploads-results", "1") != "0"
+            postMarketData = OptionsParams.get("EDCE-uploads-results", "1") != "0"
             self.edceWrapper = EdceWrapper.EdceWrapper(path, self.db, postMarketData, self._verificationCheck)
             self.edceWrapper.fetchNewInfo()
         except Exception as ex:
@@ -144,6 +148,12 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         OptionsParams.set("sounds-volume", self.soundVolumeSlider.value() )
         if self.mainwindow is not None:
           self.mainwindow.sounds.refreshSounds()
+
+    def onSearchAutoEDCEChanged(self):
+        OptionsParams.set("search-auto-edce-enabled", self.searchAutoEDCEChk.isChecked() and "1" or "0" )
+
+    def onSearchAutoLogChanged(self):
+        OptionsParams.set("search-auto-log-enabled", self.searchAutoLogChk.isChecked() and "1" or "0" )
 
     def onUsernameEdited(self):
         OptionsParams.set("elite-username", self.usernameTxt.text())

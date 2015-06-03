@@ -22,7 +22,7 @@ import PassThroughFile
 from time import gmtime, strftime
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
-  _edceUpdateTimeout = 90 # 2 min timeout to keep fd happy
+  _edceUpdateTimeout = 90 # keep sparse to keep fd happy
   _logLinesToShow = 200
 
   def __init__(self, db):
@@ -180,7 +180,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def _updateEdceIntance(self):
     self.edce = None
     try:
-      postMarketData = Options.get("ECDE-uploads-results", "1") != "0"
+      postMarketData = Options.get("EDCE-uploads-results", "1") != "0"
       self.edce = EdceWrapper.EdceWrapper(Options.get("EDCE-path", ""), self.db, postMarketData, self._verificationCheck)
     except Exception as ex:
       print(ex)
@@ -196,7 +196,6 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
   def _setCurrentSystemByname(self):
       systemName = self.analyzer.getCurrentStatus()["System"]
-      self.currenlyAtSystemTxt.setText(systemName)
       systems = self.db.getSystemByName(systemName)
       if len(systems) == 0:
           return
@@ -222,9 +221,27 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
   def onTimerEvent(self):
     self._updateIfNeededEDDB()
-    self._checkCurrentStatus()
-    self._checkEDCE()
+    analyzerupdated=self._checkCurrentStatus()
+    edceupdated=self._checkEDCE()
     self._checkVerificationWindow()
+
+    if self.edce is not None:
+      self.edceUpToDateLabel.setText('EDCE')
+      if edceupdated:
+        self.edceUpToDateLabel.setStyleSheet("background:rgb(128,255,128)")
+      else:
+        self.edceUpToDateLabel.setStyleSheet("background:rgb(255,128,128)")
+
+
+    if edceupdated:
+      now = datetime.datetime.now().timestamp()
+      #print("edceupdated  ",now-self.edce.resultsLastUpdated)
+      if now-self.edce.resultsLastUpdated<1 and Options.get("search-auto-edce-enabled", "0")=='1':
+        self._setCurrentSystemByname()
+    elif analyzerupdated:
+      #print("analyzerupdated")
+      if Options.get("search-auto-log-enabled", "1")=='1':
+        self._setCurrentSystemByname()
 
   def _checkVerificationWindow(self):
     if self.startVerification:
@@ -252,7 +269,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def _checkEDCE(self):
 
     if self.edce is None:
-      return
+      return False
 
     now = int(datetime.datetime.now().timestamp())
 
@@ -265,13 +282,13 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     if self.edceLastUpdateInfo is not None and \
         self.analyzer.getCurrentStatus()["System"] == self.edceLastUpdateInfo["systemName"] and \
         self.analyzer.getCurrentStatus()["Near"] == self.edceLastUpdateInfo["starportName"]:
-      return
+      return True
 
     if now - self.edceLastUpdated < MainWindow._edceUpdateTimeout:
-      return
+      return False
 
     if not self.analyzer.hasDockPermissionGot():
-      return
+      return False
 
     self.edceLastUpdated = now
     self.edce.fetchNewInfo()
@@ -282,8 +299,9 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       status = self.analyzer.getCurrentStatus()
       self.currenlyAtSystemTxt.setText(status["System"])
       self.currentlyNearAtTxt.setText(status["Near"])
-      #if self.analyzer.hasDockPermissionGot():
-      self._setCurrentSystemByname()
+      return True
+    else:
+      return False
 
   def _updateIfNeededEDDB(self):
     interval = int(Options.get("EDDB-check-interval", 1))
