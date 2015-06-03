@@ -7,13 +7,135 @@
     <x>0</x>
     <y>0</y>
     <width>551</width>
-    <height>445</height>
+    <height>525</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Options</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
+   <item row="13" column="1">
+    <widget class="QCheckBox" name="searchAutoEDCEChk">
+     <property name="toolTip">
+      <string>May take a few minutes
+Recommended to use log search and search again if unfavorable</string>
+     </property>
+     <property name="text">
+      <string>EDCE (Delayed, up to date)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="1">
+    <widget class="QCheckBox" name="searchAutoLogChk">
+     <property name="text">
+      <string>Log file (Immediate, Exisiting database)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0">
+    <widget class="QLabel" name="label_11">
+     <property name="toolTip">
+      <string>with 'exports from current'</string>
+     </property>
+     <property name="text">
+      <string>Automatic Search on Docking:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QSpinBox" name="MarketValidVal"/>
+   </item>
+   <item row="20" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="17" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_8">
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QLineEdit" name="soundSearchTxt"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="soundSearchBtn">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="18" column="0">
+    <widget class="QLabel" name="label_10">
+     <property name="text">
+      <string>Error sound</string>
+     </property>
+    </widget>
+   </item>
+   <item row="18" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_9">
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QLineEdit" name="soundErrorTxt"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="soundErrorBtn">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="16" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QLineEdit" name="soundStartupTxt"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="soundStartupBtn">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QLineEdit" name="EDCEPathTxt"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="EDCEPathBtn">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
    <item row="0" column="1">
     <layout class="QGridLayout" name="gridLayout">
      <item row="1" column="0">
@@ -54,101 +176,7 @@
      </item>
     </layout>
    </item>
-   <item row="2" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <item>
-      <widget class="QLineEdit" name="EDCEPathTxt"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="EDCEPathBtn">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="11" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout_6">
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QLineEdit" name="soundStartupTxt"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="soundStartupBtn">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="13" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout_9">
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QLineEdit" name="soundErrorTxt"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="soundErrorBtn">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="13" column="0">
-    <widget class="QLabel" name="label_10">
-     <property name="text">
-      <string>Error sound</string>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout_8">
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QLineEdit" name="soundSearchTxt"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="soundSearchBtn">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
    <item row="15" column="1">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="4" column="1">
-    <widget class="QSpinBox" name="MarketValidVal"/>
-   </item>
-   <item row="10" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_7">
      <item>
       <widget class="QLabel" name="label_9">
@@ -172,21 +200,21 @@
      </item>
     </layout>
    </item>
-   <item row="10" column="0">
+   <item row="15" column="0">
     <widget class="QCheckBox" name="soundEnabledChk">
      <property name="text">
       <string>Enable sounds</string>
      </property>
     </widget>
    </item>
-   <item row="12" column="0">
+   <item row="17" column="0">
     <widget class="QLabel" name="label_8">
      <property name="text">
       <string>Automatic Search Sound</string>
      </property>
     </widget>
    </item>
-   <item row="11" column="0">
+   <item row="16" column="0">
     <widget class="QLabel" name="label_7">
      <property name="text">
       <string>Startup Sound</string>
@@ -200,7 +228,7 @@
      </property>
     </widget>
    </item>
-   <item row="9" column="1">
+   <item row="10" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <widget class="QPushButton" name="testEdceBtn">
@@ -211,7 +239,7 @@
      </item>
     </layout>
    </item>
-   <item row="14" column="1">
+   <item row="11" column="1">
     <widget class="QLabel" name="edceConnectionStatusTxt">
      <property name="text">
       <string/>
@@ -269,7 +297,7 @@
      </property>
     </widget>
    </item>
-   <item row="16" column="1">
+   <item row="21" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <spacer name="horizontalSpacer">
@@ -320,19 +348,25 @@
      </item>
     </layout>
    </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="label_11">
+   <item row="10" column="0">
+    <widget class="QCheckBox" name="edceUploadsResultsCheck">
      <property name="text">
-      <string>Edce uploads results to EDDB</string>
+      <string>Edce uploads results to EDDN</string>
      </property>
     </widget>
    </item>
-   <item row="7" column="1">
-    <widget class="QCheckBox" name="edceUploadsResultsCheck">
-     <property name="text">
-      <string/>
+   <item row="14" column="1">
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
      </property>
-    </widget>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>
@@ -348,6 +382,8 @@
   <tabstop>passwordTxt</tabstop>
   <tabstop>edceUploadsResultsCheck</tabstop>
   <tabstop>testEdceBtn</tabstop>
+  <tabstop>searchAutoLogChk</tabstop>
+  <tabstop>searchAutoEDCEChk</tabstop>
   <tabstop>soundEnabledChk</tabstop>
   <tabstop>soundVolumeSlider</tabstop>
   <tabstop>soundStartupTxt</tabstop>

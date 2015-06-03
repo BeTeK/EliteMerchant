@@ -808,4 +808,14 @@ def queryCommodities(db, x, y, z, maxDistance, minPadSize,jumprange ,importexpor
 
   results=db.getCommoditiesInRange(queryparams)
 
+  #sort by time/value relation like usual
+  for result in results:
+    result['exportPh']=result['hours']/(result['exportPrice']+0.1) # can't be 0
+    result['importPh']=result['importPrice']/result['hours']
+
+  if importexport==0:
+    results.sort(key=operator.itemgetter('importPh'),reverse=True)
+  else:
+    results.sort(key=operator.itemgetter('exportPh'))
+
   return results[:5000] # only winners go home

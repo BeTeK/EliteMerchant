@@ -22,7 +22,7 @@ import PassThroughFile
 from time import gmtime, strftime
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
-  _edceUpdateTimeout = 90 # 2 min timeout to keep fd happy
+  _edceUpdateTimeout = 90 # keep sparse to keep fd happy
   _logLinesToShow = 200
 
   def __init__(self, db):
@@ -225,15 +225,22 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     edceupdated=self._checkEDCE()
     self._checkVerificationWindow()
 
+    if self.edce is not None:
+      self.edceUpToDateLabel.setText('EDCE')
+      if edceupdated:
+        self.edceUpToDateLabel.setStyleSheet("background:rgb(128,255,128)")
+      else:
+        self.edceUpToDateLabel.setStyleSheet("background:rgb(255,128,128)")
+
+
     if edceupdated:
       now = datetime.datetime.now().timestamp()
       #print("edceupdated  ",now-self.edce.resultsLastUpdated)
-      if now-self.edce.resultsLastUpdated<1 and Options.get("search_auto_wait_for_edce", "0")=='1':
+      if now-self.edce.resultsLastUpdated<1 and Options.get("search-auto-edce-enabled", "0")=='1':
         self._setCurrentSystemByname()
     elif analyzerupdated:
       #print("analyzerupdated")
-       # todo: add option for this when EDCE/API becomes robust and reliable
-      if not Options.get("search_auto_wait_for_edce", "0")=='1' or self.edce is None: # wait except when edce doesn't exist
+      if Options.get("search-auto-log-enabled", "1")=='1':
         self._setCurrentSystemByname()
 
   def _checkVerificationWindow(self):

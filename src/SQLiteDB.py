@@ -403,6 +403,8 @@ class SQLiteDB(EliteDB.EliteDB):
       (100*importPrice/average) AS importPavg
       FROM commodityPrices, bases, baseInfo, systems, commodities
       WHERE
+      landingPadSize=:landingPadSize
+      AND
       DistanceSQ<:maxdistance*:maxdistance
       AND
       commodityPrices.commodityId=:commodityId

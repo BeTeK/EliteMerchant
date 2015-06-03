@@ -58,6 +58,10 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         self.soundVolumeSlider.sliderReleased.connect(self.onSoundsChanged)
         self.edceUploadsResultsCheck.setChecked(OptionsParams.get("EDCE-uploads-results", "1") != "0")
         self.edceUploadsResultsCheck.stateChanged.connect(self.onEdceUploadsChanged)
+        self.searchAutoLogChk.setChecked(OptionsParams.get("search-auto-log-enabled", "1") != "0")
+        self.searchAutoLogChk.stateChanged.connect(self.onSearchAutoLogChanged)
+        self.searchAutoEDCEChk.setChecked(OptionsParams.get("search-auto-edce-enabled", "0") != "0")
+        self.searchAutoEDCEChk.stateChanged.connect(self.onSearchAutoEDCEChanged)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self._onTimerEvent)
         self.timer.start(1000)
@@ -144,6 +148,12 @@ class Options(ui.OptionsUI.Ui_Dialog, QtWidgets.QDialog):
         OptionsParams.set("sounds-volume", self.soundVolumeSlider.value() )
         if self.mainwindow is not None:
           self.mainwindow.sounds.refreshSounds()
+
+    def onSearchAutoEDCEChanged(self):
+        OptionsParams.set("search-auto-edce-enabled", self.searchAutoEDCEChk.isChecked() and "1" or "0" )
+
+    def onSearchAutoLogChanged(self):
+        OptionsParams.set("search-auto-log-enabled", self.searchAutoLogChk.isChecked() and "1" or "0" )
 
     def onUsernameEdited(self):
         OptionsParams.set("elite-username", self.usernameTxt.text())
