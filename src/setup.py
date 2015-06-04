@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Created by: python.exe -m py2exe main.py -W setup.py
 
+import datetime
 from distutils.core import setup
 import py2exe
 import site
@@ -186,12 +187,21 @@ datafiles = [
                 findSitePackagesPath(os.path.join("PyQt5", "libeay32.dll")), # for QtMultimedia
                 r"..\\extraInstallFiles\\MSVCP100.dll",
                 r"..\\extraInstallFiles\\MSVCR100.dll",
-                r"main.ico"
+                r"main.ico",
+                r"version.txt"
               ]),
               ("requests", [ findSitePackagesPath(os.path.join("requests", "cacert.pem")) ])
             ]
 
-#datafiles = []
+###############################
+# WRITING VERSION STRING
+majorversion=0
+minorversion=9
+builddate=datetime.datetime.now().strftime("%y%m%d")
+versionstring=str(majorversion)+'.'+str(minorversion)+'.'+builddate
+with open("version.txt", "w") as f:
+  f.write(versionstring)
+
 
 py2exe_options = dict(
     packages = [],

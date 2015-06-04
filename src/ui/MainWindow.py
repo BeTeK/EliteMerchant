@@ -135,6 +135,17 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.close()
 
   def _readSettings(self):
+
+    versionstring="?"
+    try:
+      with open("version.txt", "r") as f:
+          versionstring = f.readline()
+    except IOError:
+      print("could not read version file")
+
+    self.setWindowTitle("Elite Merchant   v"+versionstring)
+
+
     self.restoreGeometry(Options.get("MainWindow-geometry", QtCore.QByteArray()))
     self.restoreState(Options.get("MainWindow-state", QtCore.QByteArray()))
 
