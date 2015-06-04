@@ -295,6 +295,8 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
 
   print("discarded "+str(len(bases_deadends))+" confirmed deadends")
   """
+  profitmarginstep=0.03
+  walktimeout=5 # if search takes this long, it's too long and we're choking
   profitfailuredepth=2
   startingroutecount=len(oneway)
   iteration=0
@@ -327,10 +329,13 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
 
   loops=[]
   satisfiedwithresult=False
-  while not satisfiedwithresult and profitmargin>0.05:
+  while not satisfiedwithresult and profitmargin>0:
+    walkstart=time.time()
     loops=[]
     routed=[]
     def walk(fromid,start,history,profit,hours):
+      if walkstart+walktimeout<time.time():
+        return False
       depth=len(history)+1
       if maxdepth<depth:
         return False
@@ -374,7 +379,13 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
           walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'])
       routed.append(fromid)
 
-    if len(loops)<3000:
+    if walkstart+walktimeout<time.time():
+      print('search timed out, algorithm chocking in data - lowering profit allowance step')
+      profitmargin+=profitmarginstep
+      profitmarginstep/=3
+      profitmargin-=profitmarginstep
+      print("let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
+    elif len(loops)<3000:
       #profitmargin-=0.05
       profitmargin-=0.03
       print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
@@ -447,6 +458,8 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
 
   prune=ProfitArrayToHierarchy_profitPh(oneway)
 
+  profitmarginstep=0.03
+  walktimeout=5 # if search takes this long, it's too long and we're choking
   profitfailuredepth=2
   profitmargin=0.99
   profitpotential=0
@@ -479,10 +492,13 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
 
   loops=[]
   satisfiedwithresult=False
-  while not satisfiedwithresult and profitmargin>0.05:
+  while not satisfiedwithresult and profitmargin>0:
+    walkstart=time.time()
     loops=[]
     routed=[]
     def walk(fromid,start,history,profit,hours):
+      if walkstart+walktimeout<time.time():
+        return False
       depth=len(history)+1
       if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
         return False
@@ -535,9 +551,14 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
       routed.append(fromid)
 
     print("")
-
-    if len(loops)<3000:
-      profitmargin-=0.03
+    if walkstart+walktimeout<time.time():
+      print('search timed out, algorithm chocking in data - lowering profit allowance step')
+      profitmargin+=profitmarginstep
+      profitmarginstep/=3
+      profitmargin-=profitmarginstep
+      print("let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
+    elif len(loops)<3000:
+      profitmargin-=profitmarginstep
       print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
     else:
       satisfiedwithresult=True
@@ -617,7 +638,9 @@ def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,m
 
   prune=ProfitArrayToHierarchy_profitPh(oneway)
 
-  profitfailuredepth=3
+  profitmarginstep=0.03
+  walktimeout=5 # if search takes this long, it's too long and we're choking
+  profitfailuredepth=4
   profitmargin=0.95
   profitpotential=0
   for way in oneway:
@@ -653,10 +676,13 @@ def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,m
 
   loops=[]
   satisfiedwithresult=False
-  while not satisfiedwithresult and profitmargin>0.05:
+  while not satisfiedwithresult and profitmargin>0:
+    walkstart=time.time()
     loops=[]
     routed=[]
     def walk(fromid,start,history,profit,hours,lastdistance):
+      if walkstart+walktimeout<time.time():
+        return False
       depth=len(history)+1
       if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
         return False
@@ -715,7 +741,13 @@ def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,m
 
     print("")
 
-    if len(loops)<3000:
+    if walkstart+walktimeout<time.time():
+      print('search timed out, algorithm chocking in data - lowering profit allowance step')
+      profitmargin+=profitmarginstep
+      profitmarginstep/=3
+      profitmargin-=profitmarginstep
+      print("let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
+    elif len(loops)<3000:
       profitmargin-=0.03
       print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
     else:
