@@ -28,19 +28,24 @@ You can open the options screen from the top 'edit/options' menu.
 Click "..." to browse for your ED installation path.
 This refers to the PRODUCT path and not the LAUNCHER path.
 This would look something like:
+
 	[elite install path]/Products/FORC-FDEV-D-10xx/     ( where xx varies )
  
 This screen also has entries for EDCE path, and your ED login credentials.
 These fields are ONLY used to interface with EDCE and are not required for other use.
  
+ 
 "Market expire days" sets a hard limit for when to consider market data as invalid.
+ 
  
 You can enable or disable automatic export searches here, and define what triggers
 them. The log file option is reliable and does an instant search as you approach
 a station. The EDCE option waits for the EDCE client to download the latest market
 data before searching. This is inconsistently slow. Enabling both is possible.
 
+
 	FEATURES
+
 
 The prominent features of this tool, in contrast to others are:
 - Route profitability calculation as function of distance and time
