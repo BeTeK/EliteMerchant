@@ -3,13 +3,20 @@
 	GETTING STARTED / CONFIGURATION
  
 On Windows, download the binary ( http://mahti.serv.fi/EliteMerchant/EliteMerchantInstaller_v0.9.exe )
+
 Install - Run - Profit!
+
 Or on Linux, MacOS (or for the adventurous)...
+
 Download the source ( https://github.com/BeTeK/EliteMerchant )
+
 Install Python 3.4 ( https://www.python.org/ )
+
 Install PyQt5 ( http://www.riverbankcomputing.com/software/pyqt/download5 )
+
 Optional: Download EDCE for market data download ( https://github.com/BeTeK/edce-client/archive/feature/make_edce_more_library_friendly.zip )
 (Or the equivalent in your Linux/MacOS distribution)
+
 In /src run  python3 ./main.py
  
 The database is downloaded on first launch and updated hourly, if an updated
@@ -33,7 +40,7 @@ them. The log file option is reliable and does an instant search as you approach
 a station. The EDCE option waits for the EDCE client to download the latest market
 data before searching. This is inconsistently slow. Enabling both is possible.
 
-  FEATURES
+	FEATURES
 
 The prominent features of this tool, in contrast to others are:
 - Route profitability calculation as function of distance and time
