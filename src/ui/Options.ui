@@ -14,109 +14,7 @@
    <string>Options</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item row="13" column="1">
-    <widget class="QCheckBox" name="searchAutoEDCEChk">
-     <property name="toolTip">
-      <string>May take a few minutes
-Recommended to use log search and search again if unfavorable</string>
-     </property>
-     <property name="text">
-      <string>EDCE (Delayed, up to date)</string>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="1">
-    <widget class="QCheckBox" name="searchAutoLogChk">
-     <property name="text">
-      <string>Log file (Immediate, Exisiting database)</string>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="0">
-    <widget class="QLabel" name="label_11">
-     <property name="toolTip">
-      <string>with 'exports from current'</string>
-     </property>
-     <property name="text">
-      <string>Automatic Search on Docking:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="QSpinBox" name="MarketValidVal"/>
-   </item>
-   <item row="20" column="1">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="17" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout_8">
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QLineEdit" name="soundSearchTxt"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="soundSearchBtn">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="18" column="0">
-    <widget class="QLabel" name="label_10">
-     <property name="text">
-      <string>Error sound</string>
-     </property>
-    </widget>
-   </item>
-   <item row="18" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout_9">
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QLineEdit" name="soundErrorTxt"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="soundErrorBtn">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="16" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout_6">
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QLineEdit" name="soundStartupTxt"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="soundStartupBtn">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="2" column="1">
+   <item row="3" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
       <widget class="QLineEdit" name="EDCEPathTxt"/>
@@ -135,6 +33,107 @@ Recommended to use log search and search again if unfavorable</string>
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="17" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QLineEdit" name="soundStartupTxt"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="soundStartupBtn">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="19" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_9">
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QLineEdit" name="soundErrorTxt"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="soundErrorBtn">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="19" column="0">
+    <widget class="QLabel" name="label_10">
+     <property name="text">
+      <string>Error sound</string>
+     </property>
+    </widget>
+   </item>
+   <item row="18" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_8">
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QLineEdit" name="soundSearchTxt"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="soundSearchBtn">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="21" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="13" column="0">
+    <widget class="QLabel" name="label_11">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC69&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Y&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ou can enable or disable automatic export searches here, and define what triggers&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC70&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;t&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;hem.&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;The log file option is reliable and does an instant search as you approach&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC71&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;a&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; station. The EDCE option waits for the EDCE client to download the latest market&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC72&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;d&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ata before searching.&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This is inconsistently slow.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Enabling both is possible.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Automatic Search on Docking:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="1">
+    <widget class="QCheckBox" name="searchAutoLogChk">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC69&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Y&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ou can enable or disable automatic export searches here, and define what triggers&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC70&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;t&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;hem.&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;The log file option is reliable and does an instant search as you approach&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC71&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;a&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; station. The EDCE option waits for the EDCE client to download the latest market&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC72&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;d&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ata before searching.&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This is inconsistently slow.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Enabling both is possible.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Log file (Immediate, Exisiting database)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="1">
+    <widget class="QCheckBox" name="searchAutoEDCEChk">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC69&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Y&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ou can enable or disable automatic export searches here, and define what triggers&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC70&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;t&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;hem.&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;The log file option is reliable and does an instant search as you approach&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC71&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;a&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; station. The EDCE option waits for the EDCE client to download the latest market&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC72&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;d&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ata before searching.&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This is inconsistently slow.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Enabling both is possible.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>EDCE (Delayed, up to date)</string>
+     </property>
+    </widget>
    </item>
    <item row="0" column="1">
     <layout class="QGridLayout" name="gridLayout">
@@ -176,7 +175,7 @@ Recommended to use log search and search again if unfavorable</string>
      </item>
     </layout>
    </item>
-   <item row="15" column="1">
+   <item row="16" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_7">
      <item>
       <widget class="QLabel" name="label_9">
@@ -200,35 +199,35 @@ Recommended to use log search and search again if unfavorable</string>
      </item>
     </layout>
    </item>
-   <item row="15" column="0">
+   <item row="16" column="0">
     <widget class="QCheckBox" name="soundEnabledChk">
      <property name="text">
       <string>Enable sounds</string>
      </property>
     </widget>
    </item>
-   <item row="17" column="0">
+   <item row="18" column="0">
     <widget class="QLabel" name="label_8">
      <property name="text">
       <string>Automatic Search Sound</string>
      </property>
     </widget>
    </item>
-   <item row="16" column="0">
+   <item row="17" column="0">
     <widget class="QLabel" name="label_7">
      <property name="text">
       <string>Startup Sound</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="3" column="0">
     <widget class="QLabel" name="label_4">
      <property name="text">
       <string>EDCE path</string>
      </property>
     </widget>
    </item>
-   <item row="10" column="1">
+   <item row="11" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <widget class="QPushButton" name="testEdceBtn">
@@ -239,38 +238,31 @@ Recommended to use log search and search again if unfavorable</string>
      </item>
     </layout>
    </item>
-   <item row="11" column="1">
+   <item row="12" column="1">
     <widget class="QLabel" name="edceConnectionStatusTxt">
      <property name="text">
       <string/>
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>Market expire days</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
+   <item row="7" column="1">
     <widget class="QLineEdit" name="passwordTxt">
      <property name="echoMode">
       <enum>QLineEdit::Password</enum>
      </property>
     </widget>
    </item>
-   <item row="6" column="0">
+   <item row="7" column="0">
     <widget class="QLabel" name="label_6">
      <property name="text">
       <string>Elite password (for EDCE)</string>
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
+   <item row="6" column="1">
     <widget class="QLineEdit" name="usernameTxt"/>
    </item>
-   <item row="5" column="0">
+   <item row="6" column="0">
     <widget class="QLabel" name="label_5">
      <property name="text">
       <string>Elite username (for EDCE)</string>
@@ -290,14 +282,17 @@ Recommended to use log search and search again if unfavorable</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="2" column="0">
     <widget class="QLabel" name="label_3">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC55&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;he tool does function without access to ED, but connecting to it is recommended.&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC56&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;he first thing you should do after starting up is setting up your ED installation&lt;/span&gt;&lt;/pre&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC57&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;p&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ath so the automatic player location detection feature is activated.&lt;/span&gt;&lt;/pre&gt;&lt;p&gt;&lt;a name=&quot;file-elitemerchantreadme-LC59&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his refers to the PRODUCT path and not the LAUNCHER path.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a name=&quot;file-elitemerchantreadme-LC61&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his would look something like:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a name=&quot;file-elitemerchantreadme-LC62&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;[elite install path]/Products/FORC-FDEV-D-10xx/     ( where xx varies )&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
      <property name="text">
       <string>Elite path</string>
      </property>
     </widget>
    </item>
-   <item row="21" column="1">
+   <item row="22" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <spacer name="horizontalSpacer">
@@ -321,7 +316,7 @@ Recommended to use log search and search again if unfavorable</string>
      </item>
     </layout>
    </item>
-   <item row="1" column="1">
+   <item row="2" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QLineEdit" name="ElitePathTxt">
@@ -330,6 +325,9 @@ Recommended to use log search and search again if unfavorable</string>
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a name=&quot;file-elitemerchantreadme-LC55&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;he tool does function without access to ED, but connecting to it is recommended.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a name=&quot;file-elitemerchantreadme-LC56&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;he first thing you should do after starting up is setting up your ED installation&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a name=&quot;file-elitemerchantreadme-LC57&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;p&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ath so the automatic player location detection feature is activated.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a name=&quot;file-elitemerchantreadme-LC59&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his refers to the PRODUCT path and not the LAUNCHER path.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a name=&quot;file-elitemerchantreadme-LC61&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his would look something like:&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC62&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;[elite install path]/Products/FORC-FDEV-D-10xx/     ( where xx varies )&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
@@ -348,14 +346,14 @@ Recommended to use log search and search again if unfavorable</string>
      </item>
     </layout>
    </item>
-   <item row="10" column="0">
+   <item row="11" column="0">
     <widget class="QCheckBox" name="edceUploadsResultsCheck">
      <property name="text">
       <string>Edce uploads results to EDDN</string>
      </property>
     </widget>
    </item>
-   <item row="14" column="1">
+   <item row="15" column="1">
     <spacer name="verticalSpacer_2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -368,16 +366,30 @@ Recommended to use log search and search again if unfavorable</string>
      </property>
     </spacer>
    </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Market expire days</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QSpinBox" name="MarketValidVal">
+     <property name="toolTip">
+      <string>This sets a hard limit for when to consider market data as invalid.</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>EDDBUpdateIntervalTxt</tabstop>
   <tabstop>udpateEDDBBtn</tabstop>
+  <tabstop>MarketValidVal</tabstop>
   <tabstop>ElitePathTxt</tabstop>
   <tabstop>ElitePathBtn</tabstop>
   <tabstop>EDCEPathTxt</tabstop>
   <tabstop>EDCEPathBtn</tabstop>
-  <tabstop>MarketValidVal</tabstop>
   <tabstop>usernameTxt</tabstop>
   <tabstop>passwordTxt</tabstop>
   <tabstop>edceUploadsResultsCheck</tabstop>

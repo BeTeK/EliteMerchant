@@ -138,8 +138,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.restoreGeometry(Options.get("MainWindow-geometry", QtCore.QByteArray()))
     self.restoreState(Options.get("MainWindow-state", QtCore.QByteArray()))
 
-    self.cargoSizeTxt.setText(Options.get("ship_cargo_size", "100"))
-    self.jumpRangeTxt.setText(Options.get("ship_jump_range", "15"))
+    self.cargoSizeSpinBox.setValue(int(Options.get("ship_cargo_size", "100")))
+    self.jumpRangeSpinBox.setValue(float(Options.get("ship_jump_range", "16")))
     self.minPadSizeCombo.setCurrentIndex(int(Options.get("ship_landing_pad_size", "0")))
 
     tabCount = int(Options.get("main_window_tab_count", "0"))
@@ -166,8 +166,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       widget.dispose()
       index += 1
 
-    Options.set("ship_cargo_size", self.cargoSizeTxt.text())
-    Options.set("ship_jump_range", self.jumpRangeTxt.text())
+    Options.set("ship_cargo_size", self.cargoSizeSpinBox.value())
+    Options.set("ship_jump_range", self.jumpRangeSpinBox.value())
     Options.set("ship_landing_pad_size", self.minPadSizeCombo.currentIndex())
 
     Options.set("MainWindow-geometry", self.saveGeometry())
