@@ -76,7 +76,7 @@ Section "Start Menu Shortcuts"
 
   CreateDirectory "$SMPROGRAMS\Elite Merchant"
   CreateShortcut "$SMPROGRAMS\Elite Merchant\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortcut "$SMPROGRAMS\Elite Merchant\Elite Merchant.lnk" "$INSTDIR\EliteMerchant.exe" "--UI --redirectOutput" "$INSTDIR\EliteMerchant.exe" 0
+  CreateShortcut "$SMPROGRAMS\Elite Merchant\Elite Merchant.lnk" "$INSTDIR\EliteMerchant.exe" "--UI" "$INSTDIR\EliteMerchant.exe" 0
   
 SectionEnd
 
