@@ -2,7 +2,7 @@
 
 	GETTING STARTED / CONFIGURATION
  
-On Windows, download the binary ( http://mahti.serv.fi/EliteMerchant/EliteMerchantInstaller_v0.9.exe )
+On Windows, download the binary ( http://mahti.serv.fi/EliteMerchant/EliteMerchantInstaller.exe )
 
 Install - Run - Profit!
 
