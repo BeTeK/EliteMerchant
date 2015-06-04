@@ -44,10 +44,6 @@ UninstPage instfiles
 Section "Elite Merchant (required)" ;No components page, name is not important
   SectionIn RO
   
-  SetOutPath $INSTDIR
-  
-  File src\dist\*
-  
   SetOutPath $INSTDIR\platforms
   File src\dist\platforms\*
 
@@ -62,6 +58,9 @@ Section "Elite Merchant (required)" ;No components page, name is not important
   
   SetOutPath $INSTDIR\sounds
   File src\dist\sounds\*
+  
+  SetOutPath $INSTDIR
+  File src\dist\*
   
   WriteRegStr HKLM SOFTWARE\Software\EliteMerchant "Install_Dir" "$INSTDIR"
   
