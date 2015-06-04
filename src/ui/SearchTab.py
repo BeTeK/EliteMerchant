@@ -28,7 +28,6 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.getCurrentBtn.clicked.connect(self._setCurrentSystemByname)
         self.searchTypeCombo.currentIndexChanged.connect(self._searchtypeChanged)
         self.analyzer = analyzer
-        self.minProfitTxt.setValidator(QtGui.QIntValidator(0, 100000000))
 
         systemlist=self.db.getSystemNameList()
         self.currentSystemCombo.clear()
@@ -78,14 +77,14 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
     def _restoreSearchStatus(self):
         self.currentSystemCombo.setCurrentText(Options.get(self._optName("current_system"), "Sol"))
         self.targetSystemCombo.setCurrentText(Options.get(self._optName("target_system"), "Lave"))
-        self.maxDistanceTxt.setText(Options.get(self._optName("maximum_distance"), "50"))
-        self.minProfitTxt.setText(Options.get(self._optName("minimum_profit"), "1000"))
+        self.maxDistanceSpinBox.setValue(int(Options.get(self._optName("maximum_distance"), "50")))
+        self.minProfitSpinBox.setValue(int(Options.get(self._optName("minimum_profit"), "1000")))
         self.searchTypeCombo.setCurrentIndex(int(Options.get(self._optName("search_type"), "0")))
         self.searchType=int(Options.get(self._optName("search_type"), "0"))
         self.graphDepthSpin.setValue(int(Options.get(self._optName("search_max_depth"), "5")))
         self.graphMinDepthSpin.setValue(int(Options.get(self._optName("search_min_depth"), "1")))
-        self.windowSizeTxt.setText(Options.get(self._optName("search_window_size"), "200"))
-        self.windowCountTxt.setText(Options.get(self._optName("search_window_count"), "7"))
+        self.windowSizeSpinBox.setValue(int(Options.get(self._optName("search_window_size"), "200")))
+        self.windowCountSpinBox.setValue(int(Options.get(self._optName("search_window_count"), "7")))
         #self.profitPhChk.setChecked(Options.get(self._optName("search_profitPh"),"0")=="1")
 
         self._searchtypeChanged(int(Options.get(self._optName("search_type"), "0")))
@@ -93,10 +92,10 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
     def _saveSearchStatus(self):
         Options.set(self._optName("current_system"), self.currentSystemCombo.currentText())
         Options.set(self._optName("target_system"), self.targetSystemCombo.currentText())
-        Options.set(self._optName("maximum_distance"), self.maxDistanceTxt.text())
-        Options.set(self._optName("minimum_profit"), self.minProfitTxt.text())
-        Options.set(self._optName("search_window_size"), self.windowSizeTxt.text())
-        Options.set(self._optName("search_window_count"), self.windowCountTxt.text())
+        Options.set(self._optName("maximum_distance"), self.maxDistanceSpinBox.value())
+        Options.set(self._optName("minimum_profit"), self.minProfitSpinBox.value())
+        Options.set(self._optName("search_window_size"), self.windowSizeSpinBox.value())
+        Options.set(self._optName("search_window_count"), self.windowCountSpinBox.value())
         Options.set(self._optName("search_type"), self.searchTypeCombo.currentIndex())
         Options.set(self._optName("search_max_depth"), self.graphDepthSpin.value())
         Options.set(self._optName("search_min_depth"), self.graphMinDepthSpin.value())
@@ -117,17 +116,17 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         #self.searchBtn.setText('- - - - S e a r c h i n g - - - -') # unfortunately these never show with synchronous ui
 
         currentSystem = self.currentSystemCombo.currentText()
-        windowSize = float(self.windowSizeTxt.text())
-        windows = int(self.windowCountTxt.text())
-        maxDistance = float(self.maxDistanceTxt.text())
-        jumprange = float(self.mainwindow.jumpRangeTxt.text())
-        minProfit = int(self.minProfitTxt.text())
+        windowSize = float(self.windowSizeSpinBox.value())
+        windows = int(self.windowCountSpinBox.value())
+        maxDistance = float(self.maxDistanceSpinBox.value())
+        jumprange = float(self.mainwindow.jumpRangeSpinBox.value())
+        minProfit = int(self.minProfitSpinBox.value())
         #minProfit =None
         minProfitPh =None
         #if bool(self.profitPhChk.isChecked()):
-        #    minProfitPh = int(self.minProfitTxt.text())
+        #    minProfitPh = int(self.minProfitSpinBox.value())
         #else:
-        #    minProfit = int(self.minProfitTxt.text())
+        #    minProfit = int(self.minProfitSpinBox.value())
         minPadSize = int(self.mainwindow.minPadSizeCombo.currentIndex())
         searchType = int(self.searchTypeCombo.currentIndex())
         graphDepth = int(self.graphMinDepthSpin.value())
@@ -490,7 +489,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     else:
                         sysname = self.mw.currentSystem.getName()
                     field="Ly from "+sysname
-                if columnorder[section] in ["_targetdist"]:
+                elif columnorder[section] in ["_targetdist"]:
                     #field="Curr.Dist."
                     if self.mw.targetSystem is None:
                         sysname = 'target'

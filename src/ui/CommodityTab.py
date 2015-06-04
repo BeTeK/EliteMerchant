@@ -52,13 +52,13 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
 
     def _restoreSearchStatus(self):
         self.currentSystemCombo.setCurrentText(Options.get(self._optName("current_system"), "Sol"))
-        self.maxDistanceTxt.setText(Options.get(self._optName("maximum_distance"), "200"))
+        self.maxDistanceSpinBox.setValue(int(Options.get(self._optName("maximum_distance"), "200")))
         self.importComboBox.setCurrentIndex(int(Options.get(self._optName("importexport"), "0")))
         self.commodityCombobox.setCurrentIndex(int(Options.get(self._optName("commodity"), "0")))
 
     def _saveSearchStatus(self):
         Options.set(self._optName("current_system"), self.currentSystemCombo.currentText())
-        Options.set(self._optName("maximum_distance"), self.maxDistanceTxt.text())
+        Options.set(self._optName("maximum_distance"), self.maxDistanceSpinBox.value())
         Options.set(self._optName("importexport"), self.importComboBox.currentIndex())
         Options.set(self._optName("commodity"), self.commodityCombobox.currentIndex())
 
@@ -78,8 +78,8 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
 
         currentSystem = self.currentSystemCombo.currentText()
 
-        maxDistance = float(self.maxDistanceTxt.text())
-        jumprange = float(self.mainwindow.jumpRangeTxt.text())
+        maxDistance = float(self.maxDistanceSpinBox.value())
+        jumprange = float(self.mainwindow.jumpRangeSpinBox.value())
         minPadSize = int(self.mainwindow.minPadSizeCombo.currentIndex())
         importexport=int(self.importComboBox.currentIndex())
         commodityidx=int(self.commodityCombobox.currentIndex())
