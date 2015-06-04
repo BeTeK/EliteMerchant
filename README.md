@@ -15,10 +15,10 @@ Install **Python 3.4** ( https://www.python.org/ )
 
 Install **PyQt5** ( http://www.riverbankcomputing.com/software/pyqt/download5 )
 
-Optional: Download **EDCE** (library version) for market data download
+Optional: Download **EDCE** (library version) for automatic market data download  
 ( https://github.com/BeTeK/edce-client/archive/feature/make_edce_more_library_friendly.zip )
 
-In /src run  python3 ./main.py
+In /src run **python3 ./main.py**
  
  
 The database is downloaded on first launch and updated hourly, if an updated database is detected.
