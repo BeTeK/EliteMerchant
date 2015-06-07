@@ -52,7 +52,7 @@ class EliteLogAnalyzer:
             permissionGot = False
             with open(os.path.join(self.path, "Logs", logFileName), "rb") as file:
                 for lineNum, line in enumerate(file):
-                    if line.find(b"FindBestIsland:") >= 0:
+                    if line.find(b"System:") >= 0:
                         latestIsland = line
                         latestIslandLineNumber = lineNum
                         permissionGot = False
@@ -121,12 +121,12 @@ class EliteLogAnalyzer:
         return file
 
     def _parseLatestIsland(self, latestIsland):
-        startPos = latestIsland.index(" ") + 1
-        items = latestIsland[startPos:].split(":")
+        startPos = latestIsland.index("(") + 1
+        endPos = latestIsland.index(")", startPos)
 
         return {
-            "PlayerName" : items[1],
-            "System" : items[4],
-            "Near" : items[3]
+            "PlayerName" : "",
+            "System" : latestIsland[startPos:endPos],
+            "Near" : ""
         }
 

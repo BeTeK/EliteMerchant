@@ -67,7 +67,7 @@ class SQLiteDB(EliteDB.EliteDB):
     with self.lock:
       cur = self.conn.cursor()
 
-      cur.execute("SELECT bases.id, bases.name, bases.planetId, bases.distance, baseInfo.blackMarket, baseInfo.landingPadSize FROM bases, baseInfo WHERE bases.id = baseInfo.baseId AND bases.systemId = ?", (id, ))
+      cur.execute("SELECT bases.id, bases.name, bases.planetId, bases.distance, baseInfo.blackMarket, baseInfo.landingPadSize FROM  (bases LEFT JOIN baseInfo ON bases.id = baseInfo.baseId) WHERE bases.systemId = ?", (id, ))
 
       return [self._dictToBase(self._rowToDict(i)) for i in cur.fetchall()]
 
@@ -108,9 +108,10 @@ class SQLiteDB(EliteDB.EliteDB):
 
   def getCommodityByName(self, name):
     with self.lock:
-      for i in self.commodityCache.values():
-        if i.getName() == name:
-          return i
+      #if len(self.commodityCache) > 0:
+      #  for i in self.commodityCache.values():
+      #    if i.getName() == name:
+      #      return i
 
         cur = self.conn.cursor()
 
@@ -121,7 +122,7 @@ class SQLiteDB(EliteDB.EliteDB):
 
         data = self._rowToDict(rows[0])
         ret = self._dictToCommodity(data)
-        self.commodityCache[ret.getId()] = ret
+        #self.commodityCache[ret.getId()] = ret
 
         return ret
 
@@ -257,7 +258,7 @@ class SQLiteDB(EliteDB.EliteDB):
 
     cur.execute("""CREATE TABLE bases (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "name" TEXT NOT NULL UNIQUE,
+    "name" TEXT NOT NULL,
     "planetId" INTEGER,
     "systemId" INTEGER,
     "distance" REAL

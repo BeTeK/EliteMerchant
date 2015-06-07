@@ -47,10 +47,18 @@ class EdceWrapper:
         self.resultsLastUpdated=0
         self.activeThreads = []
         self.result = None
+        self.finishedListeners = []
         self.postMarkedData = postMarketData
         self.lastUpdatedInfo = {"starportName" : "",
                                 "systemName" : "",
                                 "docked" : False}
+
+    def addFinishedListener(self, listener):
+        self.finishedListeners.append(listener)
+
+    def callFinishedListeners(self, data):
+        for i in self.finishedListeners:
+            i(data)
 
     def _updateResults(self):
         import edce.query
@@ -139,15 +147,12 @@ class EdceWrapper:
             return
 
         system = systems[0]
-        base = None
-        for i in system.getStations():
-            if i.getName() == starportName:
-                base = i
-                break
+
+        base = self.findBase(starportName, system)
 
         if base is None:
-            print("Cannot find base name {0} at system {1} skipping".format(starportName, systemName))
-            return
+            system.addStation(starportName, None)
+            base = self.findBase(starportName, system)
 
         pricesLst = base.getPrices()
         newPrices = []
@@ -184,6 +189,16 @@ class EdceWrapper:
         self.lastUpdatedInfo = {"starportName" : starportName,
                                 "systemName" : systemName,
                                 "docked" : docked}
+
+        self.callFinishedListeners(dict(self.lastUpdatedInfo))
+
+    def findBase(self, starportName, system):
+        base = None
+        for i in system.getStations():
+            if i.getName() == starportName:
+                base = i
+                break
+        return base
 
     def getLastUpdatedInfo(self):
         return self.lastUpdatedInfo

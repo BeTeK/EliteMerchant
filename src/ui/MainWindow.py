@@ -24,7 +24,7 @@ from time import gmtime, strftime
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   _edceUpdateTimeout = 90 # keep sparse to keep fd happy
   _logLinesToShow = 200
-
+  edceFinished = QtCore.pyqtSignal([dict])
   def __init__(self, db):
     super(QtWidgets.QMainWindow, self).__init__()
     self.setupUi(self)
@@ -35,6 +35,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.searchMenuItem.triggered.connect(self._addSearchTabSelected)
     self.statusMenuItem.triggered.connect(self._addStatusTabSelected)
     self.commodityMenuItem.triggered.connect(self._addCommodityTabSelected)
+    self.edceFinished.connect(self.onEdceUpdated)
     self.db = db
     self.analyzer = EliteLogAnalyzer.EliteLogAnalyzer()
     self.analyzer.setPath(Options.get("Elite-path", ""))
@@ -193,8 +194,16 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     try:
       postMarketData = Options.get("EDCE-uploads-results", "1") != "0"
       self.edce = EdceWrapper.EdceWrapper(Options.get("EDCE-path", ""), self.db, postMarketData, self._verificationCheck)
+      self.edce.addFinishedListener(self.edceUpdated)
+
     except Exception as ex:
       print(ex)
+
+  def onEdceUpdated(self, data):
+    print(data)
+
+  def _edceUpdated(self, data):
+    self.edceFinished.emit(data)
 
   def _setInfoText(self, txt = ""):
     self.statusMessageTxt.setText(txt)
