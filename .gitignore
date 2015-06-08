@@ -5,4 +5,4 @@
 **/*.json
 src/dist/*
 .idea/*
-EliteDBInstaller.exe
+EliteMerchantInstaller_v*.exe
