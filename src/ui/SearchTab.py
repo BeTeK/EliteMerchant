@@ -10,8 +10,12 @@ import EdceWrapper
 import SpaceTime
 import time
 import ui.TabAbstract
+import ThreadWorker
 
 class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabAbstract):
+
+    _resultsUpdated = QtCore.pyqtSignal([list])
+
     def __init__(self, db, analyzer, tabName, mainwindow):
         super(QtWidgets.QWidget, self).__init__()
         self.setupUi(self)
@@ -35,6 +39,12 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.targetSystemCombo.clear()
         self.targetSystemCombo.addItems( systemlist )
         self._restoreSearchStatus()
+        self._resultsUpdated.connect(self._updateResults)
+
+    def _updateResults(self, data):
+        self.result = data
+        self.model.refeshData()
+        print("Search done!")
 
     def _searchtypeChanged(self,idx):
         #searchtype=self.searchTypeCombo.currentIndex()
@@ -149,16 +159,18 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         #self.twowaySearch=twoway
 
         print("Querying database...")
+        searchFn = None
         if searchType==4:
             print("queryProfit")
-            self.result = Queries.queryProfit(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange )
+            searchFn = lambda : Queries.queryProfit(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange )
+
             #self.result = self.db.queryProfit(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
         elif searchType==2:
             print("queryProfitGraphLoops")
-            self.result = Queries.queryProfitGraphLoops(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
+            searchFn = lambda : Queries.queryProfitGraphLoops(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
         elif searchType==3:
             print("queryProfitGraphDeadends")
-            self.result = Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
+            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
         elif searchType==5:
             print("queryProfitGraphTarget")
             currentBase=None
@@ -174,7 +186,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             self.targetSystem = targetsystems[0]
             tpos=targetsystems[0].getPosition()
             directionality=0.0
-            self.result = Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
+            searchFn = lambda : Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
         elif searchType==0 or searchType==1:
             currentBase=None
             if self.analyzer.getCurrentStatus()['System'] == self.currentSystem.getName():
@@ -182,7 +194,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
               currentBase=self.analyzer.getCurrentStatus()["Near"]
 
             print("queryProfitGraphDeadends from current")
-            self.result = Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
+            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
         else:
             print("unknown search type - we should not be here")
         #elif searchType==1:
@@ -190,10 +202,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         #    self.result = Queries.queryProfitRoundtrip(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize)
         #    #self.result = self.db.queryProfitRoundtrip(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
 
-        self.model.refeshData()
-        print("Done!")
-
-            #self.searchBtn.setText('Search')
+        if searchFn is not None:
+            ThreadWorker.ThreadWorker(searchFn, lambda result: self._resultsUpdated.emit(result)).start()
 
     class TableModel(QtCore.QAbstractTableModel):
         def __init__(self, parent, mw):

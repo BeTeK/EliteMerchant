@@ -33,7 +33,7 @@ class SQLiteDB(EliteDB.EliteDB):
     if exists and self.forceInit:
       os.remove(self.filename)
 
-    self.conn = sqlite3.connect(self.filename)
+    self.conn = sqlite3.connect(self.filename, check_same_thread = False)
 
     # custom db functions
     # https://docs.python.org/2/library/sqlite3.html#sqlite3.Connection.create_function

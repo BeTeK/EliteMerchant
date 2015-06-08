@@ -74,6 +74,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
     self.edceState = "notStation"
 
+
   def _setupLog(self):
     curStdOut = sys.stdout
     file = PassThroughFile.PassThroughFile(curStdOut)
