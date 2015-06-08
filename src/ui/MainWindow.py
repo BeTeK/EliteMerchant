@@ -20,6 +20,7 @@ import time
 import sys
 import PassThroughFile
 from time import gmtime, strftime
+import ThreadWorker
 
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   _edceUpdateTimeout = 90 # keep sparse to keep fd happy
@@ -333,7 +334,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       return
 
     if lastUpdated <= 0 or now - lastUpdated > interval * 60 * 60:
-      EDDB.update(self.db)
+      ThreadWorker.ThreadWorker(lambda :EDDB.update(self.db)).start()
 
 
   def _optionsMenuSelected(self):
