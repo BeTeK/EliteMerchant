@@ -48,20 +48,20 @@ class EliteLogAnalyzer:
                 return
 
             latestIsland = None
-            latestIslandLineNumber = 0
             permissionGot = False
             with open(os.path.join(self.path, "Logs", logFileName), "rb") as file:
                 for lineNum, line in enumerate(file):
-                    if line.find(b"System:") >= 0:
-                        latestIsland = line
-                        latestIslandLineNumber = lineNum
+                    if line.find(b"IJoinSession:Island: ") >= 0 or \
+                       line.find(b"^^^------------ ") >= 0:
+                        latestIsland = None
                         permissionGot = False
 
+                    if line.find(b"System:") >= 0:
+                        latestIsland = line
+
                     if line.find(b"Dock Permission Received on pad") >= 0:
-                        if lineNum > latestIslandLineNumber:
-                            permissionGot = True
-                        else:
-                            permissionGot = False
+                        permissionGot = True
+
 
             if latestIsland is None:
                 return
