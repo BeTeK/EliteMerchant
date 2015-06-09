@@ -32,24 +32,23 @@ def StarToBase(ls):
     ... ls,seconds tuples from traveltimes.ods
   ]
 
-  var('a, b, c, d, x')
-  def curvef(x,a,b,c,d):
-    return (log(x+b)*(c+(a/10)))-d-a
-  fit=find_fit(reference, curvef, parameters = [a, b, c, d], variables = [x], solution_dict = True)
+  var('a, b, c, ls')
+  def curvef(ls,a,b,c):
+      return log(ls+a)*b-c
+  fit=find_fit(reference, curvef, parameters = [a, b, c], variables = [ls], solution_dict = True)
   print(fit)
 
   refplot=list_plot( [[ls,sec] for ls,sec in reference] , color="red")
   logrefplot=list_plot( [[log(ls),sec] for ls,sec in reference] , color="red")
-  def retfit(x):
-    return curvef(x,fit[a],fit[b],fit[c],fit[d])
+  def retfit(ls):
+      return curvef(ls,fit[a],fit[b],fit[c])
   fitplot=plot(retfit,1,221000)
   logfitplot=list_plot([[log(ls),retfit(ls)] for ls in range(1,221000,50)])
   show(fitplot+refplot)
   show(logfitplot+logrefplot)
   """
-  a=745.359463485
-  b=6614.34380137
-  c=125.12281681
-  d=922.259103446
-  time_in_supercruise=(log(ls+b)*(c+(a/10)))-d-a
+  a= 6613.896196062265
+  b= 199.65462707095878
+  c= 1667.5696048367702
+  time_in_supercruise= log(ls+a)*b-c
   return time_in_supercruise
