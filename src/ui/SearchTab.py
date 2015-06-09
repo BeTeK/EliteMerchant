@@ -40,20 +40,20 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.targetSystemCombo.addItems( systemlist )
         self._restoreSearchStatus()
         self._resultsUpdated.connect(self._updateResults)
+        self.currentWorker = None
 
     def _setSearchProgress(self, status):
         if status:
-            self.searchBtn.setText("Search in progres...")
-            self.searchBtn.setDisabled(True)
+            self.searchBtn.setText("Stop search")
         else:
             self.searchBtn.setText("Search")
-            self.searchBtn.setDisabled(False)
 
 
     def _updateResults(self, data):
         self.result = data
         self.model.refeshData()
         self._setSearchProgress(False)
+        self.currentWorker = None
         print("Search done!")
 
     def _searchtypeChanged(self,idx):
@@ -130,8 +130,17 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.currentSystem = systems[0]
         self.model.refeshData()
 
+    def _cancelSearch(self):
+        self.currentWorker.terminate()
+        self.currentWorker = None
+        self.model.refeshData()
+        self._setSearchProgress(False)
 
     def searchBtnPressed(self):
+        if self.currentWorker is not None:
+            self._cancelSearch()
+            return
+
         #print ("searchBtnPressed")
         #self.searchBtn.setText('- - - - S e a r c h i n g - - - -') # unfortunately these never show with synchronous ui
 
@@ -213,7 +222,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         #    #self.result = self.db.queryProfitRoundtrip(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
 
         if searchFn is not None:
-            ThreadWorker.ThreadWorker(searchFn, lambda result: self._resultsUpdated.emit(result)).start()
+            self.currentWorker = ThreadWorker.ThreadWorker(searchFn, lambda result: self._resultsUpdated.emit(result))
+            self.currentWorker.start()
             self._setSearchProgress(True)
 
     class TableModel(QtCore.QAbstractTableModel):
