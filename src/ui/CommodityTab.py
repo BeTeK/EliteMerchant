@@ -26,8 +26,12 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
         self.SearchResultTable.setModel(self.model)
         self.getCurrentBtn.clicked.connect(self._setCurrentSystemByname)
         self.analyzer = analyzer
-        self.commoditylist=list(db.getCommodities().values())
-        self.commoditylist.sort(key=lambda x: x.name )
+        commodities=db.getCommodities()
+        if commodities is not None:
+          self.commoditylist=list(db.getCommodities().values())
+          self.commoditylist.sort(key=lambda x: x.name )
+        else:
+          self.commoditylist=[]
         self.commodityCombobox.clear()
         self.commodityCombobox.addItems( [c.getName() for c in self.commoditylist] )
         systemlist=self.db.getSystemNameList()
