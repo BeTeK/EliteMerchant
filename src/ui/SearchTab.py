@@ -41,9 +41,19 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self._restoreSearchStatus()
         self._resultsUpdated.connect(self._updateResults)
 
+    def _setSearchProgress(self, status):
+        if status:
+            self.searchBtn.setText("Search in progres...")
+            self.searchBtn.setDisabled(True)
+        else:
+            self.searchBtn.setText("Search")
+            self.searchBtn.setDisabled(False)
+
+
     def _updateResults(self, data):
         self.result = data
         self.model.refeshData()
+        self._setSearchProgress(False)
         print("Search done!")
 
     def _searchtypeChanged(self,idx):
@@ -204,6 +214,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
         if searchFn is not None:
             ThreadWorker.ThreadWorker(searchFn, lambda result: self._resultsUpdated.emit(result)).start()
+            self._setSearchProgress(True)
 
     class TableModel(QtCore.QAbstractTableModel):
         def __init__(self, parent, mw):

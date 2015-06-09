@@ -84,7 +84,11 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
   def _lineAddedToLog(self, txt):
     now = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-    line = "[{0}] {1}".format(now, txt)
+    stdOutLine = txt.replace("\r", "").replace("\n", "")
+    if len(stdOutLine) == 0:
+      return
+
+    line = "[{0}] {1}".format(now, stdOutLine)
     self.logCombo.insertItem(0, line)
 
     while self.logCombo.count() > MainWindow._logLinesToShow:
