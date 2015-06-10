@@ -151,8 +151,8 @@ class EdceWrapper:
         base = self.findBase(starportName, system)
 
         if base is None:
-            system.addStation(starportName, None)
-            base = self.findBase(starportName, system)
+            print("Cannot find {0} in database. Skipping".format(starportName))
+            return
 
         pricesLst = base.getPrices()
         newPrices = []
