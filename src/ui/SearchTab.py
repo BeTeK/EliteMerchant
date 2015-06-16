@@ -31,9 +31,13 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.searchBtn.clicked.connect(self.searchBtnPressed)
         self.model = SearchTab.TableModel(None, self)
         self.SearchResultTable.setModel(self.model)
-        self.getCurrentBtn.clicked.connect(self._setCurrentSystemByname)
+        self.getCurrentBtn.clicked.connect(self._setCurrentSystemToTab)
+        self.targetGetCurrentBtn.clicked.connect(self._setCurrentSystemToTabTarget)
         self.searchTypeCombo.currentIndexChanged.connect(self._searchtypeChanged)
         self.analyzer = analyzer
+
+        self.currentSystemCombo.currentIndexChanged.connect(self._refreshCurrentStationlist)
+        self.targetSystemCombo.currentIndexChanged.connect(self._refreshTargetStationlist)
 
         systemlist=self.db.getSystemNameList()
         self.currentSystemCombo.clear()
@@ -63,14 +67,21 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         searchtype=idx
         if searchtype in [5]:
           self.targetSystemCombo.setEnabled(True)
+          self.targetStationCombo.setEnabled(True)
         else:
           self.targetSystemCombo.setEnabled(False)
+          self.targetStationCombo.setEnabled(False)
         if searchtype in [4]:
           self.graphDepthSpin.setEnabled(False)
           self.graphMinDepthSpin.setEnabled(False)
         else:
           self.graphDepthSpin.setEnabled(True)
           self.graphMinDepthSpin.setEnabled(True)
+        if searchtype in [1]:
+          self.currentStationCombo.setEnabled(False)
+        else:
+          self.currentStationCombo.setEnabled(True)
+
 
 
 
@@ -92,16 +103,25 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
     def refreshData(self):
         self.model.refeshData()
 
-    def setCurrentSystem(self, system):
+    def _refreshCurrentStationlist(self):
+        if self.currentSystem is None or self.currentSystem.getName()!=self.currentSystemCombo.currentText():
+          self.setCurrentSystem(self.currentSystemCombo.currentText(),refreshstations=False)
+        currentSystemStations=[o.getName() for o in self.currentSystem.getStations()]
+        self.currentStationCombo.clear()
+        self.currentStationCombo.addItems( ['ANY'] )
+        self.currentStationCombo.addItems( currentSystemStations )
+
+    def setCurrentSystem(self, system, refreshstations=True):
         systems = self.db.getSystemByName(system)
         if len(systems)==0:
           print('System not in db')
           return
         system=systems[0]
         self.currentSystem = system
-        self.currentSystemCombo.setEditText(system.getName())
-        currentSystemStations=self.currentSystem.getStations()
-        # todo: update stations
+        self.currentSystemCombo.setEditText(self.currentSystem.getName())
+        if refreshstations:
+          self._refreshCurrentStationlist()
+        self.model.refeshData()
 
     def setCurrentBase(self, base):
         bases=self.currentSystem.getStations()
@@ -112,10 +132,54 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             break
         if baseo is None:
           print('Station not in db')
+          self.currentBase = None
+          self.currentStationCombo.setEditText('ANY')
           return
-        self.currentBase = base
-        #self.currentSystemCombo.setEditText(base.getName())
-        #todo: this
+        self.currentBase = baseo
+        self.currentStationCombo.setEditText(self.currentBase.getName())
+
+    def _refreshTargetStationlist(self):
+        if self.targetSystem is None or self.targetSystem.getName()!=self.targetSystemCombo.currentText():
+          self.setTargetSystem(self.targetSystemCombo.currentText(),refreshstations=False)
+        targetSystemStations=[o.getName() for o in self.targetSystem.getStations()]
+        self.targetStationCombo.clear()
+        self.targetStationCombo.addItems( ['ANY'] )
+        self.targetStationCombo.addItems( targetSystemStations )
+
+    def setTargetSystem(self, system, refreshstations=True):
+        systems = self.db.getSystemByName(system)
+        if len(systems)==0:
+          print('System not in db')
+          return
+        system=systems[0]
+        self.targetSystem = system
+        self.targetSystemCombo.setEditText(self.targetSystem.getName())
+        if refreshstations:
+          self._refreshTargetStationlist()
+        self.model.refeshData()
+
+    def setTargetBase(self, base):
+        bases=self.targetSystem.getStations()
+        baseo=None
+        for bo in bases:
+          if bo.getName()==base:
+            baseo=bo
+            break
+        if baseo is None:
+          print('Station not in db')
+          self.targetBase = None
+          self.targetStationCombo.setEditText('ANY')
+          return
+        self.targetBase = baseo
+        self.targetStationCombo.setEditText(self.targetBase.getName())
+
+    def _setCurrentSystemToTab(self):
+        self.setCurrentSystem(self.mainwindow.currentStatus['System'])
+        self.setCurrentBase(self.mainwindow.currentStatus['Base'])
+
+    def _setCurrentSystemToTabTarget(self):
+        self.setTargetSystem(self.mainwindow.currentStatus['System'])
+        self.setTargetBase(self.mainwindow.currentStatus['Base'])
 
     def _restoreSearchStatus(self):
         self.currentSystemCombo.setCurrentText(Options.get(self._optName("current_system"), "Sol"))
@@ -130,6 +194,12 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.windowCountSpinBox.setValue(int(Options.get(self._optName("search_window_count"), "7")))
         #self.profitPhChk.setChecked(Options.get(self._optName("search_profitPh"),"0")=="1")
 
+        self._refreshCurrentStationlist() # populate station lists
+        self._refreshTargetStationlist()
+
+        self.currentStationCombo.setCurrentText(Options.get(self._optName("current_station"), "Abraham Lincoln"))
+        self.targetStationCombo.setCurrentText(Options.get(self._optName("target_station"), "Lave Station"))
+
         self._searchtypeChanged(int(Options.get(self._optName("search_type"), "0")))
 
     def _saveSearchStatus(self):
@@ -142,16 +212,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         Options.set(self._optName("search_type"), self.searchTypeCombo.currentIndex())
         Options.set(self._optName("search_max_depth"), self.graphDepthSpin.value())
         Options.set(self._optName("search_min_depth"), self.graphMinDepthSpin.value())
+        Options.set(self._optName("current_station"), self.currentStationCombo.currentText())
+        Options.set(self._optName("target_station"), self.targetStationCombo.currentText())
         #Options.set(self._optName("search_profitPh"), self.profitPhChk.isChecked() and "1" or "0")
-
-    def _setCurrentSystemByname(self):
-        systemName = self.analyzer.getCurrentStatus()["System"]
-        self.currentSystemCombo.setCurrentText(systemName)
-        systems = self.db.getSystemByName(systemName)
-        if len(systems) == 0:
-            return
-        self.currentSystem = systems[0]
-        self.model.refeshData()
 
     def _cancelSearch(self):
         self.currentWorker.terminate()
@@ -168,6 +231,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         #self.searchBtn.setText('- - - - S e a r c h i n g - - - -') # unfortunately these never show with synchronous ui
 
         currentSystem = self.currentSystemCombo.currentText()
+        currentBase = self.currentStationCombo.currentText()
+        targetSystem = self.targetSystemCombo.currentText()
+        targetBase = self.targetStationCombo.currentText()
         windowSize = float(self.windowSizeSpinBox.value())
         windows = int(self.windowCountSpinBox.value())
         maxDistance = float(self.maxDistanceSpinBox.value())
@@ -184,21 +250,15 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         graphDepth = int(self.graphMinDepthSpin.value())
         graphDepthmax = int(self.graphDepthSpin.value())
         #twoway = bool(self.twoWayBool.isChecked())
-        targetSystem = int(self.targetSystemCombo.currentIndex())
 
-        if (graphDepth>graphDepthmax):
+        if graphDepth>graphDepthmax:
           print("min hops have to be less than max hops!")
+          self.mainwindow.sounds.play('error')
           return
 
-        systems = self.db.getSystemByName(currentSystem)
-        if len(systems) == 0:
-          print("system not found!")
-          return
-        self.currentSystem = systems[0]
         pos = self.currentSystem.getPosition()
 
         self.searchType=searchType
-        #self.twowaySearch=twoway
 
         print("Querying database...")
         searchFn = None
@@ -215,25 +275,17 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
         elif searchType==5:
             print("queryProfitGraphTarget")
-            currentBase=None
-            if self.analyzer.getCurrentStatus()['System'] == self.currentSystem.getName():
-              #if self.analyzer.hasDockPermissionGot():
-              currentBase=self.analyzer.getCurrentStatus()["Near"]
+            if currentBase == 'ANY':
+              currentBase=None
+            #if targetBase == 'ANY':
+            #  targetBase=None
 
-            targetSystem=self.targetSystemCombo.currentText()
-            targetsystems = self.db.getSystemByName(targetSystem)
-            if len(targetsystems) == 0:
-              print("target system not found!")
-              return
-            self.targetSystem = targetsystems[0]
-            tpos=targetsystems[0].getPosition()
+            tpos=self.targetSystem.getPosition()
             directionality=0.0
             searchFn = lambda : Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
         elif searchType==0 or searchType==1:
-            currentBase=None
-            if self.analyzer.getCurrentStatus()['System'] == self.currentSystem.getName():
-              #if self.analyzer.hasDockPermissionGot():
-              currentBase=self.analyzer.getCurrentStatus()["Near"]
+            if currentBase == 'ANY':
+              currentBase=None
 
             print("queryProfitGraphDeadends from current")
             searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
