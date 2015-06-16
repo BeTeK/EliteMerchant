@@ -411,8 +411,11 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                         return QtGui.QBrush(QtGui.QColor(200,200,200))
                 if columnorder[section] in ["Asystemname","Abasename","Bsystemname","Bbasename"]:
                     return QtGui.QBrush(QtGui.QColor(255,255,230))
-                if columnorder[section] in ["commodityname","Ccommodityname"]:
-                    r,g,b=self.mw.AgeToColor(min(data['AlastUpdated'],data['BlastUpdated']))
+                if columnorder[section] in ["AexportPrice"]:
+                    r,g,b=self.mw.AgeToColor(data['AlastUpdated'])
+                    return QtGui.QBrush(QtGui.QColor(r,g,b))
+                if columnorder[section] in ["BimportPrice"]:
+                    r,g,b=self.mw.AgeToColor(data['BlastUpdated'])
                     return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["profit","Cprofit","totalprofit"]:
                     return QtGui.QBrush(QtGui.QColor(255,230,255))
