@@ -22,6 +22,7 @@ class SQLiteDB(EliteDB.EliteDB):
     self.forceInit = forceInit
     self.commodityCache = {}
     self.lock = threading.RLock()
+    self.dbEmpty=False # set this to true if db load fails for whatever reason and we need to force download
 
 
   def __enter__(self):
@@ -50,6 +51,7 @@ class SQLiteDB(EliteDB.EliteDB):
     self.conn.row_factory = sqlite3.Row
     if not exists or self.forceInit:
       self._createDB()
+      self.dbEmpty=True
 
     
   def __exit__(self, type, value, traceback):
@@ -305,7 +307,7 @@ class SQLiteDB(EliteDB.EliteDB):
       cur.executemany("INSERT OR IGNORE INTO bases(name,systemId,distance) VALUES(:name,:systemId,:distance)",baselist)
 
       self.conn.commit()
-      cur.execute('SELECT id,name FROM bases')
+      cur.execute('SELECT id,name,systemId FROM bases')
       return [self._rowToDict(o) for o in cur.fetchall()]
 
   def importBaseInfos(self,baselist):

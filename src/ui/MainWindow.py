@@ -69,6 +69,10 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
     self.mainTab.setCornerWidget ( buttonwidget, 0)
 
+    if self.db.dbEmpty:
+      print("db load failed or doesn't exist - downloading...")
+      ThreadWorker.ThreadWorker(lambda :EDDB.update(self.db,force=True)).start()
+
     self._readSettings()
 
     self._updateTabs()

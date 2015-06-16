@@ -167,10 +167,10 @@ def importDownloaded(db):
   importedStations=db.importBases(stationsdata)
 
   # name to id map
-  importedStationsMap=dict( (o["name"].lower(),o["id"]) for o in importedStations )
+  importedStationsMap=dict( (o["name"].lower()+'~'+str(o["systemId"]),o["id"]) for o in importedStations )
 
   # eddb to EliteDB id map
-  stations_importmap=dict( (o["id"],importedStationsMap[o["name"].lower()]) for o in stationsdata )
+  stations_importmap=dict( (o["id"],importedStationsMap[o["name"].lower()+'~'+str(o["systemId"])]) for o in stationsdata )
 
   # -- station metadata --
 
