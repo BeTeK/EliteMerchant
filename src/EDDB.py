@@ -135,7 +135,7 @@ def importDownloaded(db):
 
   # -- systems --
 
-  print("               systems")
+  print("improting eddb systems")
   systemsdata = readJSON("systems.json")
   if systemsdata is None:
     print("parsing systems.json failed")
@@ -152,7 +152,7 @@ def importDownloaded(db):
 
   # -- stations --
 
-  print("               stations")
+  print("improting eddb stations")
   stationsdata = readJSON("stations.json")
   if stationsdata is None:
     print("parsing stations.json failed")
@@ -174,7 +174,7 @@ def importDownloaded(db):
 
   # -- station metadata --
 
-  print("               station metadata")
+  print("improting eddb station metadata")
 
   padsize={
     None:None,
@@ -192,7 +192,7 @@ def importDownloaded(db):
 
   # -- station market data --
 
-  print("               market data")
+  print("improting eddb market data")
 
   # limit data age
   validityhorizon=float( time.time() - (60*60*24* int(Options.get("Market-valid-days", 7)) ))

@@ -372,10 +372,10 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
           continue
         elif toid==start: # found loop
           if mindepth<=depth:
-            if depth%2==0:
-              sys.stdout.write("\r\\")
-            else:
-              sys.stdout.write("\r/")
+            #if depth%2==0:
+            #  sys.stdout.write("\r\\")
+            #else:
+            #  sys.stdout.write("\r/")
             profit+=prune[fromid][toid]['profit']
             hours+=prune[fromid][toid]['hours']
             mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
@@ -538,10 +538,10 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
           continue
         elif toid==start: # found loop
           if mindepth<=depth:
-            if depth%2==0:
-              sys.stdout.write("\r\\")
-            else:
-              sys.stdout.write("\r/")
+            #if depth%2==0:
+            #  sys.stdout.write("\r\\")
+            #else:
+            #  sys.stdout.write("\r/")
             profit+=prune[fromid][toid]['profit']
             hours+=prune[fromid][toid]['hours']
             mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
@@ -550,10 +550,10 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
           walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'])
         else: # deadend
           if mindepth<=depth:
-            if depth%2==0:
-              sys.stdout.write("\r\\")
-            else:
-              sys.stdout.write("\r/")
+            #if depth%2==0:
+            #  sys.stdout.write("\r\\")
+            #else:
+            #  sys.stdout.write("\r/")
             profit+=prune[fromid][toid]['profit']
             hours+=prune[fromid][toid]['hours']
             mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
@@ -718,10 +718,10 @@ def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,m
         if lastdistance<currentdistance:
           continue
         if currentdistance<1:
-          if depth%2==0:
-            sys.stdout.write("\r\\")
-          else:
-            sys.stdout.write("\r/")
+          #if depth%2==0:
+          #  sys.stdout.write("\r\\")
+          #else:
+          #  sys.stdout.write("\r/")
           profit+=prune[fromid][toid]['profit']
           hours+=prune[fromid][toid]['hours']
           mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
@@ -737,10 +737,10 @@ def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,m
           walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'],currentdistance)
         else: # deadend
           if mindepth<=depth:
-            if depth%2==0:
-              sys.stdout.write("\r\\")
-            else:
-              sys.stdout.write("\r/")
+            #if depth%2==0:
+            #  sys.stdout.write("\r\\")
+            #else:
+            #  sys.stdout.write("\r/")
             profit+=prune[fromid][toid]['profit']
             hours+=prune[fromid][toid]['hours']
             mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)

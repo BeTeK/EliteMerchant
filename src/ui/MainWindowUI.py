@@ -116,6 +116,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.verticalLayout_6.addLayout(self.verticalLayout_2)
         self.logCombo = QtWidgets.QComboBox(self.centralwidget)
+        self.logCombo.setMaxVisibleItems(50)
         self.logCombo.setObjectName("logCombo")
         self.verticalLayout_6.addWidget(self.logCombo)
         MainWindow.setCentralWidget(self.centralwidget)

@@ -248,7 +248,11 @@
      </layout>
     </item>
     <item>
-     <widget class="QComboBox" name="logCombo"/>
+     <widget class="QComboBox" name="logCombo">
+      <property name="maxVisibleItems">
+       <number>50</number>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
