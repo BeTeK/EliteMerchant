@@ -237,6 +237,29 @@ def queryProfitRoundtrip(db,x,y,z,windowsize,windows,maxdistance,minprofit,minpr
   print("Found "+str(len(twoway))+" roundtrip trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
   return sorted(twoway,key=operator.itemgetter("totalprofitPh"), reverse=True)
 
+
+def queryDirectTrades(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth,sourcesystem=None,sourcebase=None,targetsystem=None,targetbase=None):
+  queryparams=dict()
+  queryparams['x']=x
+  queryparams['y']=y
+  queryparams['z']=z
+  queryparams['window']=windowsize
+  queryparams['maxdistance']=maxdistance
+  queryparams['minprofit']=1
+  queryparams['minprofitPh']=1 # todo:  remove
+  queryparams['landingPadSize']=landingPadSize
+  queryparams['jumprange']=jumprange
+  queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
+  queryparams['sourcesystem']=sourcesystem or '%%'
+  queryparams['sourcebase']=sourcebase or '%%'
+  queryparams['targetsystem']=targetsystem or '%%'
+  queryparams['targetbase']=targetbase or '%%'
+  results=db.getTradeDirect(queryparams)
+  for result in results:
+    result['profitPh']=result['profit']/result['hours']
+  return sorted(results,key=operator.itemgetter("profitPh"),reverse=True)
+
+
 def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,sourcesystem=None,sourcebase=None):
   windows=queryGenerateWindows(db,x,y,z,windowsize,maxdistance,windows)
   combined=dict()

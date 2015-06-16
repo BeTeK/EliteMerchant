@@ -65,13 +65,13 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
     def _searchtypeChanged(self,idx):
         #searchtype=self.searchTypeCombo.currentIndex()
         searchtype=idx
-        if searchtype in [5]:
+        if searchtype in [5,6]:
           self.targetSystemCombo.setEnabled(True)
           self.targetStationCombo.setEnabled(True)
         else:
           self.targetSystemCombo.setEnabled(False)
           self.targetStationCombo.setEnabled(False)
-        if searchtype in [4]:
+        if searchtype in [4,6]:
           self.graphDepthSpin.setEnabled(False)
           self.graphMinDepthSpin.setEnabled(False)
         else:
@@ -81,8 +81,16 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
           self.currentStationCombo.setEnabled(False)
         else:
           self.currentStationCombo.setEnabled(True)
-
-
+        if searchtype in [6]:
+          self.maxDistanceSpinBox.setEnabled(False)
+          self.windowSizeSpinBox.setEnabled(False)
+          self.windowCountSpinBox.setEnabled(False)
+          self.minProfitSpinBox.setEnabled(False)
+        else:
+          self.maxDistanceSpinBox.setEnabled(True)
+          self.windowSizeSpinBox.setEnabled(True)
+          self.windowCountSpinBox.setEnabled(True)
+          self.minProfitSpinBox.setEnabled(True)
 
 
     def setTabName(self, name):
@@ -283,6 +291,16 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             tpos=self.targetSystem.getPosition()
             directionality=0.0
             searchFn = lambda : Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
+        elif searchType==6:
+            print("queryDirectTrades")
+            if currentBase == 'ANY':
+              currentBase=None
+            if targetBase == 'ANY':
+              targetBase=None
+
+            tpos=self.targetSystem.getPosition()
+            directionality=0.0
+            searchFn = lambda : Queries.queryDirectTrades(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase,targetSystem,targetBase)
         elif searchType==0 or searchType==1:
             if currentBase == 'ANY':
               currentBase=None
@@ -357,7 +375,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 basictradetable,
                 basictradetable,
                 basictradetable,
-                basictradetable_target
+                basictradetable_target,
+                basictradetable
             ]
 
 
