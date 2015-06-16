@@ -71,6 +71,14 @@ class SQLiteDB(EliteDB.EliteDB):
 
       return [self._dictToBase(self._rowToDict(i)) for i in cur.fetchall()]
 
+  def getBasesOfSystemByName(self, name):
+    with self.lock:
+      cur = self.conn.cursor()
+
+      cur.execute("SELECT bases.id, bases.name, bases.planetId, bases.distance, baseInfo.blackMarket, baseInfo.landingPadSize FROM  (bases LEFT JOIN baseInfo ON bases.id = baseInfo.baseId), systems WHERE systems.id=bases.systemId AND systems.name LIKE ?", (name, ))
+
+      return [self._dictToBase(self._rowToDict(i)) for i in cur.fetchall()]
+
   def _dictToBase(self, info):
     return Base.Base(self, info["id"], info["name"], info["blackMarket"], info["landingPadSize"], info["distance"])
 

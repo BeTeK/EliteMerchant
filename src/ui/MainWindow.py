@@ -40,8 +40,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.db = db
     self.analyzer = EliteLogAnalyzer.EliteLogAnalyzer()
     self.analyzer.setPath(Options.get("Elite-path", ""))
-    self._updateEdceIntance()
-    self.edceLastUpdated = int(datetime.datetime.now().timestamp())
+    self._updateEdceInstance()
+    self.edceLastUpdated = int(datetime.datetime.now().timestamp()) -self._edceUpdateTimeout +15
     self.edceLastUpdateInfo = None
     self.verificationCode = None
     self.startVerification = False
@@ -195,12 +195,12 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     if self.edce is not None:
       self.edce.join()
 
-  def _updateEdceIntance(self):
+  def _updateEdceInstance(self):
     self.edce = None
     try:
       postMarketData = Options.get("EDCE-uploads-results", "1") != "0"
       self.edce = EdceWrapper.EdceWrapper(Options.get("EDCE-path", ""), self.db, postMarketData, self._verificationCheck)
-      self.edce.addFinishedListener(self.edceUpdated)
+      self.edce.addFinishedListener(self._edceUpdated)
 
     except Exception as ex:
       print(ex)
@@ -217,31 +217,33 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def onGetCurrentSystemBtnClicked(self):
     if self.currentStatus is None:
       return
-    self._setCurrentSystemByname()
+    self._setCurrentSystemToTabs()
 
 
-  def _setCurrentSystemByname(self):
-      systemName = self.analyzer.getCurrentStatus()["System"]
-      systems = self.db.getSystemByName(systemName)
-      if len(systems) == 0:
+  def _setCurrentSystemToTabs(self):
+
+      if self.currentStatus is None or self.currentStatus['System'] == '':
           return
 
       triggeredasearch=False
       for tab in self.tabItems:
         if tab[1].getType() != "search":
           continue
-        if tab[1].searchType==0 and self.analyzer.hasDockPermissionGot():
-          tab[1].setCurrentSystem(systems[0])
+        if tab[1].searchType==0 and self.analyzer.hasDockPermissionGot() and self.currentStatus['Base'] != '':
+          tab[1].setCurrentSystem(self.currentStatus['System'])
+          tab[1].setCurrentBase(self.currentStatus['Base'])
           tab[1].refreshData()
           tab[1].searchBtnPressed()
           triggeredasearch=True
         if tab[1].searchType==1:
-          tab[1].setCurrentSystem(systems[0])
+          tab[1].setCurrentSystem(self.currentStatus['System'])
+          tab[1].setCurrentBase(self.currentStatus['Base'])
           tab[1].refreshData()
           tab[1].searchBtnPressed()
           triggeredasearch=True
 
       if triggeredasearch:
+        print('Triggered automatic search...')
         self.sounds.play('search')
 
 
@@ -263,11 +265,11 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       now = datetime.datetime.now().timestamp()
       #print("edceupdated  ",now-self.edce.resultsLastUpdated)
       if now-self.edce.resultsLastUpdated<1 and Options.get("search-auto-edce-enabled", "0")=='1':
-        self._setCurrentSystemByname()
+        self._setCurrentSystemToTabs()
     elif analyzerupdated:
       #print("analyzerupdated")
       if Options.get("search-auto-log-enabled", "1")=='1':
-        self._setCurrentSystemByname()
+        self._setCurrentSystemToTabs()
 
   def _checkVerificationWindow(self):
     if self.startVerification:
@@ -305,10 +307,25 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     if info["docked"]:
       self.edceLastUpdateInfo = info
 
+    # log unreliable version - check if edce station is in analyzer system
     if self.edceLastUpdateInfo is not None and \
-        self.analyzer.getCurrentStatus()["System"] == self.edceLastUpdateInfo["systemName"] and \
-        self.analyzer.getCurrentStatus()["Near"] == self.edceLastUpdateInfo["starportName"]:
-      return True
+        self.currentStatus["System"] == self.edceLastUpdateInfo["systemName"]: # has data, systems match
+      if self.currentStatus['Base']!='': # base already resolved
+        return True
+
+      # base not resolved - does it match edce report?
+      if self.currentStatus['Base']=='' and \
+        self.edceLastUpdateInfo["starportName"] in [o.getName() for o in self.db.getBasesOfSystemByName(self.currentStatus["System"])]:
+        print('EDCE station data matching log')
+        self.currentStatus['Base']=self.edceLastUpdateInfo["starportName"]
+        self.currentlyNearAtTxt.setText(self.currentStatus["Base"])
+        return True
+
+    # log station version
+    #if self.edceLastUpdateInfo is not None and \
+    #    self.analyzer.getCurrentStatus()["System"] == self.edceLastUpdateInfo["systemName"] and \
+    #    self.analyzer.getCurrentStatus()["Near"] == self.edceLastUpdateInfo["starportName"]:
+    #  return True
 
     if now - self.edceLastUpdated < MainWindow._edceUpdateTimeout:
       return False
@@ -322,9 +339,18 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
   def _checkCurrentStatus(self):
     if self.analyzer.poll():
-      status = self.analyzer.getCurrentStatus()
-      self.currenlyAtSystemTxt.setText(status["System"])
-      self.currentlyNearAtTxt.setText(status["Near"])
+      newstatus = self.analyzer.getCurrentStatus()
+      if self.currentStatus is not None and newstatus['System']==self.currentStatus['System'] and newstatus['Near']==self.currentStatus['Near']:
+        return False
+      else:
+        self.currentStatus=newstatus
+
+      if self.currentStatus["Near"] in [o.getName() for o in self.db.getBasesOfSystemByName(self.currentStatus["System"])]:
+        self.currentStatus["Base"]=self.currentStatus["Near"]
+      else:
+        self.currentStatus["Base"]=''
+      self.currenlyAtSystemTxt.setText(self.currentStatus["System"])
+      self.currentlyNearAtTxt.setText(self.currentStatus["Base"])
       return True
     else:
       return False

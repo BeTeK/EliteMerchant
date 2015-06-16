@@ -24,7 +24,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.mainwindow = mainwindow
         self.result = []
         self.currentSystem = None
+        self.currentBase = None
         self.targetSystem = None
+        self.targetBase = None
         self.searchType=1
         self.searchBtn.clicked.connect(self.searchBtnPressed)
         self.model = SearchTab.TableModel(None, self)
@@ -91,8 +93,29 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.model.refeshData()
 
     def setCurrentSystem(self, system):
+        systems = self.db.getSystemByName(system)
+        if len(systems)==0:
+          print('System not in db')
+          return
+        system=systems[0]
         self.currentSystem = system
         self.currentSystemCombo.setEditText(system.getName())
+        currentSystemStations=self.currentSystem.getStations()
+        # todo: update stations
+
+    def setCurrentBase(self, base):
+        bases=self.currentSystem.getStations()
+        baseo=None
+        for bo in bases:
+          if bo.getName()==base:
+            baseo=bo
+            break
+        if baseo is None:
+          print('Station not in db')
+          return
+        self.currentBase = base
+        #self.currentSystemCombo.setEditText(base.getName())
+        #todo: this
 
     def _restoreSearchStatus(self):
         self.currentSystemCombo.setCurrentText(Options.get(self._optName("current_system"), "Sol"))
