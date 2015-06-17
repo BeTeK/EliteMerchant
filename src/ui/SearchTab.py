@@ -481,7 +481,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     returnstring+="Landing pad size: "+padsize[data["AlandingPadSize"]]
                     return returnstring
                 elif columnorder[section] == "AexportPrice":
-                    return "Export sales price: "+str(data["AexportPrice"])+"\nSupply: "+str(data["Asupply"])
+                    return "Data "+str("%.2f" %((time.time()-data['AlastUpdated'])/(60*60*24)))+" days old"\
+                          +"\nExport sales price: "+str(data["AexportPrice"])+"\nSupply: "+str(data["Asupply"])
                 elif columnorder[section] == "BexportPrice":
                     return "Export sales price: "+str(data["BexportPrice"])+"\nSupply: "+str(data["Bsupply"])
                 elif columnorder[section] == "commodityname":
@@ -498,7 +499,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                            +"\nProfit:    "+str(data["Cprofit"])\
                            +"\nGalactic average price: "+str(data["Caverage"])
                 elif columnorder[section] == "BimportPrice":
-                    return "Import buy price: "+str(data["BimportPrice"])+"\nDemand: "+str(data["Bdemand"])
+                    return "Data "+str("%.2f" %((time.time()-data['BlastUpdated'])/(60*60*24)))+" days old"\
+                          +"\nImport buy price: "+str(data["BimportPrice"])+"\nDemand: "+str(data["Bdemand"])
                 elif columnorder[section] == "CimportPrice":
                     return "Import buy price: "+str(data["CimportPrice"])+"\nDemand: "+str(data["Cdemand"])
                 elif columnorder[section] in ["Bsystemname","Bbasename"]:
