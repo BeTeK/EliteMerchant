@@ -95,6 +95,12 @@ class Ui_Dialog(object):
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+        Dialog.setTabOrder(self.currentSystemCombo, self.getCurrentBtn)
+        Dialog.setTabOrder(self.getCurrentBtn, self.commodityCombobox)
+        Dialog.setTabOrder(self.commodityCombobox, self.importComboBox)
+        Dialog.setTabOrder(self.importComboBox, self.maxDistanceSpinBox)
+        Dialog.setTabOrder(self.maxDistanceSpinBox, self.searchBtn)
+        Dialog.setTabOrder(self.searchBtn, self.SearchResultTable)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

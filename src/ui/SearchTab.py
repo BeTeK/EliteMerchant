@@ -38,6 +38,11 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
         self.currentSystemCombo.currentIndexChanged.connect(self._refreshCurrentStationlist)
         self.targetSystemCombo.currentIndexChanged.connect(self._refreshTargetStationlist)
+        self.minProfitSpinBox.valueChanged.connect(self._minProfitChanged)
+        self.graphDepthSpin.valueChanged.connect(self._graphDepthChanged)
+        self.graphMinDepthSpin.valueChanged.connect(self._graphDepthChanged)
+        self.windowSizeSpinBox.valueChanged.connect(self._distanceWindowChanged)
+        self.maxDistanceSpinBox.valueChanged.connect(self._distanceWindowChanged)
 
         systemlist=self.db.getSystemNameList()
         self.currentSystemCombo.clear()
@@ -54,6 +59,27 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         else:
             self.searchBtn.setText("Search")
 
+    def _minProfitChanged(self):
+      maxval=750
+      minval=100
+      value=int(self.minProfitSpinBox.value())
+      value=(value-minval)/(maxval-minval)
+      redness=max(0.0,min(1.0,value))
+      self.minProfitSpinBox.setStyleSheet("background:rgb(255,"+str(255*redness)+","+str(255*redness)+")")
+
+    def _graphDepthChanged(self):
+      if self.graphDepthSpin.value()<self.graphMinDepthSpin.value():
+        self.graphDepthSpin.setStyleSheet("background:rgb(255,0,0)")
+        self.graphMinDepthSpin.setStyleSheet("background:rgb(255,0,0)")
+      else:
+        self.graphDepthSpin.setStyleSheet("background:rgb(255,255,255)")
+        self.graphMinDepthSpin.setStyleSheet("background:rgb(255,255,255)")
+
+    def _distanceWindowChanged(self):
+      value=(self.windowSizeSpinBox.value()-self.maxDistanceSpinBox.value())/(self.windowSizeSpinBox.value()/1.5)
+      redness=max(0.0,min(1.0,value))
+      self.windowSizeSpinBox.setStyleSheet("background:rgb(255,"+str(255*redness)+","+str(255*redness)+")")
+      self.maxDistanceSpinBox.setStyleSheet("background:rgb(255,"+str(255*redness)+","+str(255*redness)+")")
 
     def _updateResults(self, data):
         self.result = data

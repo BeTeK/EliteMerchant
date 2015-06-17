@@ -442,10 +442,18 @@
  </widget>
  <tabstops>
   <tabstop>currentSystemCombo</tabstop>
+  <tabstop>currentStationCombo</tabstop>
   <tabstop>getCurrentBtn</tabstop>
+  <tabstop>targetSystemCombo</tabstop>
+  <tabstop>targetStationCombo</tabstop>
+  <tabstop>targetGetCurrentBtn</tabstop>
+  <tabstop>minProfitSpinBox</tabstop>
   <tabstop>searchTypeCombo</tabstop>
   <tabstop>graphDepthSpin</tabstop>
   <tabstop>graphMinDepthSpin</tabstop>
+  <tabstop>maxDistanceSpinBox</tabstop>
+  <tabstop>windowSizeSpinBox</tabstop>
+  <tabstop>windowCountSpinBox</tabstop>
   <tabstop>searchBtn</tabstop>
   <tabstop>SearchResultTable</tabstop>
  </tabstops>

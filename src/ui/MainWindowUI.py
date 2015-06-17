@@ -161,6 +161,12 @@ class Ui_MainWindow(object):
         self.minPadSizeCombo.setCurrentIndex(2)
         self.mainTab.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.currenlyAtSystemTxt, self.currentlyNearAtTxt)
+        MainWindow.setTabOrder(self.currentlyNearAtTxt, self.minPadSizeCombo)
+        MainWindow.setTabOrder(self.minPadSizeCombo, self.jumpRangeSpinBox)
+        MainWindow.setTabOrder(self.jumpRangeSpinBox, self.cargoSizeSpinBox)
+        MainWindow.setTabOrder(self.cargoSizeSpinBox, self.mainTab)
+        MainWindow.setTabOrder(self.mainTab, self.logCombo)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
