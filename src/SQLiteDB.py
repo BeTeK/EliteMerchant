@@ -271,7 +271,8 @@ class SQLiteDB(EliteDB.EliteDB):
     "name" TEXT NOT NULL,
     "planetId" INTEGER,
     "systemId" INTEGER,
-    "distance" REAL
+    "distance" REAL,
+    UNIQUE (name,systemId)
     )""")
     cur.execute("""CREATE INDEX "basesIdIndex" on bases (id ASC)""")
     cur.execute("""CREATE INDEX "basesPlanetId" on bases (planetId ASC)""")
@@ -573,8 +574,8 @@ class SQLiteDB(EliteDB.EliteDB):
         baseInfo,
         systems
       WHERE
-        commodityPrices.lastUpdated>:lastUpdated
-        AND
+        --commodityPrices.lastUpdated>:lastUpdated
+        --AND
         commodityPrices.commodityId=commodities.id
         AND
         commodityPrices.baseId=bases.id
