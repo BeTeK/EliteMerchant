@@ -258,12 +258,12 @@ def queryDirectTrades(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,maxdis
   return sorted(results,key=operator.itemgetter("profitPh"),reverse=True)
 
 
-def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,sourcesystem=None,sourcebase=None):
+def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,sourcesystem=None,sourcebase=None,targetsystem=None,targetbase=None,x2=None,y2=None,z2=None):
   windows=queryGenerateWindows(db,x,y,z,windowsize,maxdistance,windows)
   combined=dict()
 
   if sourcesystem is not None or sourcebase is not None:
-    print("Fetching starting system with loosened criteria.. ("+str(sourcesystem)+", "+str(sourcebase)+")")
+    print("Fetching starting exports with loosened criteria ("+str(sourcesystem)+", "+str(sourcebase)+")")
     queryparams=dict()
     queryparams['x']=x
     queryparams['y']=y
@@ -277,10 +277,32 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
     queryparams['sourcesystem']=sourcesystem or '%'
     queryparams['sourcebase']=sourcebase or '%'
-    results=db.getTradeFrom(queryparams)
+    results=db.getTradeExports(queryparams)
     if len(results)==0:
       print('No exports found')
       return []
+    results=sorted(results,key=operator.itemgetter("profitPh"),reverse=True)[:50] # cap to 50 best deals
+    combined=ProfitArrayToHierarchy(results,combined)
+
+  if targetsystem is not None or targetbase is not None:
+    print("Fetching target imports with loosened criteria ("+str(targetsystem)+", "+str(targetbase)+")")
+    queryparams=dict()
+    queryparams['x']=x2
+    queryparams['y']=y2
+    queryparams['z']=z2
+    queryparams['window']=maxdistance
+    queryparams['maxdistance']=maxdistance
+    queryparams['minprofit']=0
+    queryparams['minprofitPh']=0 # todo:  remove
+    queryparams['landingPadSize']=landingPadSize
+    queryparams['jumprange']=jumprange
+    queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
+    queryparams['targetsystem']=targetsystem or '%'
+    queryparams['targetbase']=targetbase or '%'
+    results=db.getTradeImports(queryparams)
+    if len(results)==0:
+      print('No imports found')
+      #return [] # but try to get as close as possible
     results=sorted(results,key=operator.itemgetter("profitPh"),reverse=True)[:50] # cap to 50 best deals
     combined=ProfitArrayToHierarchy(results,combined)
 
@@ -645,8 +667,8 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
     #returnarray.append('separatorrow')
   return returnarray
 
-def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth,sourcesystem=None,sourcebase=None):
-  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange,sourcesystem,sourcebase)
+def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth,sourcesystem=None,sourcebase=None,targetsystem=None,targetbase=None):
+  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange,sourcesystem,sourcebase,targetsystem,targetbase,x2,y2,z2)
 
 
   def distance3d(x,y,z,i,j,k):
@@ -654,122 +676,123 @@ def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,m
 
   totaldistance=distance3d(x2,y2,z2,x,y,z) -1 # extra for possible rounding errors
 
-  #oneway=[way for way in oneway if distance3d(way["Bx"],way["By"],way["Bz"],x2,y2,z2)<=totaldistance ]
 
-  prune=ProfitArrayToHierarchy_profitPh(oneway)
-
-  profitmarginstep=0.03
   walktimeout=5 # if search takes this long, it's too long and we're choking
-  profitfailuredepth=4
-  profitmargin=0.95
+  profitmarginstep=0.1
+  profitfailuredepth=1
+  profitmargin=0.9
+  expectedminimumroutes=1000
+
   profitpotential=0
   for way in oneway:
     profitpotential=max(profitpotential,way["profitPh"])
+    way["targetdistance"]=distance3d(x2,y2,z2,way["Bx"],way["By"],way["Bz"])
+    if targetbase is not None and way["Bbasename"]==targetbase and way["targetdistance"]<1:
+      way["targetdistance"]=-1000
+
   mintotalprofitPh=[profitpotential] # using array index to get around function scope issues
 
 
   bases=list(set([way["AbaseId"] for way in oneway]))
   if sourcebase is not None:
     print("trying to select with station")
-    profitfailuredepth+=1 # forgive the first jump
-    profitmargin=0.99
-    mintotalprofitPh=[0]
-    bases=list(set([way["AbaseId"] for way in oneway if way["Abasename"].lower().strip()==sourcebase.lower().strip()]))
+    bases=list(set([way["AbaseId"] for way in oneway if way["Abasename"].lower().strip()==sourcebase.lower().strip() and way["Asystemname"].lower().strip()==sourcesystem.lower().strip()]))
   if (sourcebase is None or len(bases)==0) and sourcesystem is not None:
     print("trying to select with system")
-    profitfailuredepth+=1 # forgive the first jump
-    profitmargin=0.99
-    mintotalprofitPh=[0]
     bases=list(set([way["AbaseId"] for way in oneway if way["Asystemname"].lower().strip()==sourcesystem.lower().strip()]))
-
 
   print(str(len(oneway))+" viable trade hops")
   if len(oneway)==0:
     return []
 
-
-
+  prune=ProfitArrayToHierarchy_profitPh(oneway)
 
   print("walking galaxy-graph for loops")
 
   querystart=time.time()
 
+  chokelevel=0
+  chokeforcelevel=3
   loops=[]
   satisfiedwithresult=False
-  while not satisfiedwithresult and profitmargin>0:
-    walkstart=time.time()
-    loops=[]
-    routed=[]
-    def walk(fromid,start,history,profit,hours,lastdistance):
-      if walkstart+walktimeout<time.time() and profitmargin<0.999:
-        return False
-      depth=len(history)+1
-      if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
-        return False
-      if maxdepth<depth:
-        return False
-      for toid in prune[fromid]:
-        #distance check
-        cx,cy,cz=prune[fromid][toid]["Bx"],prune[fromid][toid]["By"],prune[fromid][toid]["Bz"]
-        currentdistance=distance3d(x2,y2,z2,cx,cy,cz)
-        if lastdistance<currentdistance:
-          continue
-        if currentdistance<1:
-          #if depth%2==0:
-          #  sys.stdout.write("\r\\")
-          #else:
-          #  sys.stdout.write("\r/")
+
+  def walk(fromid,start,history,profit,hours,lastdistance):
+    #print('x')
+    if walkstart+walktimeout<time.time() and len(loops)>=expectedminimumroutes and profitmargin<1.0 and chokelevel<chokeforcelevel:
+      return False
+    depth=len(history)
+    if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
+      return False
+    if mindepth<depth:
+      mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+      loops.append([profit/hours,[start]+history])
+    if maxdepth<depth:
+      return False
+    if fromid not in prune:
+      if mindepth<=depth:
+        mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+        loops.append([profit/hours,[start]+history])
+      return False
+    for toid in prune[fromid]:
+      if lastdistance<prune[fromid][toid]["targetdistance"]:
+        continue
+      if prune[fromid][toid]["targetdistance"]<1:
+        #if depth%2==0:
+        #  sys.stdout.write("\r\\")
+        #else:
+        #  sys.stdout.write("\r/")
+        profit+=prune[fromid][toid]['profit']
+        hours+=prune[fromid][toid]['hours']
+        mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+        loops.append([profit/hours,[start]+history+[toid]])
+      elif toid in history: # avoid internal loops on the way
+        #print("internal loop at "+str(toid))
+        continue
+      elif toid in routed: # avoid multiple entries
+        continue
+      elif toid==start: # found loop
+        if mindepth<=depth:
           profit+=prune[fromid][toid]['profit']
           hours+=prune[fromid][toid]['hours']
           mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
           loops.append([profit/hours,[start]+history+[toid]])
-        elif toid in history: # avoid internal loops on the way
-          #print("internal loop at "+str(toid))
-          continue
-        elif toid in routed: # avoid multiple entries
-          continue
-        elif toid==start: # found loop
-          return False # loops shouldn't even be possible
-        elif toid in prune: # new target - walk it
-          walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'],currentdistance)
-        else: # deadend
-          if mindepth<=depth:
-            #if depth%2==0:
-            #  sys.stdout.write("\r\\")
-            #else:
-            #  sys.stdout.write("\r/")
-            profit+=prune[fromid][toid]['profit']
-            hours+=prune[fromid][toid]['hours']
-            mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
-            loops.append([profit/hours,[start]+history+[toid]])
+      else: # deadend
+        walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'],prune[fromid][toid]["targetdistance"])
+
+
+  while not satisfiedwithresult and profitmargin>=0:
+    walkstart=time.time()
+    loops=[]
+    routed=[]
 
     lastupdate=0
     updateinterval=1
+
     for bi in range(len(bases)):
       fromid=bases[bi]
       if time.time()-updateinterval > lastupdate: # console may slow us down so keep update intervals
         lastupdate=time.time()
-        sys.stdout.write("\r   "+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
-        #print(str("%.2f"%(bi/len(bases)*100))+"%")
+        print("   "+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
       for toid in prune[fromid]:
-        if toid in prune:
-          cx,cy,cz=prune[fromid][toid]["Bx"],prune[fromid][toid]["By"],prune[fromid][toid]["Bz"]
-          currentdistance=distance3d(x2,y2,z2,cx,cy,cz)
-          if currentdistance<totaldistance:
-            walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'],currentdistance)
+        if sourcebase is not None or sourcesystem is not None: # forgive first step in export search
+          walk(toid,fromid,[toid],mintotalprofitPh[0],1,prune[fromid][toid]['targetdistance'])
+        else:
+          walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'],prune[fromid][toid]['targetdistance'])
       routed.append(fromid)
 
-    print("")
-
-    if walkstart+walktimeout<time.time() and profitmargin<=0.999:
+    if walkstart+walktimeout<time.time() and len(loops)>=expectedminimumroutes and profitmargin<1.0 and chokelevel<chokeforcelevel:
       print('chocking in data - lowering profit allowance step')
-      profitmargin=min(1.0,profitmargin+profitmarginstep)
-      profitmarginstep/=5
+      chokelevel+=1
+      if chokelevel==chokeforcelevel:
+        print("giving up on optimizing")
+      profitmargin=profitmargin+profitmarginstep
+      profitmarginstep/=10
       profitmargin-=profitmarginstep
-      print("let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
-    elif len(loops)<3000:
-      profitmargin-=0.03
-      print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
+      profitmargin=min(1.0,profitmargin)
+      print("let's try again with "+str(int((1-profitmargin)*100*100)/100)+"% profit allowance")
+    elif len(loops)<expectedminimumroutes and profitmargin<1.0 and chokelevel<chokeforcelevel:
+      profitmargin-=profitmarginstep
+      print("found "+str(len(loops))+" trade routes - trying again with "+str(int((1-profitmargin)*100*100)/100)+"% profit allowance")
     else:
       satisfiedwithresult=True
 
@@ -801,9 +824,7 @@ def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,m
       route["loopminprofit"]+=hoptrades[-1]["profit"]
       route["loopmaxprofit"]+=hoptrades[0]["profit"]
       route["totalhours"]+=hoptrades[0]["hours"]
-      cx,cy,cz=hoptrades[0]["Bx"],hoptrades[0]["By"],hoptrades[0]["Bz"]
-      currentdistance=distance3d(x2,y2,z2,cx,cy,cz)
-      route["distancefromlast"]=currentdistance
+      route["distancefromlast"]=hoptrades[0]["targetdistance"]
       prev=next
       route["hops"].append(hoptrades) # store hops
     route["averageprofit"]=int(route["loopmaxprofit"]/len(route["hops"]))

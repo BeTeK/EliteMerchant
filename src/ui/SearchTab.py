@@ -87,6 +87,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self._setSearchProgress(False)
         self.currentWorker = None
         print("Search done!")
+        if len(data)==0:
+          print("Search resulted in 0 matches. Keep min hops low and try lower minimum profits to widen the search (note: this also takes longer)")
 
     def _searchtypeChanged(self,idx):
         #searchtype=self.searchTypeCombo.currentIndex()
@@ -324,12 +326,12 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             print("queryProfitGraphTarget")
             if currentBase == 'ANY':
               currentBase=None
-            #if targetBase == 'ANY':
-            #  targetBase=None
+            if targetBase == 'ANY':
+              targetBase=None
 
             tpos=self.targetSystem.getPosition()
             directionality=0.0
-            searchFn = lambda : Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
+            searchFn = lambda : Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase,targetSystem,targetBase)
         elif searchType==6:
             print("queryDirectTrades")
             if currentBase == 'ANY':
