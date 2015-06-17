@@ -181,6 +181,11 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def closeEvent(self, event):
     self.sounds.quit() # unload soundsystem
 
+    for tab in self.tabItems: # shut down any searches in progress
+      if tab[1].getType() == "search" and tab[1].currentWorker is not None:
+        tab[1].currentWorker.terminate()
+        tab[1].currentWorker = None
+
     Options.set("main_window_tab_count", len(self.tabItems))
     index = 0
     for name, widget in self.tabItems:
