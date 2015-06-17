@@ -540,22 +540,26 @@ class SQLiteDB(EliteDB.EliteDB):
       querytime=time.time()-querystart
 
       print("queryProfitWindow, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
-      return [self._rowToDict(o) for o in result]
+      rows=[self._rowToDict(o) for o in result]
+      for row in rows:
+        row['profitPh']=row['profit']/row['hours']
+      return rows
 
 
-  def getWindowProfitFrom(self,queryvals):
+  def getTradeFrom(self,queryvals):
     with self.lock:
       cur = self.conn.cursor()
 
       queryvals['maxdistance'] = 'maxdistance' in queryvals and queryvals['maxdistance'] or 30
-      queryvals['window'] = 'window' in queryvals and queryvals['window']/2 or 50
+      queryvals['window'] = queryvals['maxdistance'] # there's no slack with the windowing so keep it tight
       queryvals['minprofit'] = 0
       queryvals['minprofitPh'] = 0
       queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
       queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
-      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))*2  # allow twice as old
+      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated']*2 ))  # allow twice as old
       queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
       queryvals['sourcesystem'] = 'sourcesystem' in queryvals and queryvals['sourcesystem'] or '%'
+      queryvals['sourcebase'] = 'sourcebase' in queryvals and queryvals['sourcebase'] or '%'
 
       querystring="""
       WITH systemwindow AS (
@@ -615,6 +619,8 @@ class SQLiteDB(EliteDB.EliteDB):
       WHERE
         A.systemname LIKE :sourcesystem
         AND
+        A.basename LIKE :sourcebase
+        AND
         A.commodityId=B.commodityId
         AND
         --DistanceSq < :maxdistance*:maxdistance*2
@@ -628,8 +634,11 @@ class SQLiteDB(EliteDB.EliteDB):
       result=cur.execute(querystring,queryvals).fetchall()
       querytime=time.time()-querystart
 
-      print("queryProfitWindow_from, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
-      return [self._rowToDict(o) for o in result]
+      print("getTradeFrom, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
+      rows=[self._rowToDict(o) for o in result]
+      for row in rows:
+        row['profitPh']=row['profit']/row['hours']
+      return rows
 
   def getTradeDirect(self,queryvals):
     with self.lock:
@@ -728,4 +737,7 @@ class SQLiteDB(EliteDB.EliteDB):
       querytime=time.time()-querystart
 
       print("getTradeDirect, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
-      return [self._rowToDict(o) for o in result]
+      rows=[self._rowToDict(o) for o in result]
+      for row in rows:
+        row['profitPh']=row['profit']/row['hours']
+      return rows

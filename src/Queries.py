@@ -47,7 +47,7 @@ def queryGenerateWindows(db,x,y,z,windowsize=60,distance=30,windows=1):
   sizeX=extents["maxX"]-extents["minX"]
   sizeY=extents["maxY"]-extents["minY"]
   sizeZ=extents["maxZ"]-extents["minZ"]
-  print("The scale of the inhabited galaxy is "+str(windowsX*windowsY*windowsZ)+ " windows, or "+"%.2f"%(sizeX*sizeY*sizeZ)+"ly cubed")
+  print("The scale of the inhabited galaxy is "+str(windowsX*windowsY*windowsZ)+ " windows, or "+"%.2f"%((sizeX*sizeY*sizeZ)/1000000)+"Mly cubed")
   """
   print()
   print('front corner',windowlist[0])
@@ -172,7 +172,7 @@ def ProfitArrayToHierarchy(oneway,prune=None): # add old hierarchy as second par
     if not way["BbaseId"] in prune[way["AbaseId"]]:
       prune[way["AbaseId"]][way["BbaseId"]]=dict()
     if not way["commodityId"] in prune[way["AbaseId"]][way["BbaseId"]]:
-      way["profitPh"]=int(way["profit"]/way["hours"]) # bake me a cake  -----  profitPh = profit / hours
+      #way["profitPh"]=int(way["profit"]/way["hours"]) # bake me a cake  -----  profitPh = profit / hours - done on db side now
       prune[way["AbaseId"]][way["BbaseId"]][way["commodityId"]]=way
   return prune
 
@@ -250,36 +250,17 @@ def queryDirectTrades(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,maxdis
   queryparams['landingPadSize']=landingPadSize
   queryparams['jumprange']=jumprange
   queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
-  queryparams['sourcesystem']=sourcesystem or '%%'
-  queryparams['sourcebase']=sourcebase or '%%'
-  queryparams['targetsystem']=targetsystem or '%%'
-  queryparams['targetbase']=targetbase or '%%'
+  queryparams['sourcesystem']=sourcesystem or '%'
+  queryparams['sourcebase']=sourcebase or '%'
+  queryparams['targetsystem']=targetsystem or '%'
+  queryparams['targetbase']=targetbase or '%'
   results=db.getTradeDirect(queryparams)
-  for result in results:
-    result['profitPh']=result['profit']/result['hours']
   return sorted(results,key=operator.itemgetter("profitPh"),reverse=True)
 
 
 def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,sourcesystem=None,sourcebase=None):
   windows=queryGenerateWindows(db,x,y,z,windowsize,maxdistance,windows)
   combined=dict()
-  for wi in range(len(windows)):
-    w=windows[wi]
-    queryparams=dict()
-    queryparams['x']=w[0]
-    queryparams['y']=w[1]
-    queryparams['z']=w[2]
-    queryparams['window']=windowsize
-    queryparams['maxdistance']=maxdistance
-    queryparams['minprofit']=minprofit
-    queryparams['minprofitPh']=minprofitPh # todo:  remove
-    queryparams['landingPadSize']=landingPadSize
-    queryparams['jumprange']=jumprange
-    queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
-    results=db.getWindowProfit(queryparams)
-    #results=db.queryProfitWindow(w[0],w[1],w[2],windowsize,maxdistance,minprofit,landingPadSize)
-    combined=ProfitArrayToHierarchy(results,combined)
-    print("Window " + str(wi+1) + " of " + str(len(windows)) + " (" + str("%.2f"%( (wi+1)/len(windows) *100 )) + "%)")
 
   if sourcesystem is not None or sourcebase is not None:
     print("Fetching starting system with loosened criteria.. ("+str(sourcesystem)+", "+str(sourcebase)+")")
@@ -296,8 +277,29 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
     queryparams['sourcesystem']=sourcesystem or '%'
     queryparams['sourcebase']=sourcebase or '%'
-    results=db.getWindowProfitFrom(queryparams)
+    results=db.getTradeFrom(queryparams)
+    if len(results)==0:
+      print('No exports found')
+      return []
+    results=sorted(results,key=operator.itemgetter("profitPh"),reverse=True)[:50] # cap to 50 best deals
     combined=ProfitArrayToHierarchy(results,combined)
+
+  for wi in range(len(windows)):
+    w=windows[wi]
+    queryparams=dict()
+    queryparams['x']=w[0]
+    queryparams['y']=w[1]
+    queryparams['z']=w[2]
+    queryparams['window']=windowsize
+    queryparams['maxdistance']=maxdistance
+    queryparams['minprofit']=minprofit
+    queryparams['minprofitPh']=minprofitPh # todo:  remove
+    queryparams['landingPadSize']=landingPadSize
+    queryparams['jumprange']=jumprange
+    queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
+    results=db.getWindowProfit(queryparams)
+    combined=ProfitArrayToHierarchy(results,combined)
+    print("Window " + str(wi+1) + " of " + str(len(windows)) + " (" + str("%.2f"%( (wi+1)/len(windows) *100 )) + "%)")
 
   combinedAr=ProfitHierarchyToArray(combined)
   return sorted(combinedAr,key=operator.itemgetter("profitPh"),reverse=True)
@@ -481,10 +483,11 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
 
   prune=ProfitArrayToHierarchy_profitPh(oneway)
 
+  walktimeout=15 # if search takes this long, it's too long and we're choking
   profitmarginstep=0.03
-  walktimeout=5 # if search takes this long, it's too long and we're choking
-  profitfailuredepth=2
-  profitmargin=0.99
+  profitfailuredepth=1
+  profitmargin=1
+
   profitpotential=0
   for way in oneway:
     profitpotential=max(profitpotential,way["profitPh"])
@@ -494,15 +497,9 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
   bases=list(set([way["AbaseId"] for way in oneway]))
   if sourcebase is not None:
     print("trying to select with station")
-    profitfailuredepth+=1 # forgive the first jump
-    profitmargin=0.99
-    mintotalprofitPh=[0]
-    bases=list(set([way["AbaseId"] for way in oneway if way["Abasename"].lower().strip()==sourcebase.lower().strip()]))
+    bases=list(set([way["AbaseId"] for way in oneway if way["Abasename"].lower().strip()==sourcebase.lower().strip() and way["Asystemname"].lower().strip()==sourcesystem.lower().strip()]))
   if (sourcebase is None or len(bases)==0) and sourcesystem is not None:
     print("trying to select with system")
-    profitfailuredepth+=1 # forgive the first jump
-    profitmargin=0.99
-    mintotalprofitPh=[0]
     bases=list(set([way["AbaseId"] for way in oneway if way["Asystemname"].lower().strip()==sourcesystem.lower().strip()]))
 
   print(str(len(oneway))+" viable trade hops")
@@ -538,10 +535,6 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
           continue
         elif toid==start: # found loop
           if mindepth<=depth:
-            #if depth%2==0:
-            #  sys.stdout.write("\r\\")
-            #else:
-            #  sys.stdout.write("\r/")
             profit+=prune[fromid][toid]['profit']
             hours+=prune[fromid][toid]['hours']
             mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
@@ -550,10 +543,6 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
           walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'])
         else: # deadend
           if mindepth<=depth:
-            #if depth%2==0:
-            #  sys.stdout.write("\r\\")
-            #else:
-            #  sys.stdout.write("\r/")
             profit+=prune[fromid][toid]['profit']
             hours+=prune[fromid][toid]['hours']
             mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
@@ -574,12 +563,12 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
       routed.append(fromid)
 
     print("")
-    if walkstart+walktimeout<time.time() and profitmargin<=0.999:
+    if walkstart+walktimeout<time.time() and profitmargin<=1.0:
       print('search timed out, algorithm chocking in data - lowering profit allowance step')
       profitmargin=min(1.0,profitmargin+profitmarginstep)
       profitmarginstep/=5
       profitmargin-=profitmarginstep
-      print("let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
+      print("let's try again with "+str(int((1-profitmargin)*10000)/100)+"% profit allowance")
     elif len(loops)<3000:
       profitmargin-=profitmarginstep
       print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")

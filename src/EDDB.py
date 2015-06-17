@@ -194,8 +194,9 @@ def importDownloaded(db):
 
   print("improting eddb market data")
 
-  # limit data age
-  validityhorizon=float( time.time() - (60*60*24* int(Options.get("Market-valid-days", 7)) ))
+  # limit data age - allow twice the age for desperate routes
+  #validityhorizon=float( time.time() - (60*60*24* int(Options.get("Market-valid-days", 7) *2 ) ))
+  validityhorizon=0
 
   marketdata=[]
   # remap database
