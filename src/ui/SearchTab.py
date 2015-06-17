@@ -416,11 +416,12 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             # roles:    http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
 
             if role == QtCore.Qt.TextColorRole: # text color
-                if columnorder[section] in ["AexportPrice"]:
-                    if data['AlastUpdated']<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
+                if "celltype" not in data:
+                  if columnorder[section] in ["AexportPrice"]:
+                    if int(data['AlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
                       return QtGui.QBrush(QtGui.QColor(0,255,255))
-                if columnorder[section] in ["BimportPrice"]:
-                    if data['BlastUpdated']<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
+                  if columnorder[section] in ["BimportPrice"]:
+                    if int(data['BlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
                       return QtGui.QBrush(QtGui.QColor(0,255,255))
 
             if role == QtCore.Qt.BackgroundRole: # background colors
