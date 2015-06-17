@@ -148,6 +148,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     item = (widget.getTabName(), widget)
     self.tabItems.append(item)
     self._updateTabs()
+    self.mainTab.setCurrentWidget(widget)
 
   def _addStatusTabSelected(self):
     self._addTab(ui.Status.Status(self.db, self.analyzer, "", self))
