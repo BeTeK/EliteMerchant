@@ -17,3 +17,6 @@ call pyuic5 src\ui\Status.ui > src\ui\StatusUI.py
 echo "Generating CommodityTab.ui"
 call pyuic5 src\ui\CommodityTab.ui > src\ui\CommodityTabUI.py
 
+echo "Generating DBloadingTab.ui"
+call pyuic5 src\ui\DBloadingTab.ui > src\ui\DBloadingTabUI.py
+

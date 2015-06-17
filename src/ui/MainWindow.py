@@ -4,6 +4,7 @@ import ui.Options
 import ui.SearchTab
 import ui.CommodityTab
 import ui.Status
+import ui.DBloadingTab
 import ui.Options
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QVariant
@@ -26,6 +27,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   _edceUpdateTimeout = 90 # keep sparse to keep fd happy
   _logLinesToShow = 200
   edceFinished = QtCore.pyqtSignal([dict])
+  dbupdated = QtCore.pyqtSignal()
+
   def __init__(self, db):
     super(QtWidgets.QMainWindow, self).__init__()
     self.setupUi(self)
@@ -46,13 +49,10 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.verificationCode = None
     self.startVerification = False
     self.sounds=Sounds.Sounds()
-    self.sounds.play("startup")
 
     self.timer = QtCore.QTimer(self)
     self.timer.timeout.connect(self.onTimerEvent)
     self.timer.start(1000)
-#    self.tabItems = [("Search", ui.SearchTab.SearchTab(self.db, self.analyzer, "1")),
-#                     ("Status", ui.Status.Status(self.db, self.analyzer))]
     self.tabItems = []
 
     self.mainTab.setTabsClosable(True)
@@ -69,15 +69,29 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
     self.mainTab.setCornerWidget ( buttonwidget, 0)
 
+    self.edceState = "notStation"
+
     if self.db.dbEmpty:
       print("db load failed or doesn't exist - downloading...")
-      ThreadWorker.ThreadWorker(lambda :EDDB.update(self.db,force=True)).start()
+      self.dbupdated.connect(self.loadSettingsAndUI)
 
+      # display 'db downloading' tab
+      self.mainTab.clear()
+      widget=ui.DBloadingTab.DBloadingTab(self.db, self.analyzer, "", self)
+      widget.setTabName(str(1))
+      #item = (widget.getTabName(), widget)
+      self.mainTab.addTab(widget, QtGui.QIcon(), 'DB loading...')
+
+      self.mainTab.setEnabled(False)
+      ThreadWorker.ThreadWorker(lambda: EDDB.update(self.db,force=True), lambda result: self.dbupdated.emit() ).start()
+    else:
+      self.loadSettingsAndUI()
+
+  def loadSettingsAndUI(self):
+    self.mainTab.setEnabled(True)
     self._readSettings()
-
     self._updateTabs()
-
-    self.edceState = "notStation"
+    self.sounds.play("startup")
 
 
   def _setupLog(self):

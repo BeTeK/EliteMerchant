@@ -114,6 +114,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
     def _refreshCurrentStationlist(self):
         if self.currentSystem is None or self.currentSystem.getName()!=self.currentSystemCombo.currentText():
           self.setCurrentSystem(self.currentSystemCombo.currentText(),refreshstations=False)
+        if self.currentSystem is None:
+          print('Current system not set')
+          return
         currentSystemStations=[o.getName() for o in self.currentSystem.getStations()]
         self.currentStationCombo.clear()
         self.currentStationCombo.addItems( ['ANY'] )
@@ -132,6 +135,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.model.refeshData()
 
     def setCurrentBase(self, base):
+        if self.currentSystem is None:
+          print('Current system not set')
+          return
         bases=self.currentSystem.getStations()
         baseo=None
         for bo in bases:
@@ -149,6 +155,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
     def _refreshTargetStationlist(self):
         if self.targetSystem is None or self.targetSystem.getName()!=self.targetSystemCombo.currentText():
           self.setTargetSystem(self.targetSystemCombo.currentText(),refreshstations=False)
+        if self.targetSystem is None:
+          print('Target system not set')
+          return
         targetSystemStations=[o.getName() for o in self.targetSystem.getStations()]
         self.targetStationCombo.clear()
         self.targetStationCombo.addItems( ['ANY'] )
@@ -167,6 +176,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.model.refeshData()
 
     def setTargetBase(self, base):
+        if self.targetSystem is None:
+          print('Target system not set')
+          return
         bases=self.targetSystem.getStations()
         baseo=None
         for bo in bases:
@@ -402,6 +414,14 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 return None
 
             # roles:    http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
+
+            if role == QtCore.Qt.TextColorRole: # text color
+                if columnorder[section] in ["AexportPrice"]:
+                    if data['AlastUpdated']<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
+                      return QtGui.QBrush(QtGui.QColor(0,255,255))
+                if columnorder[section] in ["BimportPrice"]:
+                    if data['BlastUpdated']<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
+                      return QtGui.QBrush(QtGui.QColor(0,255,255))
 
             if role == QtCore.Qt.BackgroundRole: # background colors
                 if "celltype" in data:
