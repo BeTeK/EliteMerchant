@@ -285,6 +285,7 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     combined=ProfitArrayToHierarchy(results,combined)
 
   for wi in range(len(windows)):
+    print("Fetching window " + str(wi+1) + " of " + str(len(windows)) + " (" + str("%.2f"%( (wi+1)/len(windows) *100 )) + "%)")
     w=windows[wi]
     queryparams=dict()
     queryparams['x']=w[0]
@@ -299,7 +300,6 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
     results=db.getWindowProfit(queryparams)
     combined=ProfitArrayToHierarchy(results,combined)
-    print("Window " + str(wi+1) + " of " + str(len(windows)) + " (" + str("%.2f"%( (wi+1)/len(windows) *100 )) + "%)")
 
   combinedAr=ProfitHierarchyToArray(combined)
   return sorted(combinedAr,key=operator.itemgetter("profitPh"),reverse=True)
@@ -320,12 +320,14 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
 
   print("discarded "+str(len(bases_deadends))+" confirmed deadends")
   """
-  profitmarginstep=0.03
+  profitmarginstep=0.1
+  profitmargin=0.99
   walktimeout=5 # if search takes this long, it's too long and we're choking
-  profitfailuredepth=2
+  profitfailuredepth=1
   startingroutecount=len(oneway)
   iteration=0
   routecount=0
+  expectedminimumroutes=1000
   print("pruning deadends...")
   while routecount!=len(oneway):
     prune=ProfitArrayToHierarchy(oneway)
@@ -349,47 +351,42 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
 
   querystart=time.time()
 
-  mintotalprofitPh=[minprofitPh or minprofit] # using array index to get around function scope issues
-  profitmargin=0.99
+  #mintotalprofitPh=[minprofitPh or minprofit] # using array index to get around function scope issues
+  mintotalprofitPh=[0]
+  for way in oneway:
+    mintotalprofitPh=[max(mintotalprofitPh[0],way['profitPh'])]
 
+
+  def walk(fromid,start,history,profit,hours):
+    if walkstart+walktimeout<time.time() and len(loops)>=expectedminimumroutes and profitmargin<1.0 and chokelevel<chokeforcelevel:
+      return False
+    depth=len(history)+1
+    if maxdepth<depth:
+      return False
+    if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
+      return False
+    for toid in prune[fromid]:
+      if toid in history: # avoid internal loops on the way
+        continue
+      elif toid in routed: # avoid multiple entries
+        continue
+      elif toid==start: # found loop
+        if mindepth<=depth:
+          profit+=prune[fromid][toid]['profit']
+          hours+=prune[fromid][toid]['hours']
+          mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+          loops.append([profit/hours,[start]+history+[toid]])
+      else: # new target - walk it
+        walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'])
+
+  chokelevel=0
+  chokeforcelevel=3
   loops=[]
   satisfiedwithresult=False
-  while not satisfiedwithresult and profitmargin>0:
+  while not satisfiedwithresult and profitmargin>=0:
     walkstart=time.time()
     loops=[]
     routed=[]
-    def walk(fromid,start,history,profit,hours):
-      if walkstart+walktimeout<time.time() and profitmargin<=0.999:
-        return False
-      depth=len(history)+1
-      if maxdepth<depth:
-        return False
-      if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
-        return False
-      for toid in prune[fromid]:
-        if toid in history: # avoid internal loops on the way
-          #print("internal loop at "+str(toid))
-          continue
-        elif toid in routed: # avoid multiple entries
-          continue
-        elif toid==start: # found loop
-          if mindepth<=depth:
-            #if depth%2==0:
-            #  sys.stdout.write("\r\\")
-            #else:
-            #  sys.stdout.write("\r/")
-            profit+=prune[fromid][toid]['profit']
-            hours+=prune[fromid][toid]['hours']
-            mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
-            loops.append([profit/hours,[start]+history+[toid]])
-        elif toid in prune: # new target - walk it
-          walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'])
-        else: # deadend
-          #print('deadend '+str(start)+" - "+str(toid)+"  history depth "+str(len(history)))
-          #graph[toid]=False
-          pass
-      #return graph
-
 
     lastupdate=0
     updateinterval=1
@@ -398,25 +395,26 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
       fromid=bases[bi]
       if time.time()-updateinterval > lastupdate: # console may slow us down so keep update intervals
         lastupdate=time.time()
-        sys.stdout.write("\r   "+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
+        print("   "+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
       for toid in prune[fromid]:
-        if toid in prune: # no danger of this since deadends already removed
-          walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'])
+        walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'])
       routed.append(fromid)
 
-    if walkstart+walktimeout<time.time() and profitmargin<=0.999:
-      print('search timed out, algorithm chocking in data - lowering profit allowance step')
-      profitmargin=min(1.0,profitmargin+profitmarginstep)
-      profitmarginstep/=5
+    if walkstart+walktimeout<time.time() and len(loops)>=expectedminimumroutes and profitmargin<1.0 and chokelevel<chokeforcelevel:
+      print('chocking in data - lowering profit allowance step')
+      chokelevel+=1
+      if chokelevel==chokeforcelevel:
+        print("giving up on optimizing")
+      profitmargin=profitmargin+profitmarginstep
+      profitmarginstep/=10
       profitmargin-=profitmarginstep
-      print("let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
-    elif len(loops)<3000:
-      #profitmargin-=0.05
-      profitmargin-=0.03
-      print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
+      profitmargin=min(1.0,profitmargin)
+      print("trying again with "+str(int((1-profitmargin)*100))+"% profit allowance")
+    elif len(loops)<expectedminimumroutes and profitmargin<1.0 and chokelevel<chokeforcelevel:
+      profitmargin-=profitmarginstep
+      print("found "+str(len(loops))+" trade routes - trying again with "+str(int((1-profitmargin)*100))+"% profit allowance")
     else:
       satisfiedwithresult=True
-    print("")
 
 
   print("Found "+str(len(loops))+" loop trade routes in "+str("%.2f"%(time.time()-querystart))+" seconds")
@@ -483,10 +481,11 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
 
   prune=ProfitArrayToHierarchy_profitPh(oneway)
 
-  walktimeout=15 # if search takes this long, it's too long and we're choking
-  profitmarginstep=0.03
+  walktimeout=5 # if search takes this long, it's too long and we're choking
+  profitmarginstep=0.1
   profitfailuredepth=1
-  profitmargin=1
+  profitmargin=0.9
+  expectedminimumroutes=1000
 
   profitpotential=0
   for way in oneway:
@@ -510,43 +509,48 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
 
   querystart=time.time()
 
+  chokelevel=0
+  chokeforcelevel=3
   loops=[]
   satisfiedwithresult=False
-  while not satisfiedwithresult and profitmargin>0:
+
+  def walk(fromid,start,history,profit,hours):
+    #print('x')
+    if walkstart+walktimeout<time.time() and len(loops)>=expectedminimumroutes and profitmargin<1.0 and chokelevel<chokeforcelevel:
+      return False
+    depth=len(history)
+    if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
+      return False
+    if mindepth<depth:
+      mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+      loops.append([profit/hours,[start]+history])
+    if maxdepth<depth:
+      return False
+    if fromid not in prune:
+      if mindepth<=depth:
+        mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+        loops.append([profit/hours,[start]+history])
+      return False
+    for toid in prune[fromid]:
+      if toid in history: # avoid internal loops on the way
+        #print("internal loop at "+str(toid))
+        continue
+      elif toid in routed: # avoid multiple entries
+        continue
+      elif toid==start: # found loop
+        if mindepth<=depth:
+          profit+=prune[fromid][toid]['profit']
+          hours+=prune[fromid][toid]['hours']
+          mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
+          loops.append([profit/hours,[start]+history+[toid]])
+      else: # deadend
+        walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'])
+
+
+  while not satisfiedwithresult and profitmargin>=0:
     walkstart=time.time()
     loops=[]
     routed=[]
-    def walk(fromid,start,history,profit,hours):
-      if walkstart+walktimeout<time.time() and profitmargin<=0.999:
-        return False
-      depth=len(history)+1
-      if depth > profitfailuredepth and profit/hours < mintotalprofitPh[0] * profitmargin: # route is a profit failure
-        return False
-      if mindepth<depth:
-        mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
-        loops.append([profit/hours,[start]+history])
-      if maxdepth<depth:
-        return False
-      for toid in prune[fromid]:
-        if toid in history: # avoid internal loops on the way
-          #print("internal loop at "+str(toid))
-          continue
-        elif toid in routed: # avoid multiple entries
-          continue
-        elif toid==start: # found loop
-          if mindepth<=depth:
-            profit+=prune[fromid][toid]['profit']
-            hours+=prune[fromid][toid]['hours']
-            mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
-            loops.append([profit/hours,[start]+history+[toid]])
-        elif toid in prune: # new target - walk it
-          walk(toid,start,history+[toid],profit+prune[fromid][toid]['profit'],hours+prune[fromid][toid]['hours'])
-        else: # deadend
-          if mindepth<=depth:
-            profit+=prune[fromid][toid]['profit']
-            hours+=prune[fromid][toid]['hours']
-            mintotalprofitPh[0]=max(mintotalprofitPh[0],profit/hours)
-            loops.append([profit/hours,[start]+history+[toid]])
 
     lastupdate=0
     updateinterval=1
@@ -555,23 +559,27 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
       fromid=bases[bi]
       if time.time()-updateinterval > lastupdate: # console may slow us down so keep update intervals
         lastupdate=time.time()
-        sys.stdout.write("\r   "+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
-        #print(str("%.2f"%(bi/len(bases)*100))+"%")
+        print("   "+str("%.2f"%(bi/len(bases)*100))+"%  "+str(len(loops))+" routes")
       for toid in prune[fromid]:
-        if toid in prune:
+        if sourcebase is not None or sourcesystem is not None: # forgive first step in export search
+          walk(toid,fromid,[toid],mintotalprofitPh[0],1)
+        else:
           walk(toid,fromid,[toid],prune[fromid][toid]['profit'],prune[fromid][toid]['hours'])
       routed.append(fromid)
 
-    print("")
-    if walkstart+walktimeout<time.time() and profitmargin<=1.0:
-      print('search timed out, algorithm chocking in data - lowering profit allowance step')
-      profitmargin=min(1.0,profitmargin+profitmarginstep)
-      profitmarginstep/=5
+    if walkstart+walktimeout<time.time() and len(loops)>=expectedminimumroutes and profitmargin<1.0 and chokelevel<chokeforcelevel:
+      print('chocking in data - lowering profit allowance step')
+      chokelevel+=1
+      if chokelevel==chokeforcelevel:
+        print("giving up on optimizing")
+      profitmargin=profitmargin+profitmarginstep
+      profitmarginstep/=10
       profitmargin-=profitmarginstep
-      print("let's try again with "+str(int((1-profitmargin)*10000)/100)+"% profit allowance")
-    elif len(loops)<3000:
+      profitmargin=min(1.0,profitmargin)
+      print("let's try again with "+str(int((1-profitmargin)*100*100)/100)+"% profit allowance")
+    elif len(loops)<expectedminimumroutes and profitmargin<1.0 and chokelevel<chokeforcelevel:
       profitmargin-=profitmarginstep
-      print("found "+str(len(loops))+" trade routes - let's try again with "+str(int((1-profitmargin)*100))+"% profit allowance")
+      print("found "+str(len(loops))+" trade routes - trying again with "+str(int((1-profitmargin)*100*100)/100)+"% profit allowance")
     else:
       satisfiedwithresult=True
 
@@ -754,7 +762,7 @@ def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,m
     print("")
 
     if walkstart+walktimeout<time.time() and profitmargin<=0.999:
-      print('search timed out, algorithm chocking in data - lowering profit allowance step')
+      print('chocking in data - lowering profit allowance step')
       profitmargin=min(1.0,profitmargin+profitmarginstep)
       profitmarginstep/=5
       profitmargin-=profitmarginstep

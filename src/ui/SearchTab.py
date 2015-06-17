@@ -77,7 +77,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         else:
           self.graphDepthSpin.setEnabled(True)
           self.graphMinDepthSpin.setEnabled(True)
-        if searchtype in [1]:
+        if searchtype in [1,2,3,4]:
           self.currentStationCombo.setEnabled(False)
         else:
           self.currentStationCombo.setEnabled(True)
@@ -244,6 +244,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
     def searchBtnPressed(self):
         if self.currentWorker is not None:
+            print('Cancelled search!')
             self._cancelSearch()
             return
 
@@ -419,10 +420,10 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 if "celltype" not in data:
                   if columnorder[section] in ["AexportPrice"]:
                     if int(data['AlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
-                      return QtGui.QBrush(QtGui.QColor(0,255,255))
+                      return QtGui.QBrush(QtGui.QColor(255,255,0))
                   if columnorder[section] in ["BimportPrice"]:
                     if int(data['BlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
-                      return QtGui.QBrush(QtGui.QColor(0,255,255))
+                      return QtGui.QBrush(QtGui.QColor(255,255,0))
 
             if role == QtCore.Qt.BackgroundRole: # background colors
                 if "celltype" in data:
