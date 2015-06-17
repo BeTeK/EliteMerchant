@@ -1,10 +1,10 @@
 
-import ui.DBloadingTabUI
+import ui.GuideTabUI
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QVariant
 import ui.TabAbstract
 
-class DBloadingTab(ui.DBloadingTabUI.Ui_Dialog, QtWidgets.QWidget, ui.TabAbstract.TabAbstract):
+class GuideTab(ui.GuideTabUI.Ui_Dialog, QtWidgets.QWidget, ui.TabAbstract.TabAbstract):
     def __init__(self, db, analyzer, tabName, mainWindow):
         super(QtWidgets.QWidget, self).__init__()
         self.setupUi(self)
@@ -16,10 +16,10 @@ class DBloadingTab(ui.DBloadingTabUI.Ui_Dialog, QtWidgets.QWidget, ui.TabAbstrac
         self.tabName = name
 
     def getType(self):
-        return "status"
+        return "guide"
 
     def getTabName(self):
-        return "Status {0}".format(self.tabName)
+        return "User Guide"
 
     def dispose(self):
         pass

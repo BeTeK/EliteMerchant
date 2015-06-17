@@ -5,6 +5,7 @@ import ui.SearchTab
 import ui.CommodityTab
 import ui.Status
 import ui.DBloadingTab
+import ui.GuideTab
 import ui.Options
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QVariant
@@ -39,6 +40,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.searchMenuItem.triggered.connect(self._addSearchTabSelected)
     self.statusMenuItem.triggered.connect(self._addStatusTabSelected)
     self.commodityMenuItem.triggered.connect(self._addCommodityTabSelected)
+    self.guideMenuItem.triggered.connect(self._addGuideTabSelected)
     self.edceFinished.connect(self.onEdceUpdated)
     self.db = db
     self.analyzer = EliteLogAnalyzer.EliteLogAnalyzer()
@@ -150,6 +152,9 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def _addStatusTabSelected(self):
     self._addTab(ui.Status.Status(self.db, self.analyzer, "", self))
 
+  def _addGuideTabSelected(self):
+    self._addTab(ui.GuideTab.GuideTab(self.db, self.analyzer, "", self))
+
   def _addSearchTabSelected(self):
     self._addTab(ui.SearchTab.SearchTab(self.db, self.analyzer, "", self))
 
@@ -187,10 +192,14 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
         item = ("Search {0}".format(index + 1), ui.SearchTab.SearchTab(self.db, self.analyzer, str(index + 1),self))
       elif type == "status":
         item = ("Status {0}".format(index + 1), ui.Status.Status(self.db, self.analyzer, str(index + 1),self))
+      elif type == "guide":
+        item = ("User Guide", ui.GuideTab.GuideTab(self.db, self.analyzer, "", self))
       elif type == "commodity":
         item = ("Commodities {0}".format(index + 1), ui.CommodityTab.CommodityTab(self.db, self.analyzer, str(index + 1),self))
 
       self.tabItems.append(item)
+    if len(self.tabItems)==0:
+      self._addGuideTabSelected()
 
   def closeEvent(self, event):
     self.sounds.quit() # unload soundsystem
