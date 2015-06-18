@@ -84,7 +84,7 @@ def update(force=False): # return None or 'http://downloadurl'
   file_name = updateUrl.split('/')[-1]
   if Options.get("Merchant-version",'?')=='?': # can't check for version without local build (nonbinary linux, macos)
     return None
-  if force or checkUpdated(updateUrl) or not os.path.exists( file_name ):
+  if force or checkUpdated(updateUrl) or not os.path.exists( Options.getPath( file_name ) ):
     downloadFile(updateUrl)
 
   return checkVersionFile(updateUrl)
