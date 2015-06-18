@@ -27,6 +27,7 @@ import ThreadWorker
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   _edceUpdateTimeout = 90 # keep sparse to keep fd happy
   _logLinesToShow = 200
+  _logLines=[]
   edceFinished = QtCore.pyqtSignal([dict])
   dbupdated = QtCore.pyqtSignal()
 
@@ -109,12 +110,19 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       return
 
     line = "[{0}] {1}".format(now, stdOutLine)
-    self.logCombo.insertItem(0, line)
+    self._logLines.append(line)
+    self._logLines=self._logLines[-self._logLinesToShow:]
 
+    # dumb version - if we can get more than one line visible somehow
+    #self.logCombo.clear()
+    #self.logCombo.addItems(self._logLines )
+
+    self.logCombo.addItem( line)
     while self.logCombo.count() > MainWindow._logLinesToShow:
-      self.logCombo.removeItem(self.logCombo.count() - 1)
+      self.logCombo.removeItem(0)
+    self.logCombo.setCurrentIndex(self.logCombo.count() - 1)
 
-    self.logCombo.setCurrentIndex(0)
+    self.logCombo.setToolTip('\n'.join(self._logLines))
 
   def _onTabChanged(self, idx):
     pass
