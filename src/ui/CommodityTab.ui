@@ -180,6 +180,15 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>currentSystemCombo</tabstop>
+  <tabstop>getCurrentBtn</tabstop>
+  <tabstop>commodityCombobox</tabstop>
+  <tabstop>importComboBox</tabstop>
+  <tabstop>maxDistanceSpinBox</tabstop>
+  <tabstop>searchBtn</tabstop>
+  <tabstop>SearchResultTable</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

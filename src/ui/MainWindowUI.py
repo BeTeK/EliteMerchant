@@ -16,6 +16,8 @@ class Ui_MainWindow(object):
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("main.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
+        MainWindow.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
+        MainWindow.setDockOptions(QtWidgets.QMainWindow.AllowTabbedDocks|QtWidgets.QMainWindow.AnimatedDocks)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -132,9 +134,6 @@ class Ui_MainWindow(object):
         self.menuHelp = QtWidgets.QMenu(self.menubar)
         self.menuHelp.setObjectName("menuHelp")
         MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
         self.optionsMenu = QtWidgets.QAction(MainWindow)
         self.optionsMenu.setObjectName("optionsMenu")
         self.exitMenu = QtWidgets.QAction(MainWindow)
@@ -162,6 +161,12 @@ class Ui_MainWindow(object):
         self.minPadSizeCombo.setCurrentIndex(2)
         self.mainTab.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.currenlyAtSystemTxt, self.currentlyNearAtTxt)
+        MainWindow.setTabOrder(self.currentlyNearAtTxt, self.minPadSizeCombo)
+        MainWindow.setTabOrder(self.minPadSizeCombo, self.jumpRangeSpinBox)
+        MainWindow.setTabOrder(self.jumpRangeSpinBox, self.cargoSizeSpinBox)
+        MainWindow.setTabOrder(self.cargoSizeSpinBox, self.mainTab)
+        MainWindow.setTabOrder(self.mainTab, self.logCombo)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

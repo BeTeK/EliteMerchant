@@ -27,6 +27,7 @@ import ThreadWorker
 class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   _edceUpdateTimeout = 90 # keep sparse to keep fd happy
   _logLinesToShow = 200
+  _logLines=[]
   edceFinished = QtCore.pyqtSignal([dict])
   dbupdated = QtCore.pyqtSignal()
 
@@ -109,17 +110,26 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       return
 
     line = "[{0}] {1}".format(now, stdOutLine)
-    self.logCombo.insertItem(0, line)
+    self._logLines.append(line)
+    self._logLines=self._logLines[-self._logLinesToShow:]
 
+    # dumb version - if we can get more than one line visible somehow
+    #self.logCombo.clear()
+    #self.logCombo.addItems(self._logLines )
+
+    self.logCombo.addItem( line)
     while self.logCombo.count() > MainWindow._logLinesToShow:
-      self.logCombo.removeItem(self.logCombo.count() - 1)
+      self.logCombo.removeItem(0)
+    self.logCombo.setCurrentIndex(self.logCombo.count() - 1)
 
-    self.logCombo.setCurrentIndex(0)
+    self.logCombo.setToolTip('\n'.join(self._logLines))
 
   def _onTabChanged(self, idx):
     pass
 
   def _onTabClosing(self, closeIndex):
+    if self.tabItems[closeIndex][1].getType() == "search":
+      self.tabItems[closeIndex][1].cancelSearch()
     del self.tabItems[closeIndex]
 
     for index, value in enumerate(self.tabItems):
@@ -206,9 +216,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.sounds.quit() # unload soundsystem
 
     for tab in self.tabItems: # shut down any searches in progress
-      if tab[1].getType() == "search" and tab[1].currentWorker is not None:
-        tab[1].currentWorker.terminate()
-        tab[1].currentWorker = None
+      if tab[1].getType() == "search":
+        tab[1].cancelSearch()
 
     Options.set("main_window_tab_count", len(self.tabItems))
     index = 0
@@ -266,13 +275,13 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           tab[1].setCurrentSystem(self.currentStatus['System'])
           tab[1].setCurrentBase(self.currentStatus['Base'])
           tab[1].refreshData()
-          tab[1].searchBtnPressed()
+          tab[1].startSearch()
           triggeredasearch=True
         if tab[1].searchType==1:
           tab[1].setCurrentSystem(self.currentStatus['System'])
           tab[1].setCurrentBase(self.currentStatus['Base'])
           tab[1].refreshData()
-          tab[1].searchBtnPressed()
+          tab[1].startSearch()
           triggeredasearch=True
 
       if triggeredasearch:
@@ -297,11 +306,11 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     if edceupdated:
       now = datetime.datetime.now().timestamp()
       #print("edceupdated  ",now-self.edce.resultsLastUpdated)
-      if now-self.edce.resultsLastUpdated<1 and Options.get("search-auto-edce-enabled", "0")=='1':
+      if now-self.edce.resultsLastUpdated<1 and Options.get("search-auto-edce-enabled", "1")=='1':
         self._setCurrentSystemToTabs()
     elif analyzerupdated:
       #print("analyzerupdated")
-      if Options.get("search-auto-log-enabled", "1")=='1':
+      if Options.get("search-auto-log-enabled", "0")=='1':
         self._setCurrentSystemToTabs()
 
   def _checkVerificationWindow(self):

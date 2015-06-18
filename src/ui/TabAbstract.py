@@ -27,9 +27,14 @@ class TabAbstract:
 
           return i,i,i
 
+        # if data is older than market validity horizon, have it show
+        desat=1
+        if age>1.0:
+          desat=0
+
         age*=2
 
-        r=255*clamp(0.2,1.0,(age-1)+0.5)
-        g=255*clamp(0.4,1.0,(1-age)+0.5)
-        b=255*clamp(0.5,1.0,(abs(age-1)*-1)+1)
+        r=255*clamp(0.2*desat,1.0,(age-1)+0.5)
+        g=255*clamp(0.4*desat,1.0,(1-age)+0.5)
+        b=255*clamp(0.5*desat,1.0,(abs(age-1)*-1)+1)
         return r,g,b

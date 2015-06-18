@@ -38,6 +38,11 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
         self.currentSystemCombo.currentIndexChanged.connect(self._refreshCurrentStationlist)
         self.targetSystemCombo.currentIndexChanged.connect(self._refreshTargetStationlist)
+        self.minProfitSpinBox.valueChanged.connect(self._minProfitChanged)
+        self.graphDepthSpin.valueChanged.connect(self._graphDepthChanged)
+        self.graphMinDepthSpin.valueChanged.connect(self._graphDepthChanged)
+        self.windowSizeSpinBox.valueChanged.connect(self._distanceWindowChanged)
+        self.maxDistanceSpinBox.valueChanged.connect(self._distanceWindowChanged)
 
         systemlist=self.db.getSystemNameList()
         self.currentSystemCombo.clear()
@@ -54,6 +59,27 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         else:
             self.searchBtn.setText("Search")
 
+    def _minProfitChanged(self):
+      maxval=750
+      minval=100
+      value=int(self.minProfitSpinBox.value())
+      value=(value-minval)/(maxval-minval)
+      redness=max(0.0,min(1.0,value))
+      self.minProfitSpinBox.setStyleSheet("background:rgb(255,"+str(255*redness)+","+str(255*redness)+")")
+
+    def _graphDepthChanged(self):
+      if self.graphDepthSpin.value()<self.graphMinDepthSpin.value():
+        self.graphDepthSpin.setStyleSheet("background:rgb(255,0,0)")
+        self.graphMinDepthSpin.setStyleSheet("background:rgb(255,0,0)")
+      else:
+        self.graphDepthSpin.setStyleSheet("background:rgb(255,255,255)")
+        self.graphMinDepthSpin.setStyleSheet("background:rgb(255,255,255)")
+
+    def _distanceWindowChanged(self):
+      value=(self.windowSizeSpinBox.value()-self.maxDistanceSpinBox.value())/(self.windowSizeSpinBox.value()/1.5)
+      redness=max(0.0,min(1.0,value))
+      self.windowSizeSpinBox.setStyleSheet("background:rgb(255,"+str(255*redness)+","+str(255*redness)+")")
+      self.maxDistanceSpinBox.setStyleSheet("background:rgb(255,"+str(255*redness)+","+str(255*redness)+")")
 
     def _updateResults(self, data):
         self.result = data
@@ -61,6 +87,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self._setSearchProgress(False)
         self.currentWorker = None
         print("Search done!")
+        if len(data)==0:
+          print("Search resulted in 0 matches. Keep min hops low and try lower minimum profits to widen the search (note: this also takes longer)")
 
     def _searchtypeChanged(self,idx):
         #searchtype=self.searchTypeCombo.currentIndex()
@@ -77,7 +105,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         else:
           self.graphDepthSpin.setEnabled(True)
           self.graphMinDepthSpin.setEnabled(True)
-        if searchtype in [1]:
+        if searchtype in [1,2,3,4]:
           self.currentStationCombo.setEnabled(False)
         else:
           self.currentStationCombo.setEnabled(True)
@@ -117,7 +145,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         if self.currentSystem is None:
           print('Current system not set')
           return
-        currentSystemStations=[o.getName() for o in self.currentSystem.getStations()]
+        currentSystemStations=self.currentSystem.getStations()
+        currentSystemStations.sort(key=lambda o: o.getDistance()) # sort by distance
+        currentSystemStations=[o.getName() for o in currentSystemStations]
         self.currentStationCombo.clear()
         self.currentStationCombo.addItems( ['ANY'] )
         self.currentStationCombo.addItems( currentSystemStations )
@@ -158,7 +188,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         if self.targetSystem is None:
           print('Target system not set')
           return
-        targetSystemStations=[o.getName() for o in self.targetSystem.getStations()]
+        targetSystemStations=self.targetSystem.getStations()
+        targetSystemStations.sort(key=lambda o: o.getDistance()) # sort by distance
+        targetSystemStations=[o.getName() for o in targetSystemStations]
         self.targetStationCombo.clear()
         self.targetStationCombo.addItems( ['ANY'] )
         self.targetStationCombo.addItems( targetSystemStations )
@@ -236,19 +268,24 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         Options.set(self._optName("target_station"), self.targetStationCombo.currentText())
         #Options.set(self._optName("search_profitPh"), self.profitPhChk.isChecked() and "1" or "0")
 
-    def _cancelSearch(self):
-        self.currentWorker.terminate()
-        self.currentWorker = None
-        self.model.refeshData()
-        self._setSearchProgress(False)
+    def cancelSearch(self):
+        if self.currentWorker is not None:
+          print('Cancelled search!')
+          self.currentWorker.terminate()
+          self.currentWorker = None
+          self.model.refeshData()
+          self._setSearchProgress(False)
 
     def searchBtnPressed(self):
         if self.currentWorker is not None:
-            self._cancelSearch()
+            self.cancelSearch()
             return
+        else:
+          self.startSearch()
 
-        #print ("searchBtnPressed")
-        #self.searchBtn.setText('- - - - S e a r c h i n g - - - -') # unfortunately these never show with synchronous ui
+    def startSearch(self):
+        if self.currentWorker is not None: # handled elsewhere, or ignored
+          return
 
         currentSystem = self.currentSystemCombo.currentText()
         currentBase = self.currentStationCombo.currentText()
@@ -297,12 +334,12 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             print("queryProfitGraphTarget")
             if currentBase == 'ANY':
               currentBase=None
-            #if targetBase == 'ANY':
-            #  targetBase=None
+            if targetBase == 'ANY':
+              targetBase=None
 
             tpos=self.targetSystem.getPosition()
             directionality=0.0
-            searchFn = lambda : Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
+            searchFn = lambda : Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase,targetSystem,targetBase)
         elif searchType==6:
             print("queryDirectTrades")
             if currentBase == 'ANY':
@@ -419,10 +456,10 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 if "celltype" not in data:
                   if columnorder[section] in ["AexportPrice"]:
                     if int(data['AlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
-                      return QtGui.QBrush(QtGui.QColor(0,255,255))
+                      return QtGui.QBrush(QtGui.QColor(255,255,0))
                   if columnorder[section] in ["BimportPrice"]:
                     if int(data['BlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
-                      return QtGui.QBrush(QtGui.QColor(0,255,255))
+                      return QtGui.QBrush(QtGui.QColor(255,255,0))
 
             if role == QtCore.Qt.BackgroundRole: # background colors
                 if "celltype" in data:
@@ -440,6 +477,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["profit","Cprofit","totalprofit"]:
                     return QtGui.QBrush(QtGui.QColor(255,230,255))
+                return QtGui.QBrush(QtGui.QColor(255,255,255)) # everything else is white
 
             if role == QtCore.Qt.ToolTipRole: # tooltips
 
