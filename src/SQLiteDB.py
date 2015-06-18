@@ -23,6 +23,7 @@ class SQLiteDB(EliteDB.EliteDB):
     self.commodityCache = {}
     self.lock = threading.RLock()
     self.dbEmpty=False # set this to true if db load fails for whatever reason and we need to force download
+    self.databaseversion=2
 
 
   def __enter__(self):
@@ -36,6 +37,22 @@ class SQLiteDB(EliteDB.EliteDB):
 
     self.conn = sqlite3.connect(self.filename, check_same_thread = False)
 
+    self.conn.row_factory = sqlite3.Row
+
+    cur=self.conn.cursor()
+
+    if exists and not self.forceInit:
+      cur.execute("""PRAGMA user_version""")
+      dbversion=self._rowToDict(cur.fetchone())
+      if dbversion['user_version']!=self.databaseversion:
+        print('database version is not a match',self.databaseversion,' != ', dbversion['user_version'],', db delete forced')
+        self.conn.close()
+        os.remove(self.filename)
+        self._init() # try again
+        return
+
+    # database settings
+
     # custom db functions
     # https://docs.python.org/2/library/sqlite3.html#sqlite3.Connection.create_function
     self.conn.create_function("StarToBase", 1, SpaceTime.StarToBase)
@@ -44,16 +61,13 @@ class SQLiteDB(EliteDB.EliteDB):
       return ((x-i)**2+(y-j)**2+(z-k)**2)**.5
     self.conn.create_function("Distance3D", 6, distance3d)
 
-    # database settings
-    cur=self.conn.cursor()
     cur.execute("""PRAGMA cache_size = 1000000""")
 
-    self.conn.row_factory = sqlite3.Row
     if not exists or self.forceInit:
       self._createDB()
       self.dbEmpty=True
 
-    
+
   def __exit__(self, type, value, traceback):
     if self.conn is not None:
       self.conn.close()
@@ -211,6 +225,13 @@ class SQLiteDB(EliteDB.EliteDB):
       self.conn.commit()
 
   def _createDB(self):
+
+    ##############################
+
+    ## IMPORTANT! If you the tables, remember to update self.databaseversion in init at the top!
+
+    ##############################
+
     cur = self.conn.cursor()
     cur.execute("""CREATE TABLE "planets" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -279,6 +300,7 @@ class SQLiteDB(EliteDB.EliteDB):
     cur.execute("""CREATE INDEX "basesNameIndex" on bases (name ASC)""")
     cur.execute("""CREATE INDEX "basesSystemIndex" on bases (systemId ASC)""")
 
+    cur.execute("""PRAGMA user_version="""+str(self.databaseversion)) # save database version!
     self.conn.commit()
 
 
