@@ -228,14 +228,15 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       if tab[1].getType() == "search":
         tab[1].cancelSearch()
 
-    Options.set("main_window_tab_count", len(self.tabItems))
     index = 0
     for name, widget in self.tabItems:
-      if widget.getType()=='Update': # don't save updatewindows
+      if widget.getType()=='update': # don't save updatewindows
         continue
       Options.set("main_window_tab_{0}_type".format(index), widget.getType())
       widget.dispose()
       index += 1
+
+    Options.set("main_window_tab_count", index)
 
     Options.set("ship_cargo_size", self.cargoSizeSpinBox.value())
     Options.set("ship_jump_range", self.jumpRangeSpinBox.value())
