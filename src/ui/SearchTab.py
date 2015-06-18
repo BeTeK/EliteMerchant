@@ -477,6 +477,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["profit","Cprofit","totalprofit"]:
                     return QtGui.QBrush(QtGui.QColor(255,230,255))
+                return QtGui.QBrush(QtGui.QColor(255,255,255)) # everything else is white
 
             if role == QtCore.Qt.ToolTipRole: # tooltips
 
