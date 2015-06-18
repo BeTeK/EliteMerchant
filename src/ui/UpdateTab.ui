@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>813</width>
+    <height>688</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_3">
+   <item row="0" column="0">
+    <layout class="QGridLayout" name="gridLayout_7">
+     <item row="1" column="0">
+      <widget class="QTextBrowser" name="versionlinkTextBrowser">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QAbstractScrollArea::AdjustToContents</enum>
+       </property>
+       <property name="html">
+        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;data:image/jpeg;base64,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&quot; /&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:24pt;&quot;&gt;Elite Merchant update available!&lt;/span&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:24pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Your current version is:&lt;/span&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;v%currentversionstring%&lt;/span&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;The new version is:&lt;/span&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;v%versionstring%&lt;/span&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Click below to download the latest installer:&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;%newversionlinkstring%&quot;&gt;&lt;span style=&quot; font-size:14pt; text-decoration: underline; color:#0000ff;&quot;&gt;%newversionlinkstring%&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Or you can head to our GitHub page to see what's up&lt;/span&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;https://github.com/BeTeK/EliteMerchant&quot;&gt;&lt;span style=&quot; font-size:14pt; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/BeTeK/EliteMerchant&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
