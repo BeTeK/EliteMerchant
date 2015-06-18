@@ -306,11 +306,11 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     if edceupdated:
       now = datetime.datetime.now().timestamp()
       #print("edceupdated  ",now-self.edce.resultsLastUpdated)
-      if now-self.edce.resultsLastUpdated<1 and Options.get("search-auto-edce-enabled", "0")=='1':
+      if now-self.edce.resultsLastUpdated<1 and Options.get("search-auto-edce-enabled", "1")=='1':
         self._setCurrentSystemToTabs()
     elif analyzerupdated:
       #print("analyzerupdated")
-      if Options.get("search-auto-log-enabled", "1")=='1':
+      if Options.get("search-auto-log-enabled", "0")=='1':
         self._setCurrentSystemToTabs()
 
   def _checkVerificationWindow(self):
