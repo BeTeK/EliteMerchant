@@ -6,6 +6,7 @@ import ui.CommodityTab
 import ui.Status
 import ui.DBloadingTab
 import ui.GuideTab
+import ui.UpdateTab
 import ui.Options
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QVariant
@@ -13,6 +14,7 @@ import Options
 import Queries
 import datetime
 import EDDB
+import UpdateChecker
 import EliteLogAnalyzer
 import ui.EdceVerification
 import EdceWrapper
@@ -89,6 +91,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       ThreadWorker.ThreadWorker(lambda: EDDB.update(self.db,force=True), lambda result: self.dbupdated.emit() ).start()
     else:
       self.loadSettingsAndUI()
+      self._checkUpdate()
 
   def loadSettingsAndUI(self):
     self.mainTab.setEnabled(True)
@@ -172,6 +175,12 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
   def _addCommodityTabSelected(self):
     self._addTab(ui.CommodityTab.CommodityTab(self.db, self.analyzer, "", self))
 
+  def _addUpdateTab(self,versioninfo):
+    for tab in self.tabItems:
+      if tab[1].getType()=='update': # only have one
+        return
+    self._addTab(ui.UpdateTab.UpdateTab(self.db, self.analyzer, "", self,versioninfo))
+
   def _exitMenuSelected(self):
     self.close()
 
@@ -185,7 +194,7 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       print("could not read version file")
 
     self.setWindowTitle("Elite Merchant   v"+versionstring)
-
+    Options.set("Merchant-version",versionstring)
 
     self.restoreGeometry(Options.get("MainWindow-geometry", QtCore.QByteArray()))
     self.restoreState(Options.get("MainWindow-state", QtCore.QByteArray()))
@@ -222,6 +231,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     Options.set("main_window_tab_count", len(self.tabItems))
     index = 0
     for name, widget in self.tabItems:
+      if widget.getType()=='Update': # don't save updatewindows
+        continue
       Options.set("main_window_tab_{0}_type".format(index), widget.getType())
       widget.dispose()
       index += 1
@@ -407,6 +418,12 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
 
     if lastUpdated <= 0 or now - lastUpdated > interval * 60 * 60:
       ThreadWorker.ThreadWorker(lambda :EDDB.update(self.db)).start()
+      self._checkUpdate()
+
+  def _checkUpdate(self):
+    updateinfo=UpdateChecker.update()
+    if updateinfo is not None:
+      self._addUpdateTab(updateinfo)
 
 
   def _optionsMenuSelected(self):
