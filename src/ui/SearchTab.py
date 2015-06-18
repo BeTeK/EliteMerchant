@@ -145,7 +145,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         if self.currentSystem is None:
           print('Current system not set')
           return
-        currentSystemStations=[o.getName() for o in self.currentSystem.getStations()]
+        currentSystemStations=self.currentSystem.getStations()
+        currentSystemStations.sort(key=lambda o: o.getDistance()) # sort by distance
+        currentSystemStations=[o.getName() for o in currentSystemStations]
         self.currentStationCombo.clear()
         self.currentStationCombo.addItems( ['ANY'] )
         self.currentStationCombo.addItems( currentSystemStations )
@@ -186,7 +188,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         if self.targetSystem is None:
           print('Target system not set')
           return
-        targetSystemStations=[o.getName() for o in self.targetSystem.getStations()]
+        targetSystemStations=self.targetSystem.getStations()
+        targetSystemStations.sort(key=lambda o: o.getDistance()) # sort by distance
+        targetSystemStations=[o.getName() for o in targetSystemStations]
         self.targetStationCombo.clear()
         self.targetStationCombo.addItems( ['ANY'] )
         self.targetStationCombo.addItems( targetSystemStations )
@@ -264,20 +268,24 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         Options.set(self._optName("target_station"), self.targetStationCombo.currentText())
         #Options.set(self._optName("search_profitPh"), self.profitPhChk.isChecked() and "1" or "0")
 
-    def _cancelSearch(self):
-        self.currentWorker.terminate()
-        self.currentWorker = None
-        self.model.refeshData()
-        self._setSearchProgress(False)
+    def cancelSearch(self):
+        if self.currentWorker is not None:
+          print('Cancelled search!')
+          self.currentWorker.terminate()
+          self.currentWorker = None
+          self.model.refeshData()
+          self._setSearchProgress(False)
 
     def searchBtnPressed(self):
         if self.currentWorker is not None:
-            print('Cancelled search!')
-            self._cancelSearch()
+            self.cancelSearch()
             return
+        else:
+          self.startSearch()
 
-        #print ("searchBtnPressed")
-        #self.searchBtn.setText('- - - - S e a r c h i n g - - - -') # unfortunately these never show with synchronous ui
+    def startSearch(self):
+        if self.currentWorker is not None: # handled elsewhere, or ignored
+          return
 
         currentSystem = self.currentSystemCombo.currentText()
         currentBase = self.currentStationCombo.currentText()

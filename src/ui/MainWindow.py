@@ -120,6 +120,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     pass
 
   def _onTabClosing(self, closeIndex):
+    if self.tabItems[closeIndex][1].getType() == "search":
+      self.tabItems[closeIndex][1].cancelSearch()
     del self.tabItems[closeIndex]
 
     for index, value in enumerate(self.tabItems):
@@ -206,9 +208,8 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
     self.sounds.quit() # unload soundsystem
 
     for tab in self.tabItems: # shut down any searches in progress
-      if tab[1].getType() == "search" and tab[1].currentWorker is not None:
-        tab[1].currentWorker.terminate()
-        tab[1].currentWorker = None
+      if tab[1].getType() == "search":
+        tab[1].cancelSearch()
 
     Options.set("main_window_tab_count", len(self.tabItems))
     index = 0
@@ -266,13 +267,13 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
           tab[1].setCurrentSystem(self.currentStatus['System'])
           tab[1].setCurrentBase(self.currentStatus['Base'])
           tab[1].refreshData()
-          tab[1].searchBtnPressed()
+          tab[1].startSearch()
           triggeredasearch=True
         if tab[1].searchType==1:
           tab[1].setCurrentSystem(self.currentStatus['System'])
           tab[1].setCurrentBase(self.currentStatus['Base'])
           tab[1].refreshData()
-          tab[1].searchBtnPressed()
+          tab[1].startSearch()
           triggeredasearch=True
 
       if triggeredasearch:
