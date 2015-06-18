@@ -15,8 +15,11 @@ Install **Python 3.4** ( https://www.python.org/ )
 
 Install **PyQt5** ( http://www.riverbankcomputing.com/software/pyqt/download5 )
 
-Optional: Download **EDCE** for automatic market data download
-( https://github.com/Andargor/edce-client )
+Some systems also require the packages **libsqlite3-0** and **sqlite3**
+
+Optional: Download **EDCE** for automatic market data download ( https://github.com/Andargor/edce-client )
+
+**EDCE** and building an installer require the **requests** python package
 
 In /src run **python3 ./main.py**
  
