@@ -1,5 +1,8 @@
 ### 'Elite Merchant' is a trade route calculator for Elite: Dangerous.
 
+#####Reddit release thread:
+http://www.reddit.com/r/EliteDangerous/comments/38k4ss/elite_merchant_trade_route_calculator/
+
 ### GETTING STARTED / CONFIGURATION
  
 On Windows, download the binary ( http://mahti.serv.fi/~elite/EliteMerchantInstaller_latest.exe )
