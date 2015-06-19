@@ -196,7 +196,7 @@ datafiles = [
 ###############################
 # WRITING VERSION STRING
 majorversion=0
-minorversion=11
+minorversion=12
 builddate=datetime.datetime.now().strftime("%y%m%d")
 versionstring=str(majorversion)+'.'+str(minorversion)+'.'+builddate
 with open("version.txt", "w") as f:

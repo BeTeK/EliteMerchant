@@ -259,7 +259,7 @@ def queryDirectTrades(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,maxdis
 
 
 def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,sourcesystem=None,sourcebase=None,targetsystem=None,targetbase=None,x2=None,y2=None,z2=None):
-  windows=queryGenerateWindows(db,x,y,z,windowsize,maxdistance,windows)
+  #windows=queryGenerateWindows(db,x,y,z,windowsize,maxdistance,windows)
   combined=dict()
 
   if sourcesystem is not None or sourcebase is not None:
@@ -306,22 +306,20 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     results=sorted(results,key=operator.itemgetter("profitPh"),reverse=True)[:50] # cap to 50 best deals
     combined=ProfitArrayToHierarchy(results,combined)
 
-  for wi in range(len(windows)):
-    print("Fetching window " + str(wi+1) + " of " + str(len(windows)) + " (" + str("%.2f"%( (wi+1)/len(windows) *100 )) + "%)")
-    w=windows[wi]
-    queryparams=dict()
-    queryparams['x']=w[0]
-    queryparams['y']=w[1]
-    queryparams['z']=w[2]
-    queryparams['window']=windowsize
-    queryparams['maxdistance']=maxdistance
-    queryparams['minprofit']=minprofit
-    queryparams['minprofitPh']=minprofitPh # todo:  remove
-    queryparams['landingPadSize']=landingPadSize
-    queryparams['jumprange']=jumprange
-    queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
-    results=db.getWindowProfit(queryparams)
-    combined=ProfitArrayToHierarchy(results,combined)
+  print("Fetching galaxywide trades... (this may take a while)")
+  queryparams=dict()
+  queryparams['x']=x
+  queryparams['y']=y
+  queryparams['z']=z
+  queryparams['window']=windowsize
+  queryparams['maxdistance']=maxdistance
+  queryparams['minprofit']=minprofit
+  queryparams['minprofitPh']=minprofitPh # todo:  remove
+  queryparams['landingPadSize']=landingPadSize
+  queryparams['jumprange']=jumprange
+  queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
+  results=db.getTradeProfits(queryparams)
+  combined=ProfitArrayToHierarchy(results,combined)
 
   combinedAr=ProfitHierarchyToArray(combined)
   return sorted(combinedAr,key=operator.itemgetter("profitPh"),reverse=True)

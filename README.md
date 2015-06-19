@@ -1,8 +1,11 @@
 ### 'Elite Merchant' is a trade route calculator for Elite: Dangerous.
 
+#####Reddit release thread:
+http://www.reddit.com/r/EliteDangerous/comments/38k4ss/elite_merchant_trade_route_calculator/
+
 ### GETTING STARTED / CONFIGURATION
  
-On Windows, download the binary ( http://mahti.serv.fi/EliteMerchant/EliteMerchantInstaller.exe )
+On Windows, download the binary ( http://mahti.serv.fi/~elite/EliteMerchantInstaller_latest.exe )
 
 Install - Run - Profit!
 
@@ -68,3 +71,27 @@ The prominent features of this tool, in contrast to others are:
   Want to get from point A to B and do some trading on the way?
  
 The tool utilizes the database provided by EDDB. ( http://eddb.io/api )
+
+#####Version history:
+v0.12.150619: Moved away from windowed queries as they did more harm than good.  
+v0.11.150619: 1.3 fixes and basic features  
+- Added Direct system-to-system / station-to-station trade listing
+- Added user guide  
+Explaining all the things
+- Multithreaded searches  
+UI no longer freezes, can cancel searches in progress
+- Update notifier  
+A basic feature that should have been in at the start
+- Fixed 1.3 automatic search triggers  
+1.3 removed the station name from the ED log and this made things a bit more difficult for us.  
+This means we've moved to higher reliance on EDCE to provide station name.  
+FD, why u no API?? (yಠ,ಠ)y
+- Search log in UI, separate window disabled in binary
+- Can define specific export and import stations
+- Target route attempts to find imports to final system/station more
+- Fixed low exports results from low profit systems
+- Optimized graph search - shouldn't get stuck anymore
+- Fixed a bazillion bugs everywhere
+
+v0.9.150605: hotfix - was trying to optimize an unoptimizable situation  
+v0.9.150604: initial release
