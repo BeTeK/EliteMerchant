@@ -41,8 +41,6 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.minProfitSpinBox.valueChanged.connect(self._minProfitChanged)
         self.graphDepthSpin.valueChanged.connect(self._graphDepthChanged)
         self.graphMinDepthSpin.valueChanged.connect(self._graphDepthChanged)
-        self.windowSizeSpinBox.valueChanged.connect(self._distanceWindowChanged)
-        self.maxDistanceSpinBox.valueChanged.connect(self._distanceWindowChanged)
 
         systemlist=self.db.getSystemNameList()
         self.currentSystemCombo.clear()
@@ -61,7 +59,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
     def _minProfitChanged(self):
       maxval=750
-      minval=100
+      minval=400
       value=int(self.minProfitSpinBox.value())
       value=(value-minval)/(maxval-minval)
       redness=max(0.0,min(1.0,value))
@@ -74,12 +72,6 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
       else:
         self.graphDepthSpin.setStyleSheet("background:rgb(255,255,255)")
         self.graphMinDepthSpin.setStyleSheet("background:rgb(255,255,255)")
-
-    def _distanceWindowChanged(self):
-      value=(self.windowSizeSpinBox.value()-self.maxDistanceSpinBox.value())/(self.windowSizeSpinBox.value()/1.5)
-      redness=max(0.0,min(1.0,value))
-      self.windowSizeSpinBox.setStyleSheet("background:rgb(255,"+str(255*redness)+","+str(255*redness)+")")
-      self.maxDistanceSpinBox.setStyleSheet("background:rgb(255,"+str(255*redness)+","+str(255*redness)+")")
 
     def _updateResults(self, data):
         self.result = data
@@ -109,15 +101,15 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
           self.currentStationCombo.setEnabled(False)
         else:
           self.currentStationCombo.setEnabled(True)
+        if searchtype in [2,3,4]:
+          self.currentSystemCombo.setEnabled(False)
+        else:
+          self.currentSystemCombo.setEnabled(True)
         if searchtype in [6]:
           self.maxDistanceSpinBox.setEnabled(False)
-          self.windowSizeSpinBox.setEnabled(False)
-          self.windowCountSpinBox.setEnabled(False)
           self.minProfitSpinBox.setEnabled(False)
         else:
           self.maxDistanceSpinBox.setEnabled(True)
-          self.windowSizeSpinBox.setEnabled(True)
-          self.windowCountSpinBox.setEnabled(True)
           self.minProfitSpinBox.setEnabled(True)
 
 
@@ -242,9 +234,6 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.searchType=int(Options.get(self._optName("search_type"), "0"))
         self.graphDepthSpin.setValue(int(Options.get(self._optName("search_max_depth"), "5")))
         self.graphMinDepthSpin.setValue(int(Options.get(self._optName("search_min_depth"), "1")))
-        self.windowSizeSpinBox.setValue(int(Options.get(self._optName("search_window_size"), "200")))
-        self.windowCountSpinBox.setValue(int(Options.get(self._optName("search_window_count"), "7")))
-        #self.profitPhChk.setChecked(Options.get(self._optName("search_profitPh"),"0")=="1")
 
         self._refreshCurrentStationlist() # populate station lists
         self._refreshTargetStationlist()
@@ -259,8 +248,6 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         Options.set(self._optName("target_system"), self.targetSystemCombo.currentText())
         Options.set(self._optName("maximum_distance"), self.maxDistanceSpinBox.value())
         Options.set(self._optName("minimum_profit"), self.minProfitSpinBox.value())
-        Options.set(self._optName("search_window_size"), self.windowSizeSpinBox.value())
-        Options.set(self._optName("search_window_count"), self.windowCountSpinBox.value())
         Options.set(self._optName("search_type"), self.searchTypeCombo.currentIndex())
         Options.set(self._optName("search_max_depth"), self.graphDepthSpin.value())
         Options.set(self._optName("search_min_depth"), self.graphMinDepthSpin.value())
@@ -291,8 +278,6 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         currentBase = self.currentStationCombo.currentText()
         targetSystem = self.targetSystemCombo.currentText()
         targetBase = self.targetStationCombo.currentText()
-        windowSize = float(self.windowSizeSpinBox.value())
-        windows = int(self.windowCountSpinBox.value())
         maxDistance = float(self.maxDistanceSpinBox.value())
         jumprange = float(self.mainwindow.jumpRangeSpinBox.value())
         minProfit = int(self.minProfitSpinBox.value())
@@ -317,19 +302,22 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
         self.searchType=searchType
 
+        # QComboBox.setItemData (self, int index, QVariant value, int role = Qt.UserRole)
+        # QVariant QComboBox.itemData (self, int index, int role = Qt.UserRole)
+
         print("Querying database...")
         searchFn = None
         if searchType==4:
             print("queryProfit")
-            searchFn = lambda : Queries.queryProfit(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange )
+            searchFn = lambda : Queries.queryProfit(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange )
 
             #self.result = self.db.queryProfit(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
         elif searchType==2:
             print("queryProfitGraphLoops")
-            searchFn = lambda : Queries.queryProfitGraphLoops(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
+            searchFn = lambda : Queries.queryProfitGraphLoops(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
         elif searchType==3:
             print("queryProfitGraphDeadends")
-            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
+            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
         elif searchType==5:
             print("queryProfitGraphTarget")
             if currentBase == 'ANY':
@@ -339,7 +327,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
             tpos=self.targetSystem.getPosition()
             directionality=0.0
-            searchFn = lambda : Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase,targetSystem,targetBase)
+            searchFn = lambda : Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase,targetSystem,targetBase)
         elif searchType==6:
             print("queryDirectTrades")
             if currentBase == 'ANY':
@@ -349,13 +337,13 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
             tpos=self.targetSystem.getPosition()
             directionality=0.0
-            searchFn = lambda : Queries.queryDirectTrades(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase,targetSystem,targetBase)
+            searchFn = lambda : Queries.queryDirectTrades(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase,targetSystem,targetBase)
         elif searchType==0 or searchType==1:
             if currentBase == 'ANY':
               currentBase=None
 
             print("queryProfitGraphDeadends from current")
-            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
+            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
         else:
             print("unknown search type - we should not be here")
         #elif searchType==1:

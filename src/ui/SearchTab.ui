@@ -70,13 +70,6 @@
          </item>
         </widget>
        </item>
-       <item row="3" column="5">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Search window size</string>
-         </property>
-        </widget>
-       </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_5">
          <property name="text">
@@ -88,13 +81,6 @@
         <widget class="QLabel" name="label_7">
          <property name="text">
           <string>Search Type</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="5">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>Search windows</string>
          </property>
         </widget>
        </item>
@@ -151,13 +137,13 @@
             </sizepolicy>
            </property>
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This is a hard limit for basic single trade exchange.&lt;br/&gt;Its primary function is to limit the number of&lt;br/&gt;possibilities and speed up searching.&lt;br/&gt;1000 is a good fast value for most trading, but might&lt;br/&gt;give low or no results if you're desperate or in a&lt;br/&gt;short range vessel.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;WARNING! DATA DROWNING HAZARD!&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Lowering this will flood the tool with more trade data.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;If you set this lower, please also limit max hops&lt;br/&gt;and/or search windows.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This is a hard limit for basic single trade exchange.&lt;br/&gt;Its primary function is to limit the number of&lt;br/&gt;possibilities and speed up searching.&lt;br/&gt;1000 is a good fast value for most trading, but might&lt;br/&gt;give low or no results if you're desperate or in a&lt;br/&gt;short range vessel.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;WARNING! DATA DROWNING HAZARD!&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Lowering this will flood the tool with more trade data.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;If you set this lower, please also limit max hops.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="styleSheet">
             <string notr="true">background:rgb(255,255,255)</string>
            </property>
            <property name="minimum">
-            <number>100</number>
+            <number>400</number>
            </property>
            <property name="maximum">
             <number>99999999</number>
@@ -167,14 +153,45 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Max distance</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="maxDistanceSpinBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>75</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This is the maximum distance in light years a trade route can be at.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This is primarily an optimization parameter, as higher than 50ly is&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;rarely more profitable due to the distance(=time) cost. For smaller&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;vessels with smaller tanks or jump ranges it's a good idea to lower&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;this further for performance.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background:rgb(255,255,255)</string>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>500</number>
+           </property>
+           <property name="value">
+            <number>50</number>
+           </property>
+          </widget>
+         </item>
         </layout>
-       </item>
-       <item row="1" column="5">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Max distance</string>
-         </property>
-        </widget>
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label">
@@ -242,99 +259,6 @@
         <widget class="QLabel" name="label_4">
          <property name="text">
           <string>Min profit</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="6">
-        <widget class="QSpinBox" name="maxDistanceSpinBox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>75</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This is the maximum distance in light years a trade route can be at.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This is primarily an optimization parameter, as higher than 50ly is&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;rarely more profitable due to the distance(=time) cost. For smaller&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;vessels with smaller tanks or jump ranges it's a good idea to lower&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;this further for performance.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background:rgb(255,255,255)</string>
-         </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>500</number>
-         </property>
-         <property name="value">
-          <number>50</number>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="6">
-        <widget class="QSpinBox" name="windowCountSpinBox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>75</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;How many windows should we search? Setting this to 1 will search the cube of set&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;size centered around the current system. The default is 7, which is the current&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;and 6 closest search windows. To search galaxy-wide, set this to 9999999999999.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;At window size 200, the galaxy size is just 64 windows, so it is not that heavy&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;of an operation - just impractical for constant use, where 7 is  a nice balance.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background:rgb(255,255,255)</string>
-         </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>9999999</number>
-         </property>
-         <property name="value">
-          <number>1</number>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="6">
-        <widget class="QSpinBox" name="windowSizeSpinBox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>75</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;The data is queried from the galaxy in cubes of this size.(value 200 -&amp;gt; 200^3ly)&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Purely an optimization option. You may play around with this but 200 seems pretty&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;fast. Multiple search windows overlap by the amount of your current max distance&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;so no trade routes are missed, so for efficiency reasons it's good to have this&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;significantly larger than that value.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background:rgb(255,255,255)</string>
-         </property>
-         <property name="minimum">
-          <number>100</number>
-         </property>
-         <property name="maximum">
-          <number>999999</number>
-         </property>
-         <property name="value">
-          <number>200</number>
          </property>
         </widget>
        </item>
@@ -469,12 +393,10 @@
   <tabstop>targetStationCombo</tabstop>
   <tabstop>targetGetCurrentBtn</tabstop>
   <tabstop>minProfitSpinBox</tabstop>
+  <tabstop>maxDistanceSpinBox</tabstop>
   <tabstop>searchTypeCombo</tabstop>
   <tabstop>graphDepthSpin</tabstop>
   <tabstop>graphMinDepthSpin</tabstop>
-  <tabstop>maxDistanceSpinBox</tabstop>
-  <tabstop>windowSizeSpinBox</tabstop>
-  <tabstop>windowCountSpinBox</tabstop>
   <tabstop>searchBtn</tabstop>
   <tabstop>SearchResultTable</tabstop>
  </tabstops>
