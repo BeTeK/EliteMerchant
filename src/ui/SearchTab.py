@@ -101,10 +101,6 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
           self.currentStationCombo.setEnabled(False)
         else:
           self.currentStationCombo.setEnabled(True)
-        if searchtype in [2,3,4]:
-          self.currentSystemCombo.setEnabled(False)
-        else:
-          self.currentSystemCombo.setEnabled(True)
         if searchtype in [6]:
           self.maxDistanceSpinBox.setEnabled(False)
           self.minProfitSpinBox.setEnabled(False)
