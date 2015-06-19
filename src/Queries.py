@@ -281,6 +281,15 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     if len(results)==0:
       print('No exports found')
       return []
+
+    # if exports contain any up to date data, discard old data
+    markethorizon=int( time.time() - (60*60*24* int(Options.get('Market-valid-days',7)) ))
+    uptodateresults=[o for o in results if markethorizon<o['AlastUpdated'] and markethorizon<o['BlastUpdated']]
+    if len(uptodateresults)>0:
+      results=uptodateresults
+    else:
+      print('No up-to-date data - allowing outdated data to appear')
+
     results=sorted(results,key=operator.itemgetter("profitPh"),reverse=True)[:50] # cap to 50 best deals
     combined=ProfitArrayToHierarchy(results,combined)
 
@@ -303,6 +312,15 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     if len(results)==0:
       print('No imports found')
       #return [] # but try to get as close as possible
+
+    # if exports contain any up to date data, discard old data
+    markethorizon=int( time.time() - (60*60*24* int(Options.get('Market-valid-days',7)) ))
+    uptodateresults=[o for o in results if markethorizon<o['AlastUpdated'] and markethorizon<o['BlastUpdated']]
+    if len(uptodateresults)>0:
+      results=uptodateresults
+    else:
+      print('No up-to-date data - allowing outdated data to appear')
+
     results=sorted(results,key=operator.itemgetter("profitPh"),reverse=True)[:50] # cap to 50 best deals
     combined=ProfitArrayToHierarchy(results,combined)
 
