@@ -70,6 +70,7 @@ The prominent features of this tool, in contrast to others are:
 The tool utilizes the database provided by EDDB. ( http://eddb.io/api )
 
 #####Version history:
+v0.12.150619: Moved away from windowed queries as they did more harm than good.  
 v0.11.150619: 1.3 fixes and basic features  
 - Added Direct system-to-system / station-to-station trade listing
 - Added user guide  
