@@ -18,80 +18,7 @@
     <layout class="QVBoxLayout" name="verticalLayout_5">
      <item>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="3" column="3">
-        <widget class="QLabel" name="label_8">
-         <property name="text">
-          <string>Max hops</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="4">
-        <widget class="QComboBox" name="searchTypeCombo">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC94&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - - Exports from current station - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC95&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his attempts to find an outgoing trade route from the current station.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC96&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his is triggered by automatic searches as your location updates.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC97&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;I&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;f you write a different system to the &amp;quot;starting system&amp;quot; field, exports from&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC98&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;t&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his system are shown instead.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC99&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;I&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;f you are getting 0 results, try reducing min/max hops to 1 and lowering &lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC100&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;m&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;inimum profit. But it is also possible you are at a dead-end.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC101&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his is why it's advisable to always have min hops set to 2 to minimize the&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC102&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;d&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;anger of deadends.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC103&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - -- Exports from current system - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC104&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;S&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ame as current station, but shows all stations in the system.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC105&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his is triggered by automatic searches as your location updates.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC106&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - - Loop route - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC107&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his finds trade routes which end up in the starting station.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC108&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;he loops are ordered by profit/h.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC109&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;F&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;or more variety, add a few minimum hops.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC110&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - - Long route - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC111&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his finds connecting trade routes and arranges them by profit/h.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC112&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;S&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;etting minimum hops to a bigger value gives you a grand tour of the galaxy&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC113&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;w&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ith no repeated stations.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC114&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;he end of the route may be a deadend or a route the optimization algorithm&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC115&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;d&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;eems unprofitable. Using 'Exports from current system' is a recommended&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC116&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;a&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ction after finishing a long route.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC117&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - - Single trades - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC118&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his is the traditional min-max single one direction trade search available&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC119&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;e&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;verywhere. For the sake of nostalgia.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC120&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - - Long route on way to target - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC121&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;W&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ith this you can pick a target and calculate a high profit series of&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC122&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;t&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;rade hops between the starting location and your target.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC123&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;I&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;t is essentially 'long route' search, with the additional criteria that&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC124&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;e&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ach hop must be closer to your target.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC125&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;N&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ote that a profitable route to target is not guaranteed and the route may&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC126&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;e&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;nd somewhere near the target. Also the route is not direct and might wander&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC127&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;q&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;uite a bit on the way, spiraling down toward your target as dictated by&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC128&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;p&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;rofit/h.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;The result is sorted first by profit and then by lowest number of hops, so scroll down a bit for variety.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;- - - Direct current to target trades - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Find all trades between these two locations without trades in between&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <item>
-          <property name="text">
-           <string>Exports from current Station</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Exports from current System</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Loop route</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Long route</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Single trades</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Long route on way to Target</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Direct current to target trades</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Target system</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>Search Type</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="3">
-        <widget class="QLabel" name="label_14">
-         <property name="text">
-          <string>Min hops</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="4">
+       <item row="4" column="5">
         <widget class="QSpinBox" name="graphMinDepthSpin">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Require at least this many trade stops before accepting a trade route.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This has some impact on search time, but not to a significant degree.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;It's fun to pick 'long route' search and set this to a high value for&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;a grand tour.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -107,7 +34,38 @@
          </property>
         </widget>
        </item>
+       <item row="4" column="4">
+        <widget class="QLabel" name="label_14">
+         <property name="text">
+          <string>Min hops</string>
+         </property>
+        </widget>
+       </item>
        <item row="3" column="4">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>Max hops</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="5">
+        <widget class="QComboBox" name="searchTypeCombo">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC94&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - - Exports from current station - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC95&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his attempts to find an outgoing trade route from the current station.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC96&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his is triggered by automatic searches as your location updates.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC97&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;I&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;f you write a different system to the &amp;quot;starting system&amp;quot; field, exports from&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC98&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;t&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his system are shown instead.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC99&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;I&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;f you are getting 0 results, try reducing min/max hops to 1 and lowering &lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC100&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;m&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;inimum profit. But it is also possible you are at a dead-end.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC101&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his is why it's advisable to always have min hops set to 2 to minimize the&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC102&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;d&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;anger of deadends.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC103&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - -- Exports from current system - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC104&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;S&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ame as current station, but shows all stations in the system.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC105&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his is triggered by automatic searches as your location updates.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC106&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - - Loop route - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC107&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his finds trade routes which end up in the starting station.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC108&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;he loops are ordered by profit/h.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC109&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;F&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;or more variety, add a few minimum hops.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC110&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - - Long route - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC111&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his finds connecting trade routes and arranges them by profit/h.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC112&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;S&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;etting minimum hops to a bigger value gives you a grand tour of the galaxy&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC113&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;w&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ith no repeated stations.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC114&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;he end of the route may be a deadend or a route the optimization algorithm&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC115&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;d&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;eems unprofitable. Using 'Exports from current system' is a recommended&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC116&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;a&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ction after finishing a long route.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC117&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - - Single trades - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC118&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;his is the traditional min-max single one direction trade search available&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC119&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;e&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;verywhere. For the sake of nostalgia.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC120&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt; - - Long route on way to target - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC121&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;W&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ith this you can pick a target and calculate a high profit series of&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC122&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;t&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;rade hops between the starting location and your target.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC123&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;I&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;t is essentially 'long route' search, with the additional criteria that&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC124&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;e&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ach hop must be closer to your target.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC125&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;N&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ote that a profitable route to target is not guaranteed and the route may&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC126&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;e&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;nd somewhere near the target. Also the route is not direct and might wander&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC127&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;q&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;uite a bit on the way, spiraling down toward your target as dictated by&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;file-elitemerchantreadme-LC128&quot;/&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;p&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;rofit/h.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;The result is sorted first by profit and then by lowest number of hops, so scroll down a bit for variety.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;- - - Direct current to target trades - - -&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Find all trades between these two locations without trades in between&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="currentIndex">
+          <number>-1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="4">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Search Type</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="5">
         <widget class="QSpinBox" name="graphDepthSpin">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;How many trade stops do we want at most with our search.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This value is primarily for optimizing searches with too much data.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This may be necessary if you set min profit too low or max distance&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;too high.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;If you're worried about a setting, set this to 1 and give it a go.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;If it's still fast, bump it to 2 and see how it goes.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;For most use you can confidently set this at 99 and no route will&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;ever reach it, due to the route optimization algorithm culling&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;the tail as the average profit/h falls.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -126,33 +84,8 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="2">
+       <item row="4" column="3">
         <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QSpinBox" name="minProfitSpinBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This is a hard limit for basic single trade exchange.&lt;br/&gt;Its primary function is to limit the number of&lt;br/&gt;possibilities and speed up searching.&lt;br/&gt;1000 is a good fast value for most trading, but might&lt;br/&gt;give low or no results if you're desperate or in a&lt;br/&gt;short range vessel.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;WARNING! DATA DROWNING HAZARD!&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Lowering this will flood the tool with more trade data.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;If you set this lower, please also limit max hops.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background:rgb(255,255,255)</string>
-           </property>
-           <property name="minimum">
-            <number>400</number>
-           </property>
-           <property name="maximum">
-            <number>99999999</number>
-           </property>
-           <property name="value">
-            <number>1000</number>
-           </property>
-          </widget>
-         </item>
          <item>
           <widget class="QLabel" name="label_3">
            <property name="text">
@@ -193,37 +126,8 @@
          </item>
         </layout>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Starting system</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
+       <item row="1" column="3">
         <layout class="QHBoxLayout" name="startingsystemlayout">
-         <item>
-          <widget class="QComboBox" name="currentSystemCombo">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>100</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="editable">
-            <bool>true</bool>
-           </property>
-           <property name="maxVisibleItems">
-            <number>100</number>
-           </property>
-          </widget>
-         </item>
          <item>
           <widget class="QComboBox" name="currentStationCombo">
            <property name="minimumSize">
@@ -255,34 +159,8 @@
          </item>
         </layout>
        </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Min profit</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
+       <item row="3" column="3">
         <layout class="QHBoxLayout" name="targetsystemlayout">
-         <item>
-          <widget class="QComboBox" name="targetSystemCombo">
-           <property name="minimumSize">
-            <size>
-             <width>100</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Only used for &amp;quot;long route on way to target&amp;quot; search.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="editable">
-            <bool>true</bool>
-           </property>
-           <property name="maxVisibleItems">
-            <number>100</number>
-           </property>
-          </widget>
-         </item>
          <item>
           <widget class="QComboBox" name="targetStationCombo">
            <property name="minimumSize">
@@ -313,6 +191,93 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item row="4" column="1">
+        <widget class="QSpinBox" name="minProfitSpinBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;This is a hard limit for basic single trade exchange.&lt;br/&gt;Its primary function is to limit the number of&lt;br/&gt;possibilities and speed up searching.&lt;br/&gt;1000 is a good fast value for most trading, but might&lt;br/&gt;give low or no results if you're desperate or in a&lt;br/&gt;short range vessel.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;WARNING! DATA DROWNING HAZARD!&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;Lowering this will flood the tool with more trade data.&lt;/span&gt;&lt;/pre&gt;&lt;pre align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier';&quot;&gt;If you set this lower, please also limit max hops.&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background:rgb(255,255,255)</string>
+         </property>
+         <property name="minimum">
+          <number>400</number>
+         </property>
+         <property name="maximum">
+          <number>99999999</number>
+         </property>
+         <property name="value">
+          <number>1000</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Min profit</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Target system</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Starting system</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="currentSystemCombo">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="editable">
+          <bool>true</bool>
+         </property>
+         <property name="maxVisibleItems">
+          <number>100</number>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="targetSystemCombo">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Only used for &amp;quot;long route on way to target&amp;quot; search.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="editable">
+          <bool>true</bool>
+         </property>
+         <property name="maxVisibleItems">
+          <number>100</number>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -386,13 +351,10 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>currentSystemCombo</tabstop>
   <tabstop>currentStationCombo</tabstop>
   <tabstop>getCurrentBtn</tabstop>
-  <tabstop>targetSystemCombo</tabstop>
   <tabstop>targetStationCombo</tabstop>
   <tabstop>targetGetCurrentBtn</tabstop>
-  <tabstop>minProfitSpinBox</tabstop>
   <tabstop>maxDistanceSpinBox</tabstop>
   <tabstop>searchTypeCombo</tabstop>
   <tabstop>graphDepthSpin</tabstop>
