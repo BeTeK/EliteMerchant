@@ -479,6 +479,8 @@ class SQLiteDB(EliteDB.EliteDB):
       allegiance, exploited, controlled
       FROM commodityPrices, bases, baseInfo, systems, commodities
       WHERE
+      supply>0
+      AND
       landingPadSize=:landingPadSize
       AND
       DistanceSQ<:maxdistance*:maxdistance
@@ -594,6 +596,8 @@ class SQLiteDB(EliteDB.EliteDB):
         --SystemDistance < :maxdistance
         DistanceSq < :maxdistance*:maxdistance
         AND
+        A.supply>0
+        AND
         A.exportPrice BETWEEN 1 AND A.average
         AND
         profit > :minprofit
@@ -693,6 +697,8 @@ class SQLiteDB(EliteDB.EliteDB):
         --SystemDistance < :maxdistance
         DistanceSq < :maxdistance*:maxdistance
         AND
+        A.supply>0
+        AND
         A.exportPrice BETWEEN 1 AND A.average
         AND
         profit > :minprofit
@@ -768,6 +774,8 @@ class SQLiteDB(EliteDB.EliteDB):
           baseInfo,
           systems
         WHERE
+          supply>0
+          AND
           average>:minprofit*6
           AND
           commodityPrices.lastUpdated>:lastUpdated
@@ -912,6 +920,8 @@ class SQLiteDB(EliteDB.EliteDB):
         systemwindow AS A,
         systemwindow AS B
       WHERE
+        A.supply>0
+        AND
         A.systemname LIKE :sourcesystem
         AND
         A.basename LIKE :sourcebase
@@ -1124,6 +1134,8 @@ class SQLiteDB(EliteDB.EliteDB):
         AND
         A.commodityId=B.commodityId
         AND
+        A.supply>0
+        AND
         profit > 0
         AND
         A.exportPrice > 0
@@ -1210,6 +1222,8 @@ class SQLiteDB(EliteDB.EliteDB):
           baseInfo.baseId=bases.id
           AND
           baseInfo.landingPadSize>=:landingPadSize
+          AND
+          supply>0
         ) AS A,
         (
         SELECT
