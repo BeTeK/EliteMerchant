@@ -255,6 +255,7 @@ def queryDirectTrades(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,maxdis
   queryparams['targetsystem']=targetsystem or '%'
   queryparams['targetbase']=targetbase or '%'
   results=db.getTradeDirect(queryparams)
+  results+=db.getBlackmarketDirect(queryparams)
   return sorted(results,key=operator.itemgetter("profitPh"),reverse=True)
 
 
@@ -337,6 +338,10 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
   queryparams['jumprange']=jumprange
   queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
   results=db.getTradeProfits(queryparams)
+  combined=ProfitArrayToHierarchy(results,combined)
+
+  print("Fetching blackmarket trades")
+  results=db.getBlackmarketProfits(queryparams)
   combined=ProfitArrayToHierarchy(results,combined)
 
   combinedAr=ProfitHierarchyToArray(combined)

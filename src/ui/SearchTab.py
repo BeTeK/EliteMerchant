@@ -316,9 +316,6 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
         pos = self.currentSystem.getPosition()
 
-        # QComboBox.setItemData (self, int index, QVariant value, int role = Qt.UserRole)
-        # QVariant QComboBox.itemData (self, int index, int role = Qt.UserRole)
-
         print("Querying database...")
         searchFn = None
         if self.searchType=='singles':
@@ -452,6 +449,16 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
             # roles:    http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
 
+            if role== QtCore.Qt.DecorationRole: # icons
+                if "celltype" not in data:
+                  if columnorder[section] in ["Asystemname"]:
+                    return QtGui.QPixmap("power_1.png")
+                  if columnorder[section] in ["Bsystemname"]:
+                    return QtGui.QPixmap("power_1.png")
+                  if columnorder[section] in ["commodityname"]:
+                    if data['blackmarket']==1:
+                      return QtGui.QPixmap("illegal.png")#.scaled(30,30)
+
             if role == QtCore.Qt.TextColorRole: # text color
                 if "celltype" not in data:
                   if columnorder[section] in ["AexportPrice"]:
@@ -460,6 +467,10 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                   if columnorder[section] in ["BimportPrice"]:
                     if int(data['BlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
                       return QtGui.QBrush(QtGui.QColor(255,255,0))
+                  if columnorder[section] in ["commodityname"]:
+                    if data['blackmarket']==1:
+                      return QtGui.QBrush(QtGui.QColor(250,250,250))
+
 
             if role == QtCore.Qt.BackgroundRole: # background colors
                 if "celltype" in data:
@@ -467,7 +478,21 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                         return QtGui.QBrush(QtGui.QColor(255,255,255))
                     if data["celltype"]=='separatorrow':
                         return QtGui.QBrush(QtGui.QColor(200,200,200))
-                if columnorder[section] in ["Asystemname","Abasename","Bsystemname","Bbasename"]:
+                if columnorder[section] in ["Asystemname","Abasename"]:
+                    if data['Aallegiance']==1:
+                      return QtGui.QBrush(QtGui.QColor(200,255,200))
+                    if data['Aallegiance']==2:
+                      return QtGui.QBrush(QtGui.QColor(255,200,200))
+                    if data['Aallegiance']==3:
+                      return QtGui.QBrush(QtGui.QColor(200,200,255))
+                    return QtGui.QBrush(QtGui.QColor(255,255,230))
+                if columnorder[section] in ["Bsystemname","Bbasename"]:
+                    if data['Ballegiance']==1:
+                      return QtGui.QBrush(QtGui.QColor(200,255,200))
+                    if data['Ballegiance']==2:
+                      return QtGui.QBrush(QtGui.QColor(255,200,200))
+                    if data['Ballegiance']==3:
+                      return QtGui.QBrush(QtGui.QColor(200,200,255))
                     return QtGui.QBrush(QtGui.QColor(255,255,230))
                 if columnorder[section] in ["AexportPrice"]:
                     r,g,b=self.mw.AgeToColor(data['AlastUpdated'])
@@ -477,6 +502,10 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["profit","Cprofit","totalprofit"]:
                     return QtGui.QBrush(QtGui.QColor(255,230,255))
+                if columnorder[section] in ["commodityname"]:
+                    if data['blackmarket']==1:
+                      return QtGui.QBrush(QtGui.QColor(0,0,0))
+
                 return QtGui.QBrush(QtGui.QColor(255,255,255)) # everything else is white
 
             if role == QtCore.Qt.ToolTipRole: # tooltips

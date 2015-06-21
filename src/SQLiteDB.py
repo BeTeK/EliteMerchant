@@ -23,7 +23,7 @@ class SQLiteDB(EliteDB.EliteDB):
     self.commodityCache = {}
     self.lock = threading.RLock()
     self.dbEmpty=False # set this to true if db load fails for whatever reason and we need to force download
-    self.databaseversion=2
+    self.databaseversion=3
 
 
   def __enter__(self):
@@ -228,7 +228,7 @@ class SQLiteDB(EliteDB.EliteDB):
 
     ##############################
 
-    ## IMPORTANT! If you the tables, remember to update self.databaseversion in init at the top!
+    ## IMPORTANT! If you alter the tables, remember to update self.databaseversion in init at the top!
 
     ##############################
 
@@ -245,6 +245,9 @@ class SQLiteDB(EliteDB.EliteDB):
     cur.execute("""CREATE TABLE systems (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL UNIQUE,
+    "allegiance" INTEGER,
+    "controlled" INTEGER,
+    "exploited" INTEGER,
     "x" REAL, "y" REAL, "z" REAL
     )""")
     cur.execute("""CREATE INDEX "systemsIdIndex" on systems (id ASC)""")
@@ -287,6 +290,15 @@ class SQLiteDB(EliteDB.EliteDB):
     cur.execute("""CREATE INDEX "commodityPricesCommoditIdIndex" on commodityPrices (commodityId ASC)""")
     cur.execute("""CREATE INDEX "commodityPricesBaseIdIndex" on commodityPrices (baseId ASC)""")
 
+    cur.execute("""CREATE TABLE "prohibitedCommodities" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "commodityId" INTEGER NOT NULL,
+    "baseId" INTEGER NOT NULL,
+    UNIQUE(baseId,commodityId)
+    )""")
+    cur.execute("""CREATE INDEX "prohibitedCommoditiesCommoditIdIndex" on prohibitedCommodities (commodityId ASC)""")
+    cur.execute("""CREATE INDEX "prohibitedCommoditiesBaseIdIndex" on prohibitedCommodities (baseId ASC)""")
+
     cur.execute("""CREATE TABLE bases (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "name" TEXT NOT NULL,
@@ -317,7 +329,7 @@ class SQLiteDB(EliteDB.EliteDB):
   def importSystems(self,systemlist):
     with self.lock:
       cur = self.conn.cursor()
-      cur.executemany("INSERT OR IGNORE INTO systems(name,x,y,z) VALUES(:name,:x,:y,:z)",systemlist)
+      cur.executemany("INSERT OR IGNORE INTO systems(name,x,y,z,allegiance,controlled) VALUES(:name,:x,:y,:z,:allegiance,:controlled)",systemlist)
 
       self.conn.commit()
 
@@ -353,6 +365,35 @@ class SQLiteDB(EliteDB.EliteDB):
       WHERE baseId=:baseId AND commodityId=:commodityId AND lastUpdated<:lastUpdated
       """, marketlist)
       self.conn.commit()
+
+  def deleteProhibitedCommodities(self):
+    with self.lock:
+      cur = self.conn.cursor()
+      cur.execute('DELETE FROM prohibitedCommodities')
+      self.conn.commit()
+
+  def importProhibitedCommodities(self,marketlist):
+    with self.lock:
+      cur = self.conn.cursor()
+
+      # insert if new, skip if old
+      cur.executemany("INSERT OR IGNORE INTO prohibitedCommodities( commodityId, baseId ) VALUES(:commodityId,:baseId)",marketlist)
+
+      self.conn.commit()
+
+  def markExploitedSystems(self): # bake exploited status
+    with self.lock:
+      cur = self.conn.cursor() ## todo: do this
+      cur.execute("""
+      UPDATE systems
+      SET exploited=:power
+      WHERE
+      Distance3D( :x, :y, :z, x, y, z)<=15,
+      """)
+      self.conn.commit()
+
+      cur.execute('SELECT id,name FROM systems')
+      return [self._rowToDict(o) for o in cur.fetchall()]
 
   def getGalaxyExtents(self):
     with self.lock:
@@ -402,7 +443,7 @@ class SQLiteDB(EliteDB.EliteDB):
       queryvals['importexport'] = 'importexport' in queryvals and queryvals['importexport'] or 0 # check if exists and set to 1 or 0
       if 'commodityId' not in queryvals:
         return []
-
+      # todo add black market
       querystring="""
       SELECT *,
       systems.name AS systemname,
@@ -434,7 +475,8 @@ class SQLiteDB(EliteDB.EliteDB):
         ELSE exportPrice
       END AS notzero,
       (100*exportPrice/average) AS exportPavg,
-      (100*importPrice/average) AS importPavg
+      (100*importPrice/average) AS importPavg,
+      allegiance, exploited, controlled
       FROM commodityPrices, bases, baseInfo, systems, commodities
       WHERE
       landingPadSize=:landingPadSize
@@ -488,7 +530,7 @@ class SQLiteDB(EliteDB.EliteDB):
       WITH systemwindow AS (
       SELECT
         systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
-        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated
+        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated, allegiance, exploited, controlled
       FROM
         commodities,
         commodityPrices,
@@ -537,7 +579,10 @@ class SQLiteDB(EliteDB.EliteDB):
         A.x AS Ax, A.y AS Ay, A.z AS Az,
         B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
         B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
-        B.x AS Bx, B.y AS By, B.z AS Bz
+        B.x AS Bx, B.y AS By, B.z AS Bz,
+        0 AS blackmarket,
+        A.allegiance AS Aallegiance, A.exploited AS Aexploited, A.controlled AS Acontrolled,
+        B.allegiance AS Ballegiance, B.exploited AS Bexploited, B.controlled AS Bcontrolled
       FROM
         systemwindow AS A,
         systemwindow AS B
@@ -585,7 +630,8 @@ class SQLiteDB(EliteDB.EliteDB):
       WITH systemwindow AS (
       SELECT
         systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
-        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated
+        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated,
+        allegiance, exploited, controlled
       FROM
         commodities,
         commodityPrices,
@@ -632,7 +678,10 @@ class SQLiteDB(EliteDB.EliteDB):
         A.x AS Ax, A.y AS Ay, A.z AS Az,
         B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
         B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
-        B.x AS Bx, B.y AS By, B.z AS Bz
+        B.x AS Bx, B.y AS By, B.z AS Bz,
+        0 AS blackmarket,
+        A.allegiance AS Aallegiance, A.exploited AS Aexploited, A.controlled AS Acontrolled,
+        B.allegiance AS Ballegiance, B.exploited AS Bexploited, B.controlled AS Bcontrolled
       FROM
         systemwindow AS A,
         systemwindow AS B
@@ -663,6 +712,131 @@ class SQLiteDB(EliteDB.EliteDB):
         row['profitPh']=row['profit']/row['hours']
       return rows
 
+  def getBlackmarketProfits(self,queryvals):
+    with self.lock:
+      cur = self.conn.cursor()
+
+      queryvals['maxdistance'] = 'maxdistance' in queryvals and queryvals['maxdistance'] or 30
+      queryvals['minprofit'] = 'minprofit' in queryvals and queryvals['minprofit'] or 0
+      queryvals['minprofitPh'] = 'minprofitPh' in queryvals and queryvals['minprofitPh'] or 0
+      queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
+      queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
+      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
+      queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
+
+
+      querystring="""
+      SELECT
+        B.importPrice-A.exportPrice AS profit,
+        Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) AS SystemDistance,
+        (
+          (
+            StarToBase( B.distance )
+            +
+            BaseToBase( Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) ,:jumprange)
+          )/60/60
+        ) AS hours,
+        (
+            (A.x - B.x)*(A.x - B.x)
+            +
+            (A.y - B.y)*(A.y - B.y)
+            +
+            (A.z - B.z)*(A.z - B.z)
+        ) AS DistanceSq,
+        A.commodityname AS commodityname,
+        A.commodityId AS commodityId,
+        A.average AS average,
+        A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
+        A.exportPrice AS AexportPrice, A.supply AS Asupply, A.lastUpdated AS AlastUpdated,
+        A.x AS Ax, A.y AS Ay, A.z AS Az,
+        B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
+        B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
+        B.x AS Bx, B.y AS By, B.z AS Bz,
+        1 AS blackmarket,
+        A.allegiance AS Aallegiance, A.exploited AS Aexploited, A.controlled AS Acontrolled,
+        B.allegiance AS Ballegiance, B.exploited AS Bexploited, B.controlled AS Bcontrolled
+      FROM
+        (
+        SELECT
+          systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
+          commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated,
+          allegiance, exploited, controlled
+        FROM
+          commodities,
+          commodityPrices,
+          bases,
+          baseInfo,
+          systems
+        WHERE
+          average>:minprofit*6
+          AND
+          commodityPrices.lastUpdated>:lastUpdated
+          AND
+          commodityPrices.commodityId=commodities.id
+          AND
+          commodityPrices.baseId=bases.id
+          AND
+          bases.systemId=systems.id
+          AND
+          baseInfo.baseId=bases.id
+          AND
+          baseInfo.landingPadSize>=:landingPadSize
+        ) AS A,
+        (
+        SELECT
+          systems.name AS systemname, bases.name AS basename, prohibitedCommodities.baseId, systemId, distance, landingPadSize, x, y, z,
+          commodityId, 0 AS exportPrice, 0 AS supply, 0 AS demand, commodities.name AS commodityname, average, 0 AS lastUpdated,
+          CASE
+            WHEN systems.exploited=9 OR systems.controlled=9 THEN average*1.1 -- Power black market boost
+            ELSE average
+          END AS importPrice,
+          allegiance, exploited, controlled
+        FROM
+          commodities,
+          prohibitedCommodities,
+          bases,
+          baseInfo,
+          systems
+        WHERE
+          baseInfo.blackMarket=1
+          AND
+          prohibitedCommodities.commodityId=commodities.id
+          AND
+          prohibitedCommodities.baseId=bases.id
+          AND
+          bases.systemId=systems.id
+          AND
+          baseInfo.baseId=bases.id
+          AND
+          baseInfo.landingPadSize>=:landingPadSize
+        ) AS B
+      WHERE
+        --B.importPrice > B.average
+        --AND
+        A.commodityId=B.commodityId
+        AND
+        --SystemDistance < :maxdistance
+        DistanceSq < :maxdistance*:maxdistance
+        AND
+        A.exportPrice BETWEEN 1 AND A.average
+        AND
+        profit > :minprofit
+        --AND
+        --profit/hours > :minprofitPh
+        --ORDER BY profit DESC
+        --LIMIT 0,10
+      """
+
+      querystart=time.time()
+      result=cur.execute(querystring,queryvals).fetchall()
+      querytime=time.time()-querystart
+
+      print("getBlackmarketProfits, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
+      rows=[self._rowToDict(o) for o in result]
+      for row in rows:
+        row['profitPh']=row['profit']/row['hours']
+      return rows
+
   def getTradeExports(self,queryvals):
     with self.lock:
       cur = self.conn.cursor()
@@ -682,7 +856,8 @@ class SQLiteDB(EliteDB.EliteDB):
       WITH systemwindow AS (
       SELECT
         systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
-        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated
+        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated,
+        allegiance, exploited, controlled
       FROM
         commodities,
         commodityPrices,
@@ -729,7 +904,10 @@ class SQLiteDB(EliteDB.EliteDB):
         A.x AS Ax, A.y AS Ay, A.z AS Az,
         B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
         B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
-        B.x AS Bx, B.y AS By, B.z AS Bz
+        B.x AS Bx, B.y AS By, B.z AS Bz,
+        0 AS blackmarket,
+        A.allegiance AS Aallegiance, A.exploited AS Aexploited, A.controlled AS Acontrolled,
+        B.allegiance AS Ballegiance, B.exploited AS Bexploited, B.controlled AS Bcontrolled
       FROM
         systemwindow AS A,
         systemwindow AS B
@@ -776,7 +954,8 @@ class SQLiteDB(EliteDB.EliteDB):
       WITH systemwindow AS (
       SELECT
         systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
-        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated
+        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated,
+        allegiance, exploited, controlled
       FROM
         commodities,
         commodityPrices,
@@ -823,7 +1002,10 @@ class SQLiteDB(EliteDB.EliteDB):
         A.x AS Ax, A.y AS Ay, A.z AS Az,
         B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
         B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
-        B.x AS Bx, B.y AS By, B.z AS Bz
+        B.x AS Bx, B.y AS By, B.z AS Bz,
+        0 AS blackmarket,
+        A.allegiance AS Aallegiance, A.exploited AS Aexploited, A.controlled AS Acontrolled,
+        B.allegiance AS Ballegiance, B.exploited AS Bexploited, B.controlled AS Bcontrolled
       FROM
         systemwindow AS A,
         systemwindow AS B
@@ -872,7 +1054,8 @@ class SQLiteDB(EliteDB.EliteDB):
       WITH systemwindow AS (
       SELECT
         systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
-        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated
+        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated,
+        allegiance, exploited, controlled
       FROM
         commodities,
         commodityPrices,
@@ -923,7 +1106,10 @@ class SQLiteDB(EliteDB.EliteDB):
         A.x AS Ax, A.y AS Ay, A.z AS Az,
         B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
         B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
-        B.x AS Bx, B.y AS By, B.z AS Bz
+        B.x AS Bx, B.y AS By, B.z AS Bz,
+        0 AS blackmarket,
+        A.allegiance AS Aallegiance, A.exploited AS Aexploited, A.controlled AS Acontrolled,
+        B.allegiance AS Ballegiance, B.exploited AS Bexploited, B.controlled AS Bcontrolled
       FROM
         systemwindow AS A,
         systemwindow AS B
@@ -942,12 +1128,140 @@ class SQLiteDB(EliteDB.EliteDB):
         AND
         A.exportPrice > 0
       """
-
+      print(queryvals)
       querystart=time.time()
       result=cur.execute(querystring,queryvals).fetchall()
       querytime=time.time()-querystart
 
       print("getTradeDirect, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
+      rows=[self._rowToDict(o) for o in result]
+      for row in rows:
+        row['profitPh']=row['profit']/row['hours']
+      return rows
+
+  def getBlackmarketDirect(self,queryvals):
+    with self.lock:
+      cur = self.conn.cursor()
+
+      queryvals['maxdistance'] = 'maxdistance' in queryvals and queryvals['maxdistance'] or 30
+      queryvals['window'] = 'window' in queryvals and queryvals['window']/2 or 50
+      queryvals['minprofit'] = 'minprofit' in queryvals and queryvals['minprofit'] or 0
+      queryvals['minprofitPh'] = 'minprofitPh' in queryvals and queryvals['minprofitPh'] or 0
+      queryvals['landingPadSize'] = 'landingPadSize' in queryvals and queryvals['landingPadSize'] or 0
+      queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
+      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))*2  # allow twice as old
+      queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
+      queryvals['sourcesystem'] = 'sourcesystem' in queryvals and queryvals['sourcesystem'] or '%'
+      queryvals['sourcebase'] = 'sourcebase' in queryvals and queryvals['sourcebase'] or '%'
+      queryvals['targetsystem'] = 'targetsystem' in queryvals and queryvals['targetsystem'] or '%'
+      queryvals['targetbase'] = 'targetbase' in queryvals and queryvals['targetbase'] or '%'
+
+      querystring="""
+      SELECT
+        B.importPrice-A.exportPrice AS profit,
+        Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) AS SystemDistance,
+        (
+          (
+            StarToBase( B.distance )
+            +
+            BaseToBase( Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) ,:jumprange)
+          )/60/60
+        ) AS hours,
+        (
+            (A.x - B.x)*(A.x - B.x)
+            +
+            (A.y - B.y)*(A.y - B.y)
+            +
+            (A.z - B.z)*(A.z - B.z)
+        ) AS DistanceSq,
+        A.commodityname AS commodityname,
+        A.commodityId AS commodityId,
+        A.average AS average,
+        A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
+        A.exportPrice AS AexportPrice, A.supply AS Asupply, A.lastUpdated AS AlastUpdated,
+        A.x AS Ax, A.y AS Ay, A.z AS Az,
+        B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
+        B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
+        B.x AS Bx, B.y AS By, B.z AS Bz,
+        1 AS blackmarket,
+        A.allegiance AS Aallegiance, A.exploited AS Aexploited, A.controlled AS Acontrolled,
+        B.allegiance AS Ballegiance, B.exploited AS Bexploited, B.controlled AS Bcontrolled
+      FROM
+        (
+        SELECT
+          systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
+          commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated,
+          allegiance, exploited, controlled
+        FROM
+          commodities,
+          commodityPrices,
+          bases,
+          baseInfo,
+          systems
+        WHERE
+          systems.name LIKE :sourcesystem
+          AND
+          commodityPrices.commodityId=commodities.id
+          AND
+          commodityPrices.baseId=bases.id
+          AND
+          bases.systemId=systems.id
+          AND
+          baseInfo.baseId=bases.id
+          AND
+          baseInfo.landingPadSize>=:landingPadSize
+        ) AS A,
+        (
+        SELECT
+          systems.name AS systemname, bases.name AS basename, prohibitedCommodities.baseId, systemId, distance, landingPadSize, x, y, z,
+          commodityId, 0 AS exportPrice, 0 AS supply, 0 AS demand, commodities.name AS commodityname, average, 0 AS lastUpdated,
+          CASE
+            WHEN systems.exploited=9 OR systems.controlled=9 THEN average*1.1 -- Power black market boost
+            ELSE average
+          END AS importPrice,
+          allegiance, exploited, controlled
+        FROM
+          commodities,
+          prohibitedCommodities,
+          bases,
+          baseInfo,
+          systems
+        WHERE
+          systems.name LIKE :targetsystem
+          AND
+          baseInfo.blackMarket=1
+          AND
+          prohibitedCommodities.commodityId=commodities.id
+          AND
+          prohibitedCommodities.baseId=bases.id
+          AND
+          bases.systemId=systems.id
+          AND
+          baseInfo.baseId=bases.id
+          AND
+          baseInfo.landingPadSize>=:landingPadSize
+        ) AS B
+      WHERE
+        A.systemname LIKE :sourcesystem
+        AND
+        A.basename LIKE :sourcebase
+        AND
+        B.systemname LIKE :targetsystem
+        AND
+        B.basename LIKE :targetbase
+        AND
+        A.commodityId=B.commodityId
+        AND
+        profit > 0
+        AND
+        A.exportPrice > 0
+      """
+      print(queryvals)
+      querystart=time.time()
+      result=cur.execute(querystring,queryvals).fetchall()
+      querytime=time.time()-querystart
+
+      print("getBlackmarketDirect, "+str(len(result))+" values, "+str("%.2f"%querytime)+" seconds")
       rows=[self._rowToDict(o) for o in result]
       for row in rows:
         row['profitPh']=row['profit']/row['hours']
