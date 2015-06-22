@@ -39,8 +39,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.searchTypes=[
           ('direct','Direct trades'),
           ('target','On way to Target'),
-          ('station_exports','From current Station'),
-          ('system_exports','From current System'),
+          ('station_exports','Exports from current Station'),
+          ('system_exports','Exports from current System'),
           ('loop','Loop route'),
           ('long','Continuous route'),
           ('singles','Single trades'),
@@ -464,6 +464,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                   if columnorder[section] in ["AexportPrice"]:
                     if int(data['AlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
                       return QtGui.QBrush(QtGui.QColor(255,255,0))
+                    if int(data['Asupply']<100):
+                      return QtGui.QBrush(QtGui.QColor(255,255,0))
                   if columnorder[section] in ["BimportPrice"]:
                     if int(data['BlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
                       return QtGui.QBrush(QtGui.QColor(255,255,0))
@@ -495,6 +497,8 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                       return QtGui.QBrush(QtGui.QColor(200,200,255))
                     return QtGui.QBrush(QtGui.QColor(255,255,230))
                 if columnorder[section] in ["AexportPrice"]:
+                    if int(data['Asupply']<100):
+                      return QtGui.QBrush(QtGui.QColor(255,0,0))
                     r,g,b=self.mw.AgeToColor(data['AlastUpdated'])
                     return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["BimportPrice"]:
