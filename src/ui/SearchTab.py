@@ -452,12 +452,12 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             if role== QtCore.Qt.DecorationRole: # icons
                 if "celltype" not in data:
                   if columnorder[section] in ["Asystemname"]:
-                    return QtGui.QPixmap("power_1.png")
+                    return QtGui.QPixmap("img/power_1.png")
                   if columnorder[section] in ["Bsystemname"]:
-                    return QtGui.QPixmap("power_1.png")
+                    return QtGui.QPixmap("img/power_1.png")
                   if columnorder[section] in ["commodityname"]:
                     if data['blackmarket']==1:
-                      return QtGui.QPixmap("illegal.png")#.scaled(30,30)
+                      return QtGui.QPixmap("img/illegal.png")#.scaled(30,30)
 
             if role == QtCore.Qt.TextColorRole: # text color
                 if "celltype" not in data:

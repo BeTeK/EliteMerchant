@@ -59,6 +59,9 @@ Section "Elite Merchant (required)" ;No components page, name is not important
   SetOutPath $INSTDIR\sounds
   File src\dist\sounds\*
   
+  SetOutPath $INSTDIR\img
+  File src\dist\img\*
+  
   SetOutPath $INSTDIR
   File src\dist\*
   
