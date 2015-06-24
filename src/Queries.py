@@ -203,8 +203,8 @@ def ProfitArrayToHierarchyReverse(oneway,prune=None): # add old hierarchy as sec
       prune[way["BbaseId"]][way["AbaseId"]][way["commodityId"]]=way
   return prune
 
-def queryProfitRoundtrip(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ):
-  oneway=queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange )
+def queryProfitRoundtrip(db,queryparams):
+  oneway=queryProfit(db,dict(queryparams))
   twoway=[]
 
   print("Finding two way routes...")
@@ -238,47 +238,34 @@ def queryProfitRoundtrip(db,x,y,z,windowsize,windows,maxdistance,minprofit,minpr
   return sorted(twoway,key=operator.itemgetter("totalprofitPh"), reverse=True)
 
 
-def queryDirectTrades(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth,sourcesystem=None,sourcebase=None,targetsystem=None,targetbase=None):
-  queryparams=dict()
-  queryparams['x']=x
-  queryparams['y']=y
-  queryparams['z']=z
-  queryparams['window']=windowsize
-  queryparams['maxdistance']=maxdistance
+def queryDirectTrades(db,queryparams):
+
   queryparams['minprofit']=1
-  queryparams['minprofitPh']=1 # todo:  remove
-  queryparams['landingPadSize']=landingPadSize
-  queryparams['jumprange']=jumprange
   queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
-  queryparams['sourcesystem']=sourcesystem or '%'
-  queryparams['sourcebase']=sourcebase or '%'
-  queryparams['targetsystem']=targetsystem or '%'
-  queryparams['targetbase']=targetbase or '%'
-  results=db.getTradeDirect(queryparams)
-  results+=db.getBlackmarketDirect(queryparams)
+  results=db.getTradeDirect(dict(queryparams))
+  results+=db.getBlackmarketDirect(dict(queryparams))
   return sorted(results,key=operator.itemgetter("profitPh"),reverse=True)
 
 
-def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,sourcesystem=None,sourcebase=None,targetsystem=None,targetbase=None,x2=None,y2=None,z2=None):
+def queryProfit(db,queryparams):
   #windows=queryGenerateWindows(db,x,y,z,windowsize,maxdistance,windows)
   combined=dict()
 
+  #x,y,z=queryparams['x'],queryparams['y'],queryparams['z']
+  x2,y2,z2=queryparams['x2'],queryparams['y2'],queryparams['z2']
+  targetbase=queryparams['targetbase']
+  targetsystem=queryparams['targetsystem']
+  sourcebase=queryparams['sourcebase']
+  sourcesystem=queryparams['sourcesystem']
+  mindepth=queryparams['graphDepthMin']
+  maxdepth=queryparams['graphDepthMax']
+
   if sourcesystem is not None or sourcebase is not None:
+    source_queryparams=dict(queryparams) # copy
     print("Fetching starting exports with loosened criteria ("+str(sourcesystem)+", "+str(sourcebase)+")")
-    queryparams=dict()
-    queryparams['x']=x
-    queryparams['y']=y
-    queryparams['z']=z
-    queryparams['window']=maxdistance
-    queryparams['maxdistance']=maxdistance
-    queryparams['minprofit']=0
-    queryparams['minprofitPh']=0 # todo:  remove
-    queryparams['landingPadSize']=landingPadSize
-    queryparams['jumprange']=jumprange
-    queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
-    queryparams['sourcesystem']=sourcesystem or '%'
-    queryparams['sourcebase']=sourcebase or '%'
-    results=db.getTradeExports(queryparams)
+    source_queryparams['minprofit']=0
+    source_queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
+    results=db.getTradeExports(source_queryparams)
     if len(results)==0:
       print('No exports found')
       return []
@@ -295,21 +282,11 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     combined=ProfitArrayToHierarchy(results,combined)
 
   if targetsystem is not None or targetbase is not None:
+    target_queryparams=dict(queryparams) # copy
     print("Fetching target imports with loosened criteria ("+str(targetsystem)+", "+str(targetbase)+")")
-    queryparams=dict()
-    queryparams['x']=x2
-    queryparams['y']=y2
-    queryparams['z']=z2
-    queryparams['window']=maxdistance
-    queryparams['maxdistance']=maxdistance
-    queryparams['minprofit']=0
-    queryparams['minprofitPh']=0 # todo:  remove
-    queryparams['landingPadSize']=landingPadSize
-    queryparams['jumprange']=jumprange
-    queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
-    queryparams['targetsystem']=targetsystem or '%'
-    queryparams['targetbase']=targetbase or '%'
-    results=db.getTradeImports(queryparams)
+    target_queryparams['minprofit']=0
+    target_queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
+    results=db.getTradeImports(target_queryparams)
     if len(results)==0:
       print('No imports found')
       #return [] # but try to get as close as possible
@@ -325,17 +302,8 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
     results=sorted(results,key=operator.itemgetter("profitPh"),reverse=True)[:50] # cap to 50 best deals
     combined=ProfitArrayToHierarchy(results,combined)
 
+
   print("Fetching galaxywide trades... (this may take a while)")
-  queryparams=dict()
-  queryparams['x']=x
-  queryparams['y']=y
-  queryparams['z']=z
-  queryparams['window']=windowsize
-  queryparams['maxdistance']=maxdistance
-  queryparams['minprofit']=minprofit
-  queryparams['minprofitPh']=minprofitPh # todo:  remove
-  queryparams['landingPadSize']=landingPadSize
-  queryparams['jumprange']=jumprange
   queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
   results=db.getTradeProfits(queryparams)
   combined=ProfitArrayToHierarchy(results,combined)
@@ -347,8 +315,8 @@ def queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,la
   combinedAr=ProfitHierarchyToArray(combined)
   return sorted(combinedAr,key=operator.itemgetter("profitPh"),reverse=True)
 
-def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth):
-  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange )
+def queryProfitGraphLoops(db,queryparams):
+  oneway = queryProfit(db,dict(queryparams)) # query with copy to avoid poisoning future use of queryparams
 
   """
   # list of unique baseIds
@@ -363,6 +331,16 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
 
   print("discarded "+str(len(bases_deadends))+" confirmed deadends")
   """
+
+  #x,y,z=queryparams['x'],queryparams['y'],queryparams['z']
+  x2,y2,z2=queryparams['x2'],queryparams['y2'],queryparams['z2']
+  targetbase=queryparams['targetbase']
+  #targetsystem=queryparams['targetsystem']
+  sourcebase=queryparams['sourcebase']
+  sourcesystem=queryparams['sourcesystem']
+  mindepth=queryparams['graphDepthMin']
+  maxdepth=queryparams['graphDepthMax']
+
   profitmarginstep=0.1
   profitmargin=0.99
   walktimeout=5 # if search takes this long, it's too long and we're choking
@@ -390,7 +368,7 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
   print(str(len(oneway))+" viable trade hops")
   if len(oneway)==0:
     return []
-  print("walking galaxy-graph for loops")
+  print("walking galaxy-graph...")
 
   querystart=time.time()
 
@@ -519,8 +497,8 @@ def queryProfitGraphLoops(db,x,y,z,windowsize,windows,maxdistance,minprofit,minp
     #returnarray.append('separatorrow')
   return returnarray
 
-def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth,sourcesystem=None,sourcebase=None):
-  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange,sourcesystem,sourcebase)
+def queryProfitGraphDeadends(db,queryparams):
+  oneway = queryProfit(db,dict(queryparams))
 
   prune=ProfitArrayToHierarchy_profitPh(oneway)
 
@@ -529,6 +507,15 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
   profitfailuredepth=1
   profitmargin=0.9
   expectedminimumroutes=1000
+
+  #x,y,z=queryparams['x'],queryparams['y'],queryparams['z']
+  #x2,y2,z2=queryparams['x2'],queryparams['y2'],queryparams['z2']
+  #targetbase=queryparams['targetbase']
+  #targetsystem=queryparams['targetsystem']
+  sourcebase=queryparams['sourcebase']
+  sourcesystem=queryparams['sourcesystem']
+  mindepth=queryparams['graphDepthMin']
+  maxdepth=queryparams['graphDepthMax']
 
   profitpotential=0
   for way in oneway:
@@ -548,7 +535,7 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
   if len(oneway)==0:
     return []
 
-  print("walking galaxy-graph for loops")
+  print("walking galaxy-graph...")
 
   querystart=time.time()
 
@@ -688,15 +675,21 @@ def queryProfitGraphDeadends(db,x,y,z,windowsize,windows,maxdistance,minprofit,m
     #returnarray.append('separatorrow')
   return returnarray
 
-def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange ,mindepth,maxdepth,sourcesystem=None,sourcebase=None,targetsystem=None,targetbase=None):
-  oneway = queryProfit(db,x,y,z,windowsize,windows,maxdistance,minprofit,minprofitPh,landingPadSize,jumprange,sourcesystem,sourcebase,targetsystem,targetbase,x2,y2,z2)
+def queryProfitGraphTarget(db,queryparams):
+  oneway = queryProfit(db,dict(queryparams)) # copy
 
 
   def distance3d(x,y,z,i,j,k):
     return ((x-i)**2+(y-j)**2+(z-k)**2)**.5
 
-  totaldistance=distance3d(x2,y2,z2,x,y,z) -1 # extra for possible rounding errors
-
+  #x,y,z=queryparams['x'],queryparams['y'],queryparams['z']
+  x2,y2,z2=queryparams['x2'],queryparams['y2'],queryparams['z2']
+  targetbase=queryparams['targetbase']
+  #targetsystem=queryparams['targetsystem']
+  sourcebase=queryparams['sourcebase']
+  sourcesystem=queryparams['sourcesystem']
+  mindepth=queryparams['graphDepthMin']
+  maxdepth=queryparams['graphDepthMax']
 
   walktimeout=5 # if search takes this long, it's too long and we're choking
   profitmarginstep=0.1
@@ -728,7 +721,7 @@ def queryProfitGraphTarget(db,x,y,z,x2,y2,z2,directionality,windowsize,windows,m
 
   prune=ProfitArrayToHierarchy_profitPh(oneway)
 
-  print("walking galaxy-graph for loops")
+  print("walking galaxy-graph...")
 
   querystart=time.time()
 

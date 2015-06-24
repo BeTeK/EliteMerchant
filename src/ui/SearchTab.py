@@ -298,66 +298,70 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         maxDistance = float(self.maxDistanceSpinBox.value())
         jumprange = float(self.mainwindow.jumpRangeSpinBox.value())
         minProfit = int(self.minProfitSpinBox.value())
-        #minProfit =None
-        minProfitPh =None
-        #if bool(self.profitPhChk.isChecked()):
-        #    minProfitPh = int(self.minProfitSpinBox.value())
-        #else:
-        #    minProfit = int(self.minProfitSpinBox.value())
         minPadSize = int(self.mainwindow.minPadSizeCombo.currentIndex())
         graphDepth = int(self.graphMinDepthSpin.value())
         graphDepthmax = int(self.graphDepthSpin.value())
-        #twoway = bool(self.twoWayBool.isChecked())
 
         if graphDepth>graphDepthmax:
           print("min hops have to be less than max hops!")
           self.mainwindow.sounds.play('error')
           return
 
+        if currentBase == 'ANY':
+          currentBase=None
+        if targetBase == 'ANY':
+          targetBase=None
+
         pos = self.currentSystem.getPosition()
+        tpos = self.targetSystem.getPosition()
+
+        directionality=0.0 # todo: currently unused - remove?
+        queryparams=dict({
+          "x":pos[0],
+          "y":pos[1],
+          "z":pos[2],
+          "x2":tpos[0],
+          "y2":tpos[1],
+          "z2":tpos[2],
+          "directionality":directionality,
+          "maxdistance":maxDistance,
+          "minprofit":minProfit,
+          "landingPadSize":minPadSize,
+          "jumprange":jumprange,
+          "graphDepthMin":graphDepth,
+          "graphDepthMax":graphDepthmax,
+          "sourcesystem":currentSystem,
+          "sourcebase":currentBase,
+          "targetsystem":None,
+          "targetbase":None
+        })
 
         print("Querying database...")
         searchFn = None
         if self.searchType=='singles':
             print("queryProfit")
-            searchFn = lambda : Queries.queryProfit(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange )
-
-            #self.result = self.db.queryProfit(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
+            searchFn = lambda : Queries.queryProfit(self.db, queryparams )
         elif self.searchType=='loop':
             print("queryProfitGraphLoops")
-            searchFn = lambda : Queries.queryProfitGraphLoops(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
+            searchFn = lambda : Queries.queryProfitGraphLoops(self.db, queryparams )
         elif self.searchType=='long':
             print("queryProfitGraphDeadends")
-            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
+            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, queryparams )
         elif self.searchType=='target':
+            queryparams['targetsystem']=targetSystem
+            queryparams['targetbase']=targetBase
             print("queryProfitGraphTarget")
-            if currentBase == 'ANY':
-              currentBase=None
-            if targetBase == 'ANY':
-              targetBase=None
-            tpos=self.targetSystem.getPosition()
-            directionality=0.0
-            searchFn = lambda : Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase,targetSystem,targetBase)
+            searchFn = lambda : Queries.queryProfitGraphTarget(self.db, queryparams )
         elif self.searchType=='direct':
+            queryparams['targetsystem']=targetSystem
+            queryparams['targetbase']=targetBase
             print("queryDirectTrades")
-            if currentBase == 'ANY':
-              currentBase=None
-            if targetBase == 'ANY':
-              targetBase=None
-            tpos=self.targetSystem.getPosition()
-            directionality=0.0
-            searchFn = lambda : Queries.queryDirectTrades(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase,targetSystem,targetBase)
+            searchFn = lambda : Queries.queryDirectTrades(self.db, queryparams )
         elif self.searchType in ['station_exports','system_exports']:
-            if currentBase == 'ANY':
-              currentBase=None
             print("queryProfitGraphDeadends from current")
-            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
+            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, queryparams )
         else:
             print("unknown search type - we should not be here")
-        #elif searchType==1:
-        #    print("queryProfitRoundtrip")
-        #    self.result = Queries.queryProfitRoundtrip(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize)
-        #    #self.result = self.db.queryProfitRoundtrip(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
 
         if searchFn is not None:
             self.currentWorker = ThreadWorker.ThreadWorker(searchFn, lambda result: self._resultsUpdated.emit(result))
