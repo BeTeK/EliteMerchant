@@ -791,11 +791,11 @@ class SQLiteDB(EliteDB.EliteDB):
         ) AS A,
         (
         SELECT
-          systems.name AS systemname, bases.name AS basename, prohibitedCommodities.baseId, systemId, distance, landingPadSize, x, y, z,
-          commodityId, 0 AS exportPrice, 0 AS supply, 0 AS demand, commodities.name AS commodityname, average, 0 AS lastUpdated,
+          systems.name AS systemname, bases.name AS basename, prohibitedCommodities.baseId, bases.systemId, distance, landingPadSize, x, y, z,
+          prohibitedCommodities.commodityId, 0 AS exportPrice, 0 AS supply, 0 AS demand, commodities.name AS commodityname, average, legal.lastUpdated AS lastUpdated,
           CASE
-            WHEN systems.exploited=9 OR systems.controlled=9 THEN average*1.1 -- Power black market boost
-            ELSE average
+            WHEN systems.exploited=9 OR systems.controlled=9 THEN legal.importPrice*1.1 -- Power black market boost
+            ELSE legal.importPrice
           END AS importPrice,
           allegiance, exploited, controlled
         FROM
@@ -803,7 +803,23 @@ class SQLiteDB(EliteDB.EliteDB):
           prohibitedCommodities,
           bases,
           baseInfo,
-          systems
+          systems,
+          (
+            SELECT
+              systemId, commodityId, importPrice, lastUpdated
+            FROM
+              commodities,
+              commodityPrices,
+              bases,
+              systems
+            WHERE
+              commodityPrices.commodityId=commodities.id
+              AND
+              commodityPrices.baseId=bases.id
+              AND
+              bases.systemId=systems.id
+            GROUP BY systemId, commodityId
+          ) AS legal
         WHERE
           baseInfo.blackMarket=1
           AND
@@ -816,6 +832,10 @@ class SQLiteDB(EliteDB.EliteDB):
           baseInfo.baseId=bases.id
           AND
           baseInfo.landingPadSize>=:landingPadSize
+          AND
+          legal.systemId=systems.id
+          AND
+          legal.commodityId=commodities.id
         ) AS B
       WHERE
         --B.importPrice > B.average
@@ -828,10 +848,6 @@ class SQLiteDB(EliteDB.EliteDB):
         A.exportPrice BETWEEN 1 AND A.average
         AND
         profit > :minprofit
-        --AND
-        --profit/hours > :minprofitPh
-        --ORDER BY profit DESC
-        --LIMIT 0,10
       """
 
       querystart=time.time()
@@ -1220,11 +1236,11 @@ class SQLiteDB(EliteDB.EliteDB):
         ) AS A,
         (
         SELECT
-          systems.name AS systemname, bases.name AS basename, prohibitedCommodities.baseId, systemId, distance, landingPadSize, x, y, z,
-          commodityId, 0 AS exportPrice, 0 AS supply, 0 AS demand, commodities.name AS commodityname, average, 0 AS lastUpdated,
+          systems.name AS systemname, bases.name AS basename, prohibitedCommodities.baseId, bases.systemId, distance, landingPadSize, x, y, z,
+          prohibitedCommodities.commodityId, 0 AS exportPrice, 0 AS supply, 0 AS demand, commodities.name AS commodityname, average, legal.lastUpdated AS lastUpdated,
           CASE
-            WHEN systems.exploited=9 OR systems.controlled=9 THEN average*1.1 -- Power black market boost
-            ELSE average
+            WHEN systems.exploited=9 OR systems.controlled=9 THEN legal.importPrice*1.1 -- Power black market boost
+            ELSE legal.importPrice
           END AS importPrice,
           allegiance, exploited, controlled
         FROM
@@ -1232,8 +1248,28 @@ class SQLiteDB(EliteDB.EliteDB):
           prohibitedCommodities,
           bases,
           baseInfo,
-          systems
+          systems,
+          (
+            SELECT
+              systemId, commodityId, importPrice, lastUpdated
+            FROM
+              commodities,
+              commodityPrices,
+              bases,
+              systems
+            WHERE
+              commodityPrices.commodityId=commodities.id
+              AND
+              commodityPrices.baseId=bases.id
+              AND
+              bases.systemId=systems.id
+            GROUP BY systemId, commodityId
+          ) AS legal
         WHERE
+          legal.systemId=systems.id
+          AND
+          legal.commodityId=commodities.id
+          AND
           systems.name LIKE :targetsystem
           AND
           baseInfo.blackMarket=1

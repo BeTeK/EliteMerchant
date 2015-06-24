@@ -558,20 +558,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                         return "Distance from "+curname+" (current system)\n" \
                             "to "+data["Bsystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly " \
                             "("+str("%.2f" % (SpaceTime.BaseToBase(dist)/60))+"min)"
-                elif columnorder[section] in ["Asystemname","Abasename"]:
-                    padsize={
-                        None:"unknown",
-                        0:'S',
-                        1:'M',
-                        2:'L'
-                    }
-                    returnstring=""
-                    returnstring+="System: "+data["Asystemname"]+"\n"
-                    returnstring+="Station: "+data["Abasename"]+"\n"
-                    returnstring+="Distance to star: "+str(data["Adistance"] is not None and (str(data["Adistance"])
-                    +" ("+str("%.2f" % (SpaceTime.StarToBase(data["Adistance"])/60))+"min)") or "unknown")+"\n"
-                    returnstring+="Landing pad size: "+padsize[data["AlandingPadSize"]]
-                    return returnstring
+
                 elif columnorder[section] == "AexportPrice":
                     return "Data "+str("%.2f" %((time.time()-data['AlastUpdated'])/(60*60*24)))+" days old"\
                           +"\nExport sales price: "+str(data["AexportPrice"])+"\nSupply: "+str(data["Asupply"])
@@ -595,6 +582,28 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                           +"\nImport buy price: "+str(data["BimportPrice"])+"\nDemand: "+str(data["Bdemand"])
                 elif columnorder[section] == "CimportPrice":
                     return "Import buy price: "+str(data["CimportPrice"])+"\nDemand: "+str(data["Cdemand"])
+                elif columnorder[section] in ["Asystemname","Abasename"]:
+                    padsize={
+                        None:"unknown",
+                        0:'S',
+                        1:'M',
+                        2:'L'
+                    }
+                    returnstring=""
+                    if data['Aallegiance'] is  not None and int(data['Aallegiance']) != 0:
+                      allegiance={
+                        0:'None',
+                        1:'Allegiance',
+                        2:'Federation',
+                        3:'Empire'
+                      }
+                      returnstring+="Allegiance: "+allegiance[int(data['Aallegiance'])]+"\n"
+                    returnstring+="System: "+data["Asystemname"]+"\n"
+                    returnstring+="Station: "+data["Abasename"]+"\n"
+                    returnstring+="Distance to star: "+str(data["Adistance"] is not None and (str(data["Adistance"])
+                    +" ("+str("%.2f" % (SpaceTime.StarToBase(data["Adistance"])/60))+"min)") or "unknown")+"\n"
+                    returnstring+="Landing pad size: "+padsize[data["AlandingPadSize"]]
+                    return returnstring
                 elif columnorder[section] in ["Bsystemname","Bbasename"]:
                     padsize={
                         None:"unknown",
@@ -603,6 +612,14 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                         2:'L'
                     }
                     returnstring=""
+                    if data['Ballegiance'] is  not None and int(data['Ballegiance']) != 0:
+                      allegiance={
+                        0:'None',
+                        1:'Allegiance',
+                        2:'Federation',
+                        3:'Empire'
+                      }
+                      returnstring+="Allegiance: "+allegiance[int(data['Ballegiance'])]+"\n"
                     returnstring+="System: "+data["Bsystemname"]+"\n"
                     returnstring+="Station: "+data["Bbasename"]+"\n"
                     returnstring+="Distance to star: "+str(data["Bdistance"] is not None and (str(data["Bdistance"])
