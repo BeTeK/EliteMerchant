@@ -24,7 +24,7 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
         self.searchBtn.clicked.connect(self.searchBtnPressed)
         self.model = CommodityTab.TableModel(None, self)
         self.SearchResultTable.setModel(self.model)
-        self.getCurrentBtn.clicked.connect(self._setCurrentSystemByname)
+        self.getCurrentBtn.clicked.connect(self._setCurrentSystemToTab)
         self.analyzer = analyzer
         commodities=db.getCommodities()
         if commodities is not None:
@@ -38,6 +38,7 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
         self.currentSystemCombo.clear()
         self.currentSystemCombo.addItems( systemlist )
         self._restoreSearchStatus()
+        self._setCurrentSystemToTab()
 
     def setTabName(self, name):
         self.tabName = name
@@ -66,7 +67,7 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
         Options.set(self._optName("importexport"), self.importComboBox.currentIndex())
         Options.set(self._optName("commodity"), self.commodityCombobox.currentIndex())
 
-    def _setCurrentSystemByname(self):
+    def _setCurrentSystemToTab(self):
         systemName = self.analyzer.getCurrentStatus()["System"]
         self.currentSystemCombo.setCurrentText(systemName)
         systems = self.db.getSystemByName(systemName)
