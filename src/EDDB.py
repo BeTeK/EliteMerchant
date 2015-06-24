@@ -226,6 +226,7 @@ def importDownloaded(db):
   prohibiteddata=[]
   # remap database
   for station in stationsdata:
+    legalcommodities=[]
     for commodity in station["listings"]: # market listings
       if validityhorizon < commodity["collected_at"]: # no old data
         commodity["baseId"]=station["id"] # stationid already remapped
@@ -234,13 +235,15 @@ def importDownloaded(db):
         commodity["exportPrice"]=commodity["buy_price"]
         commodity["lastUpdated"]=commodity["collected_at"]
         marketdata.append(commodity)
+        legalcommodities.append(commodities_importmap[commodity["commodity_id"]]) # keep track for black market
 
     if station['has_blackmarket']:
       for contraband in station['prohibited_commodities']: # black market listings
-        item=dict()
-        item['baseId']=station['id']
-        item['commodityId']=importedCommoditiesByName[contraband]
-        prohibiteddata.append(item)
+        if importedCommoditiesByName[contraband] not in legalcommodities: # only add if not in legal market
+          item=dict()
+          item['baseId']=station['id']
+          item['commodityId']=importedCommoditiesByName[contraband]
+          prohibiteddata.append(item)
 
   db.importCommodityPrices(marketdata)
 
@@ -249,7 +252,6 @@ def importDownloaded(db):
   db.deleteProhibitedCommodities() # these may change a lot if station changes owner - better to nuke on update
 
   db.importProhibitedCommodities(prohibiteddata)
-
 
   db.vacuum()
 
