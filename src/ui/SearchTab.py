@@ -242,6 +242,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.minProfitSpinBox.setValue(int(Options.get(self._optName("minimum_profit"), "1000")))
         self.graphDepthSpin.setValue(int(Options.get(self._optName("search_max_depth"), "5")))
         self.graphMinDepthSpin.setValue(int(Options.get(self._optName("search_min_depth"), "1")))
+        self.smugglingCheckBox.setChecked(Options.get(self._optName("blackmarket"), "0")=='1')
 
         self._refreshCurrentStationlist() # populate station lists
         self._refreshTargetStationlist()
@@ -267,6 +268,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         Options.set(self._optName("search_min_depth"), self.graphMinDepthSpin.value())
         Options.set(self._optName("current_station"), self.currentStationCombo.currentText())
         Options.set(self._optName("target_station"), self.targetStationCombo.currentText())
+        Options.set(self._optName("blackmarket"), self.smugglingCheckBox.isChecked() and '1' or '0')
         #Options.set(self._optName("search_profitPh"), self.profitPhChk.isChecked() and "1" or "0")
 
     def cancelSearch(self):
@@ -301,6 +303,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         minPadSize = int(self.mainwindow.minPadSizeCombo.currentIndex())
         graphDepth = int(self.graphMinDepthSpin.value())
         graphDepthmax = int(self.graphDepthSpin.value())
+        blackmarket = self.smugglingCheckBox.isChecked()
 
         if graphDepth>graphDepthmax:
           print("min hops have to be less than max hops!")
@@ -330,10 +333,11 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
           "jumprange":jumprange,
           "graphDepthMin":graphDepth,
           "graphDepthMax":graphDepthmax,
-          "sourcesystem":currentSystem,
-          "sourcebase":currentBase,
+          "sourcesystem":None,
+          "sourcebase":None,
           "targetsystem":None,
-          "targetbase":None
+          "targetbase":None,
+          "blackmarket":blackmarket
         })
 
         print("Querying database...")
@@ -348,16 +352,22 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             print("queryProfitGraphDeadends")
             searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, queryparams )
         elif self.searchType=='target':
+            queryparams['sourcesystem']=currentSystem
+            queryparams['sourcebase']=currentBase
             queryparams['targetsystem']=targetSystem
             queryparams['targetbase']=targetBase
             print("queryProfitGraphTarget")
             searchFn = lambda : Queries.queryProfitGraphTarget(self.db, queryparams )
         elif self.searchType=='direct':
+            queryparams['sourcesystem']=currentSystem
+            queryparams['sourcebase']=currentBase
             queryparams['targetsystem']=targetSystem
             queryparams['targetbase']=targetBase
             print("queryDirectTrades")
             searchFn = lambda : Queries.queryDirectTrades(self.db, queryparams )
         elif self.searchType in ['station_exports','system_exports']:
+            queryparams['sourcesystem']=currentSystem
+            queryparams['sourcebase']=currentBase
             print("queryProfitGraphDeadends from current")
             searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, queryparams )
         else:

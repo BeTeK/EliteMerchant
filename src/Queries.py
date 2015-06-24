@@ -243,7 +243,8 @@ def queryDirectTrades(db,queryparams):
   queryparams['minprofit']=1
   queryparams['lastUpdated']=int(Options.get('Market-valid-days',7))
   results=db.getTradeDirect(dict(queryparams))
-  results+=db.getBlackmarketDirect(dict(queryparams))
+  if queryparams['blackmarket']:
+    results+=db.getBlackmarketDirect(dict(queryparams))
   return sorted(results,key=operator.itemgetter("profitPh"),reverse=True)
 
 
@@ -308,9 +309,10 @@ def queryProfit(db,queryparams):
   results=db.getTradeProfits(queryparams)
   combined=ProfitArrayToHierarchy(results,combined)
 
-  print("Fetching blackmarket trades")
-  results=db.getBlackmarketProfits(queryparams)
-  combined=ProfitArrayToHierarchy(results,combined)
+  if queryparams['blackmarket']:
+    print("Fetching blackmarket trades...")
+    results=db.getBlackmarketProfits(queryparams)
+    combined=ProfitArrayToHierarchy(results,combined)
 
   combinedAr=ProfitHierarchyToArray(combined)
   return sorted(combinedAr,key=operator.itemgetter("profitPh"),reverse=True)
