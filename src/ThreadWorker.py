@@ -2,6 +2,7 @@
 import threading
 import ctypes
 import inspect
+import sys,traceback
 
 def _async_raise(tid, exctype):
     if not inspect.isclass(exctype):
@@ -40,6 +41,9 @@ class ThreadWorker:
             if self.finishFn is not None:
                 self.finishFn(result)
         except Exception as ex:
+            print('Error while executing in thread!')
+            # https://docs.python.org/2/library/traceback.html
+            print(traceback.format_exc(), file=sys.stderr)
             pass
 
 
