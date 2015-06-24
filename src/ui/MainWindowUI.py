@@ -105,6 +105,7 @@ class Ui_MainWindow(object):
         self.label_7.setObjectName("label_7")
         self.horizontalLayout.addWidget(self.label_7)
         self.powerComboBox = QtWidgets.QComboBox(self.centralwidget)
+        self.powerComboBox.setEnabled(False)
         self.powerComboBox.setMinimumSize(QtCore.QSize(100, 0))
         self.powerComboBox.setObjectName("powerComboBox")
         self.horizontalLayout.addWidget(self.powerComboBox)
