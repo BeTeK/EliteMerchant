@@ -133,6 +133,10 @@ def importDownloaded(db):
   # eddb to EliteDB id map
   commodities_importmap=dict( (o["id"],importedCommoditiesMap[o["name"].lower()]) for o in commoditiesdata )
 
+  # commodityname to EliteDB id map (for prohibited commodities later on)
+  importedCommoditiesByName=dict( (o["name"],importedCommoditiesMap[o["name"].lower()]) for o in commoditiesdata )
+
+
   # -- systems --
 
   print("improting eddb systems")
@@ -140,6 +144,22 @@ def importDownloaded(db):
   if systemsdata is None:
     print("parsing systems.json failed")
     return False
+
+  for system in systemsdata:
+    if system['allegiance'] is not None:
+      if system['allegiance']=='Empire':
+        system['allegiance']=3
+      elif system['allegiance']=='Federation':
+        system['allegiance']=2
+      elif system['allegiance']=='Alliance':
+        system['allegiance']=1
+      else:
+        system['allegiance']=0
+    else:
+      system['allegiance']=None
+
+    system['controlled']=None
+
 
   # insert into db and retrieve new ids
   importedSystems=db.importSystems(systemsdata)
@@ -149,6 +169,10 @@ def importDownloaded(db):
 
   # eddb to EliteDB id map
   systems_importmap=dict( (o["id"],importedSystemsMap[o["name"].lower()]) for o in systemsdata )
+
+  # todo: bake exploited systems
+  #print('marking exploited systems for Powerplay')
+  #db.markExploitedSystems()
 
   # -- stations --
 
@@ -196,12 +220,14 @@ def importDownloaded(db):
 
   # limit data age - allow twice the age for desperate routes
   #validityhorizon=float( time.time() - (60*60*24* int(Options.get("Market-valid-days", 7) *2 ) ))
-  validityhorizon=0
+  validityhorizon=0 # do filtering in db - for more desperate routes
 
   marketdata=[]
+  prohibiteddata=[]
   # remap database
   for station in stationsdata:
-    for commodity in station["listings"]:
+    legalcommodities=[]
+    for commodity in station["listings"]: # market listings
       if validityhorizon < commodity["collected_at"]: # no old data
         commodity["baseId"]=station["id"] # stationid already remapped
         commodity["commodityId"]=commodities_importmap[commodity["commodity_id"]]
@@ -209,8 +235,23 @@ def importDownloaded(db):
         commodity["exportPrice"]=commodity["buy_price"]
         commodity["lastUpdated"]=commodity["collected_at"]
         marketdata.append(commodity)
+        legalcommodities.append(commodities_importmap[commodity["commodity_id"]]) # keep track for black market
+
+    if station['has_blackmarket']:
+      for contraband in station['prohibited_commodities']: # black market listings
+        if importedCommoditiesByName[contraband] not in legalcommodities: # only add if not in legal market
+          item=dict()
+          item['baseId']=station['id']
+          item['commodityId']=importedCommoditiesByName[contraband]
+          prohibiteddata.append(item)
 
   db.importCommodityPrices(marketdata)
+
+  print("improting eddb black market data")
+
+  db.deleteProhibitedCommodities() # these may change a lot if station changes owner - better to nuke on update
+
+  db.importProhibitedCommodities(prohibiteddata)
 
   db.vacuum()
 

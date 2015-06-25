@@ -92,7 +92,7 @@ main = Target(
     # dest_base = "main",
 
     # Icon resources:[(resource_id, path to .ico file), ...]
-    icon_resources=[(1, r"main.ico")],
+    icon_resources=[(1, r"img/main.ico")],
 
     other_resources = [(RT_MANIFEST, 1, (manifest_template % dict(prog="main", level="asInvoker")).encode("utf-8")),
     # for bitmap resources, the first 14 bytes must be skipped when reading the file:
@@ -171,6 +171,21 @@ datafiles = [
                 #findSitePackagesPath(os.path.join("PyQt5", "plugins", "mediaservice", "qtmedia_audioengine.dll")),
                 findSitePackagesPath(os.path.join("PyQt5", "plugins", "mediaservice", "wmfengine.dll")) # only this required
               ]),
+              ("img",[
+                r"img\\main.ico",
+                r"img\\illegal.png",
+                r"img\\power_1.png",
+                r"img\\power_2.png",
+                r"img\\power_3.png",
+                r"img\\power_4.png",
+                r"img\\power_5.png",
+                r"img\\power_6.png",
+                r"img\\power_7.png",
+                r"img\\power_8.png",
+                r"img\\power_9.png",
+                r"img\\power_10.png",
+                r"img\\EDAssetsLicense"
+              ]),
               ("sounds",[
                 r"sounds\\soundcredits.txt",
                 r"sounds\\startup.wav",
@@ -187,7 +202,6 @@ datafiles = [
                 findSitePackagesPath(os.path.join("PyQt5", "libeay32.dll")), # for QtMultimedia
                 r"..\\extraInstallFiles\\MSVCP100.dll",
                 r"..\\extraInstallFiles\\MSVCR100.dll",
-                r"main.ico",
                 r"version.txt"
               ]),
               ("requests", [ findSitePackagesPath(os.path.join("requests", "cacert.pem")) ])

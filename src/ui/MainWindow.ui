@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1557</width>
+    <width>1604</width>
     <height>1077</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>main.ico</normaloff>main.ico</iconset>
+    <normaloff>img/main.ico</normaloff>img/main.ico</iconset>
   </property>
   <property name="toolButtonStyle">
    <enum>Qt::ToolButtonIconOnly</enum>
@@ -226,6 +226,26 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Pledged Power:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="powerComboBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -267,7 +287,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1557</width>
+     <width>1604</width>
      <height>21</height>
     </rect>
    </property>

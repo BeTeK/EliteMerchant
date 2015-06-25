@@ -27,7 +27,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.currentBase = None
         self.targetSystem = None
         self.targetBase = None
-        self.searchType=1
+        self.searchType='direct'
         self.searchBtn.clicked.connect(self.searchBtnPressed)
         self.model = SearchTab.TableModel(None, self)
         self.SearchResultTable.setModel(self.model)
@@ -35,6 +35,19 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.targetGetCurrentBtn.clicked.connect(self._setCurrentSystemToTabTarget)
         self.searchTypeCombo.currentIndexChanged.connect(self._searchtypeChanged)
         self.analyzer = analyzer
+
+        self.searchTypes=[
+          ('direct','Direct trades'),
+          ('target','On way to Target'),
+          ('station_exports','Exports from current Station'),
+          ('system_exports','Exports from current System'),
+          ('loop','Loop route'),
+          ('long','Continuous route'),
+          ('singles','Single trades'),
+        ]
+        self.searchTypeCombo.clear()
+        for s in self.searchTypes:
+          self.searchTypeCombo.addItem(s[1],s[0])
 
         self.currentSystemCombo.currentIndexChanged.connect(self._refreshCurrentStationlist)
         self.targetSystemCombo.currentIndexChanged.connect(self._refreshTargetStationlist)
@@ -84,28 +97,25 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
     def _searchtypeChanged(self,idx):
         #searchtype=self.searchTypeCombo.currentIndex()
-        searchtype=idx
-        if searchtype in [5,6]:
+        searchtype=self.searchTypeCombo.itemData(idx)
+
+        if searchtype in ['target','direct']:
           self.targetSystemCombo.setEnabled(True)
           self.targetStationCombo.setEnabled(True)
         else:
           self.targetSystemCombo.setEnabled(False)
           self.targetStationCombo.setEnabled(False)
-        if searchtype in [4,6]:
+        if searchtype in ['singles','direct']:
           self.graphDepthSpin.setEnabled(False)
           self.graphMinDepthSpin.setEnabled(False)
         else:
           self.graphDepthSpin.setEnabled(True)
           self.graphMinDepthSpin.setEnabled(True)
-        if searchtype in [1,2,3,4]:
+        if searchtype in ['system_exports','loop','long','singles']:
           self.currentStationCombo.setEnabled(False)
         else:
           self.currentStationCombo.setEnabled(True)
-        if searchtype in [2,3,4]:
-          self.currentSystemCombo.setEnabled(False)
-        else:
-          self.currentSystemCombo.setEnabled(True)
-        if searchtype in [6]:
+        if searchtype in ['direct']:
           self.maxDistanceSpinBox.setEnabled(False)
           self.minProfitSpinBox.setEnabled(False)
         else:
@@ -230,10 +240,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.targetSystemCombo.setCurrentText(Options.get(self._optName("target_system"), "Lave"))
         self.maxDistanceSpinBox.setValue(int(Options.get(self._optName("maximum_distance"), "50")))
         self.minProfitSpinBox.setValue(int(Options.get(self._optName("minimum_profit"), "1000")))
-        self.searchTypeCombo.setCurrentIndex(int(Options.get(self._optName("search_type"), "0")))
-        self.searchType=int(Options.get(self._optName("search_type"), "0"))
         self.graphDepthSpin.setValue(int(Options.get(self._optName("search_max_depth"), "5")))
         self.graphMinDepthSpin.setValue(int(Options.get(self._optName("search_min_depth"), "1")))
+        self.smugglingCheckBox.setChecked(Options.get(self._optName("blackmarket"), "0")=='1')
 
         self._refreshCurrentStationlist() # populate station lists
         self._refreshTargetStationlist()
@@ -241,7 +250,13 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         self.currentStationCombo.setCurrentText(Options.get(self._optName("current_station"), "Abraham Lincoln"))
         self.targetStationCombo.setCurrentText(Options.get(self._optName("target_station"), "Lave Station"))
 
-        self._searchtypeChanged(int(Options.get(self._optName("search_type"), "0")))
+        self.searchType=Options.get(self._optName("search_type"), "direct")
+        if self.searchType.isdigit():
+          self.searchType=self.searchTypes[int(self.searchType)][0] # old version shim
+        for si in range(len(self.searchTypes)):
+          if self.searchTypes[si][0]==self.searchType:
+            self.searchTypeCombo.setCurrentIndex(si)
+            self._searchtypeChanged(si)
 
     def _saveSearchStatus(self):
         Options.set(self._optName("current_system"), self.currentSystemCombo.currentText())
@@ -253,6 +268,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         Options.set(self._optName("search_min_depth"), self.graphMinDepthSpin.value())
         Options.set(self._optName("current_station"), self.currentStationCombo.currentText())
         Options.set(self._optName("target_station"), self.targetStationCombo.currentText())
+        Options.set(self._optName("blackmarket"), self.smugglingCheckBox.isChecked() and '1' or '0')
         #Options.set(self._optName("search_profitPh"), self.profitPhChk.isChecked() and "1" or "0")
 
     def cancelSearch(self):
@@ -274,6 +290,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         if self.currentWorker is not None: # handled elsewhere, or ignored
           return
 
+        searchTypeIdx = int(self.searchTypeCombo.currentIndex())
+        self.searchType=self.searchTypeCombo.itemData(searchTypeIdx)
+
         currentSystem = self.currentSystemCombo.currentText()
         currentBase = self.currentStationCombo.currentText()
         targetSystem = self.targetSystemCombo.currentText()
@@ -281,75 +300,78 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
         maxDistance = float(self.maxDistanceSpinBox.value())
         jumprange = float(self.mainwindow.jumpRangeSpinBox.value())
         minProfit = int(self.minProfitSpinBox.value())
-        #minProfit =None
-        minProfitPh =None
-        #if bool(self.profitPhChk.isChecked()):
-        #    minProfitPh = int(self.minProfitSpinBox.value())
-        #else:
-        #    minProfit = int(self.minProfitSpinBox.value())
         minPadSize = int(self.mainwindow.minPadSizeCombo.currentIndex())
-        searchType = int(self.searchTypeCombo.currentIndex())
         graphDepth = int(self.graphMinDepthSpin.value())
         graphDepthmax = int(self.graphDepthSpin.value())
-        #twoway = bool(self.twoWayBool.isChecked())
+        blackmarket = self.smugglingCheckBox.isChecked()
 
         if graphDepth>graphDepthmax:
           print("min hops have to be less than max hops!")
           self.mainwindow.sounds.play('error')
           return
 
+        if currentBase == 'ANY':
+          currentBase=None
+        if targetBase == 'ANY':
+          targetBase=None
+
         pos = self.currentSystem.getPosition()
+        tpos = self.targetSystem.getPosition()
 
-        self.searchType=searchType
-
-        # QComboBox.setItemData (self, int index, QVariant value, int role = Qt.UserRole)
-        # QVariant QComboBox.itemData (self, int index, int role = Qt.UserRole)
+        directionality=0.0 # todo: currently unused - remove?
+        queryparams=dict({
+          "x":pos[0],
+          "y":pos[1],
+          "z":pos[2],
+          "x2":tpos[0],
+          "y2":tpos[1],
+          "z2":tpos[2],
+          "directionality":directionality,
+          "maxdistance":maxDistance,
+          "minprofit":minProfit,
+          "landingPadSize":minPadSize,
+          "jumprange":jumprange,
+          "graphDepthMin":graphDepth,
+          "graphDepthMax":graphDepthmax,
+          "sourcesystem":None,
+          "sourcebase":None,
+          "targetsystem":None,
+          "targetbase":None,
+          "blackmarket":blackmarket
+        })
 
         print("Querying database...")
         searchFn = None
-        if searchType==4:
+        if self.searchType=='singles':
             print("queryProfit")
-            searchFn = lambda : Queries.queryProfit(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange )
-
-            #self.result = self.db.queryProfit(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
-        elif searchType==2:
+            searchFn = lambda : Queries.queryProfit(self.db, queryparams )
+        elif self.searchType=='loop':
             print("queryProfitGraphLoops")
-            searchFn = lambda : Queries.queryProfitGraphLoops(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
-        elif searchType==3:
+            searchFn = lambda : Queries.queryProfitGraphLoops(self.db, queryparams )
+        elif self.searchType=='long':
             print("queryProfitGraphDeadends")
-            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax)
-        elif searchType==5:
+            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, queryparams )
+        elif self.searchType=='target':
+            queryparams['sourcesystem']=currentSystem
+            queryparams['sourcebase']=currentBase
+            queryparams['targetsystem']=targetSystem
+            queryparams['targetbase']=targetBase
             print("queryProfitGraphTarget")
-            if currentBase == 'ANY':
-              currentBase=None
-            if targetBase == 'ANY':
-              targetBase=None
-
-            tpos=self.targetSystem.getPosition()
-            directionality=0.0
-            searchFn = lambda : Queries.queryProfitGraphTarget(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase,targetSystem,targetBase)
-        elif searchType==6:
+            searchFn = lambda : Queries.queryProfitGraphTarget(self.db, queryparams )
+        elif self.searchType=='direct':
+            queryparams['sourcesystem']=currentSystem
+            queryparams['sourcebase']=currentBase
+            queryparams['targetsystem']=targetSystem
+            queryparams['targetbase']=targetBase
             print("queryDirectTrades")
-            if currentBase == 'ANY':
-              currentBase=None
-            if targetBase == 'ANY':
-              targetBase=None
-
-            tpos=self.targetSystem.getPosition()
-            directionality=0.0
-            searchFn = lambda : Queries.queryDirectTrades(self.db, pos[0], pos[1], pos[2], tpos[0], tpos[1], tpos[2], directionality, 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase,targetSystem,targetBase)
-        elif searchType==0 or searchType==1:
-            if currentBase == 'ANY':
-              currentBase=None
-
+            searchFn = lambda : Queries.queryDirectTrades(self.db, queryparams )
+        elif self.searchType in ['station_exports','system_exports']:
+            queryparams['sourcesystem']=currentSystem
+            queryparams['sourcebase']=currentBase
             print("queryProfitGraphDeadends from current")
-            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, pos[0], pos[1], pos[2], 0, 0, maxDistance, minProfit,minProfitPh,minPadSize,jumprange ,graphDepth,graphDepthmax,currentSystem,currentBase)
+            searchFn = lambda : Queries.queryProfitGraphDeadends(self.db, queryparams )
         else:
             print("unknown search type - we should not be here")
-        #elif searchType==1:
-        #    print("queryProfitRoundtrip")
-        #    self.result = Queries.queryProfitRoundtrip(self.db, pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minProfitPh,minPadSize)
-        #    #self.result = self.db.queryProfitRoundtrip(pos[0], pos[1], pos[2], windowSize, windows, maxDistance, minProfit,minPadSize)
 
         if searchFn is not None:
             self.currentWorker = ThreadWorker.ThreadWorker(searchFn, lambda result: self._resultsUpdated.emit(result))
@@ -406,15 +428,16 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     "totalprofit",
                     "profitPh"
                 ]
-            self.columnorder=[
-                basictradetable,
-                basictradetable,
-                basictradetable,
-                basictradetable,
-                basictradetable,
-                basictradetable_target,
-                basictradetable
-            ]
+
+            self.columnorder=dict({
+                'station_exports':basictradetable,
+                'system_exports':basictradetable,
+                'loop':basictradetable,
+                'long':basictradetable,
+                'singles':basictradetable,
+                'target':basictradetable_target,
+                'direct':basictradetable
+            })
 
 
         def rowCount(self, parent):
@@ -440,14 +463,32 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
             # roles:    http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
 
+            if role== QtCore.Qt.DecorationRole: # icons
+                if "celltype" not in data:
+                  if columnorder[section] in ["Asystemname"]:
+                    if data['Acontrolled'] is not None or data['Aexploited'] is not None:
+                      return QtGui.QPixmap("img/power_1.png")
+                  if columnorder[section] in ["Bsystemname"]:
+                    if data['Bcontrolled'] is not None or data['Bexploited'] is not None:
+                      return QtGui.QPixmap("img/power_1.png")
+                  if columnorder[section] in ["commodityname"]:
+                    if data['blackmarket']==1:
+                      return QtGui.QPixmap("img/illegal.png")#.scaled(30,30)
+
             if role == QtCore.Qt.TextColorRole: # text color
                 if "celltype" not in data:
                   if columnorder[section] in ["AexportPrice"]:
                     if int(data['AlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
                       return QtGui.QBrush(QtGui.QColor(255,255,0))
+                    if int(data['Asupply']<100):
+                      return QtGui.QBrush(QtGui.QColor(255,255,0))
                   if columnorder[section] in ["BimportPrice"]:
                     if int(data['BlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
                       return QtGui.QBrush(QtGui.QColor(255,255,0))
+                  if columnorder[section] in ["commodityname"]:
+                    if data['blackmarket']==1:
+                      return QtGui.QBrush(QtGui.QColor(250,250,250))
+
 
             if role == QtCore.Qt.BackgroundRole: # background colors
                 if "celltype" in data:
@@ -455,9 +496,25 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                         return QtGui.QBrush(QtGui.QColor(255,255,255))
                     if data["celltype"]=='separatorrow':
                         return QtGui.QBrush(QtGui.QColor(200,200,200))
-                if columnorder[section] in ["Asystemname","Abasename","Bsystemname","Bbasename"]:
+                if columnorder[section] in ["Asystemname","Abasename"]:
+                    if data['Aallegiance']==1:
+                      return QtGui.QBrush(QtGui.QColor(200,255,200))
+                    if data['Aallegiance']==2:
+                      return QtGui.QBrush(QtGui.QColor(255,200,200))
+                    if data['Aallegiance']==3:
+                      return QtGui.QBrush(QtGui.QColor(200,200,255))
+                    return QtGui.QBrush(QtGui.QColor(255,255,230))
+                if columnorder[section] in ["Bsystemname","Bbasename"]:
+                    if data['Ballegiance']==1:
+                      return QtGui.QBrush(QtGui.QColor(200,255,200))
+                    if data['Ballegiance']==2:
+                      return QtGui.QBrush(QtGui.QColor(255,200,200))
+                    if data['Ballegiance']==3:
+                      return QtGui.QBrush(QtGui.QColor(200,200,255))
                     return QtGui.QBrush(QtGui.QColor(255,255,230))
                 if columnorder[section] in ["AexportPrice"]:
+                    if int(data['Asupply']<100):
+                      return QtGui.QBrush(QtGui.QColor(255,0,0))
                     r,g,b=self.mw.AgeToColor(data['AlastUpdated'])
                     return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["BimportPrice"]:
@@ -465,6 +522,10 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["profit","Cprofit","totalprofit"]:
                     return QtGui.QBrush(QtGui.QColor(255,230,255))
+                if columnorder[section] in ["commodityname"]:
+                    if data['blackmarket']==1:
+                      return QtGui.QBrush(QtGui.QColor(0,0,0))
+
                 return QtGui.QBrush(QtGui.QColor(255,255,255)) # everything else is white
 
             if role == QtCore.Qt.ToolTipRole: # tooltips
@@ -513,20 +574,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                         return "Distance from "+curname+" (current system)\n" \
                             "to "+data["Bsystemname"]+" (commodity seller) is "+("%.2f" % dist)+"ly " \
                             "("+str("%.2f" % (SpaceTime.BaseToBase(dist)/60))+"min)"
-                elif columnorder[section] in ["Asystemname","Abasename"]:
-                    padsize={
-                        None:"unknown",
-                        0:'S',
-                        1:'M',
-                        2:'L'
-                    }
-                    returnstring=""
-                    returnstring+="System: "+data["Asystemname"]+"\n"
-                    returnstring+="Station: "+data["Abasename"]+"\n"
-                    returnstring+="Distance to star: "+str(data["Adistance"] is not None and (str(data["Adistance"])
-                    +" ("+str("%.2f" % (SpaceTime.StarToBase(data["Adistance"])/60))+"min)") or "unknown")+"\n"
-                    returnstring+="Landing pad size: "+padsize[data["AlandingPadSize"]]
-                    return returnstring
+
                 elif columnorder[section] == "AexportPrice":
                     return "Data "+str("%.2f" %((time.time()-data['AlastUpdated'])/(60*60*24)))+" days old"\
                           +"\nExport sales price: "+str(data["AexportPrice"])+"\nSupply: "+str(data["Asupply"])
@@ -550,6 +598,28 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                           +"\nImport buy price: "+str(data["BimportPrice"])+"\nDemand: "+str(data["Bdemand"])
                 elif columnorder[section] == "CimportPrice":
                     return "Import buy price: "+str(data["CimportPrice"])+"\nDemand: "+str(data["Cdemand"])
+                elif columnorder[section] in ["Asystemname","Abasename"]:
+                    padsize={
+                        None:"unknown",
+                        0:'S',
+                        1:'M',
+                        2:'L'
+                    }
+                    returnstring=""
+                    if data['Aallegiance'] is  not None and int(data['Aallegiance']) != 0:
+                      allegiance={
+                        0:'None',
+                        1:'Allegiance',
+                        2:'Federation',
+                        3:'Empire'
+                      }
+                      returnstring+="Allegiance: "+allegiance[int(data['Aallegiance'])]+"\n"
+                    returnstring+="System: "+data["Asystemname"]+"\n"
+                    returnstring+="Station: "+data["Abasename"]+"\n"
+                    returnstring+="Distance to star: "+str(data["Adistance"] is not None and (str(data["Adistance"])
+                    +" ("+str("%.2f" % (SpaceTime.StarToBase(data["Adistance"])/60))+"min)") or "unknown")+"\n"
+                    returnstring+="Landing pad size: "+padsize[data["AlandingPadSize"]]
+                    return returnstring
                 elif columnorder[section] in ["Bsystemname","Bbasename"]:
                     padsize={
                         None:"unknown",
@@ -558,6 +628,14 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                         2:'L'
                     }
                     returnstring=""
+                    if data['Ballegiance'] is  not None and int(data['Ballegiance']) != 0:
+                      allegiance={
+                        0:'None',
+                        1:'Allegiance',
+                        2:'Federation',
+                        3:'Empire'
+                      }
+                      returnstring+="Allegiance: "+allegiance[int(data['Ballegiance'])]+"\n"
                     returnstring+="System: "+data["Bsystemname"]+"\n"
                     returnstring+="Station: "+data["Bbasename"]+"\n"
                     returnstring+="Distance to star: "+str(data["Bdistance"] is not None and (str(data["Bdistance"])

@@ -283,13 +283,13 @@ class MainWindow(QtWidgets.QMainWindow, ui.MainWindowUI.Ui_MainWindow):
       for tab in self.tabItems:
         if tab[1].getType() != "search":
           continue
-        if tab[1].searchType==0 and self.analyzer.hasDockPermissionGot() and self.currentStatus['Base'] != '':
+        if tab[1].searchType=='station_exports' and self.analyzer.hasDockPermissionGot() and self.currentStatus['Base'] != '':
           tab[1].setCurrentSystem(self.currentStatus['System'])
           tab[1].setCurrentBase(self.currentStatus['Base'])
           tab[1].refreshData()
           tab[1].startSearch()
           triggeredasearch=True
-        if tab[1].searchType==1:
+        if tab[1].searchType=='system_exports':
           tab[1].setCurrentSystem(self.currentStatus['System'])
           tab[1].setCurrentBase(self.currentStatus['Base'])
           tab[1].refreshData()
