@@ -148,7 +148,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
           print('Current system not set')
           return
         currentSystemStations=self.currentSystem.getStations()
-        currentSystemStations.sort(key=lambda o: o.getDistance()) # sort by distance
+        currentSystemStations.sort(key=lambda o: o.getDistance() if o.getDistance() is not None else 99999999) # sort by distance
         currentSystemStations=[o.getName() for o in currentSystemStations]
         self.currentStationCombo.clear()
         self.currentStationCombo.addItems( ['ANY'] )
