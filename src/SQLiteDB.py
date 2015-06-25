@@ -23,7 +23,7 @@ class SQLiteDB(EliteDB.EliteDB):
     self.commodityCache = {}
     self.lock = threading.RLock()
     self.dbEmpty=False # set this to true if db load fails for whatever reason and we need to force download
-    self.databaseversion=3
+    self.databaseversion=4
 
 
   def __enter__(self):
@@ -195,6 +195,26 @@ class SQLiteDB(EliteDB.EliteDB):
 
       return [self._dictToPriceData(self._rowToDict(i)) for i in cur.fetchall()]
 
+  def getCommoditiesMaxProfit(self):
+    with self.lock:
+      cur = self.conn.cursor()
+      cur.execute("""
+        SELECT
+        A.commodityId AS id,
+        B.importPrice - A.exportPrice AS profit
+        FROM
+        (
+        SELECT commodityId, MIN(exportPrice) AS exportPrice FROM commodityPrices WHERE exportPrice>0 GROUP BY commodityId
+        ) AS A,
+        (
+        SELECT commodityId, MAX(importPrice) AS importPrice FROM commodityPrices GROUP BY commodityId
+        ) AS B
+        WHERE
+        A.commodityId=B.commodityId
+      """)
+
+      return [self._rowToDict(i) for i in cur.fetchall()]
+
   def _dictToPriceData(self, data):
     return CommodityPrice.CommodityPrice(self, data["id"], data["commodityId"], data["importPrice"], data["exportPrice"], data["demand"], datetime.date.fromtimestamp(data['lastUpdated']), data["baseId"], data["supply"])
   
@@ -287,8 +307,9 @@ class SQLiteDB(EliteDB.EliteDB):
     UNIQUE (baseId, commodityId)
     )""")
     cur.execute("""CREATE INDEX "commodityPricesIdIndex" on commodityPrices (id ASC)""")
-    cur.execute("""CREATE INDEX "commodityPricesCommoditIdIndex" on commodityPrices (commodityId ASC)""")
+    cur.execute("""CREATE INDEX "commodityPricesCommodityIdIndex" on commodityPrices (commodityId ASC)""")
     cur.execute("""CREATE INDEX "commodityPricesBaseIdIndex" on commodityPrices (baseId ASC)""")
+    cur.execute("""CREATE INDEX "commoditylastUpdatedIndex" on commodityPrices (lastUpdated ASC)""")
 
     cur.execute("""CREATE TABLE "prohibitedCommodities" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -311,6 +332,55 @@ class SQLiteDB(EliteDB.EliteDB):
     cur.execute("""CREATE INDEX "basesPlanetId" on bases (planetId ASC)""")
     cur.execute("""CREATE INDEX "basesNameIndex" on bases (name ASC)""")
     cur.execute("""CREATE INDEX "basesSystemIndex" on bases (systemId ASC)""")
+
+    cur.execute("""
+    CREATE TABLE tradecache (
+        "profit" INTEGER,
+        "SystemDistance" REAL,
+        "commodityname" TEXT,
+        "commodityId" INTEGER,
+        "average" INTEGER,
+        "blackmarket" BIT,
+        "Asystemname" TEXT,
+        "Abasename" TEXT,
+        "AbaseId" INTEGER,
+        "AsystemId" INTEGER,
+        "Adistance" REAL,
+        "AlandingPadSize" TINYINT,
+        "AexportPrice" INTEGER,
+        "Asupply" INTEGER,
+        "AlastUpdated" INTEGER,
+        "Aallegiance" TINYINT,
+        "Aexploited" TINYINT,
+        "Acontrolled" TINYINT,
+        "Ax" REAL,
+        "Ay" REAL,
+        "Az" REAL,
+        "Bsystemname" TEXT,
+        "Bbasename" TEXT,
+        "BbaseId" INTEGER,
+        "BsystemId" INTEGER,
+        "Bdistance" REAL,
+        "BlandingPadSize" TINYINT,
+        "BimportPrice" INTEGER,
+        "Bdemand" INTEGER,
+        "BlastUpdated" INTEGER,
+        "Ballegiance" TINYINT,
+        "Bexploited" TINYINT,
+        "Bcontrolled" TINYINT,
+        "Bx" REAL,
+        "By" REAL,
+        "Bz" REAL,
+        UNIQUE (AbaseId,BbaseId,commodityId)
+        )
+    """)
+
+    cur.execute("""CREATE INDEX "tradesAsystemnameIndex" on tradecache (Asystemname ASC)""")
+    cur.execute("""CREATE INDEX "tradesBsystemnameIndex" on tradecache (Bsystemname ASC)""")
+    cur.execute("""CREATE INDEX "tradesAbasenameIndex" on tradecache (Abasename ASC)""")
+    cur.execute("""CREATE INDEX "tradesBbasenameIndex" on tradecache (Bbasename ASC)""")
+    cur.execute("""CREATE INDEX "tradesSystemDistanceIndex" on tradecache (SystemDistance ASC)""")
+
 
     cur.execute("""PRAGMA user_version="""+str(self.databaseversion)) # save database version!
     self.conn.commit()
@@ -859,6 +929,208 @@ class SQLiteDB(EliteDB.EliteDB):
       for row in rows:
         row['profitPh']=row['profit']/row['hours']
       return rows
+
+  def cacheClear(self):
+    with self.lock:
+      cur= self.conn.cursor()
+      print('Clearing trade cache')
+      cur.execute("DELETE FROM tradecache")
+
+  def cacheTradeProfits(self,queryvals):
+    with self.lock:
+      cur = self.conn.cursor()
+
+      queryvals['minprofit'] = 'minprofit' in queryvals and queryvals['minprofit'] or 500
+      queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
+      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
+      queryvals['commodityId']='commodityId' in queryvals and queryvals['commodityId'] or '0' # has to be something!
+
+      querystring="""
+      WITH systemwindow AS (
+      SELECT
+        systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
+        commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated,
+        allegiance, exploited, controlled
+      FROM
+        commodities,
+        commodityPrices,
+        bases,
+        baseInfo,
+        systems
+      WHERE
+        --average>:minprofit*6
+        --AND
+        commodityPrices.commodityId=:commodityId
+        AND
+        commodityPrices.lastUpdated>:lastUpdated
+        AND
+        commodityPrices.commodityId=commodities.id
+        AND
+        commodityPrices.baseId=bases.id
+        AND
+        bases.systemId=systems.id
+        AND
+        baseInfo.baseId=bases.id
+      )
+      SELECT
+        B.importPrice-A.exportPrice AS profit,
+        Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) AS SystemDistance,
+        A.commodityname AS commodityname,
+        A.commodityId AS commodityId,
+        A.average AS average,
+        A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
+        A.exportPrice AS AexportPrice, A.supply AS Asupply, A.lastUpdated AS AlastUpdated,
+        A.x AS Ax, A.y AS Ay, A.z AS Az,
+        B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
+        B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
+        B.x AS Bx, B.y AS By, B.z AS Bz,
+        0 AS blackmarket,
+        A.allegiance AS Aallegiance, A.exploited AS Aexploited, A.controlled AS Acontrolled,
+        B.allegiance AS Ballegiance, B.exploited AS Bexploited, B.controlled AS Bcontrolled
+      FROM
+        systemwindow AS A,
+        systemwindow AS B
+      WHERE
+        A.commodityId=B.commodityId
+        AND
+        A.exportPrice BETWEEN 1 AND A.average
+        AND
+        profit > :minprofit
+      """
+
+      #querystring="CREATE TABLE tradecache AS "+ querystring+" "
+      querystring="INSERT OR REPLACE INTO tradecache  "+ querystring+"  "
+
+      querystart=time.time()
+      #cur.execute("DROP TABLE IF EXISTS tradecache")
+      cur.execute(querystring,queryvals)
+      self.conn.commit()
+      querytime=time.time()-querystart
+      #cur.executemany("INSERT OR IGNORE INTO baseInfo(baseId,blackMarket,landingPadSize) VALUES(:id,:blackMarket,:landingPadSize)",baselist)
+
+      print("cacheTradeProfits, "+str(cur.rowcount)+" values, "+str("%.2f"%querytime)+" seconds")
+      return True
+
+  def cacheBlackmarketProfits(self,queryvals):
+    with self.lock:
+      cur = self.conn.cursor()
+
+      queryvals['minprofit'] = 'minprofit' in queryvals and queryvals['minprofit'] or 500
+      queryvals['lastUpdated'] = 'lastUpdated' in queryvals and queryvals['lastUpdated'] or 7 # max week old
+      queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
+      queryvals['commodityId']='commodityId' in queryvals and queryvals['commodityId'] or '0' # has to be something!
+
+      querystring="""
+      SELECT
+        B.importPrice-A.exportPrice AS profit,
+        Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) AS SystemDistance,
+        A.commodityname AS commodityname,
+        A.commodityId AS commodityId,
+        A.average AS average,
+        A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
+        A.exportPrice AS AexportPrice, A.supply AS Asupply, A.lastUpdated AS AlastUpdated,
+        A.x AS Ax, A.y AS Ay, A.z AS Az,
+        B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
+        B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
+        B.x AS Bx, B.y AS By, B.z AS Bz,
+        1 AS blackmarket,
+        A.allegiance AS Aallegiance, A.exploited AS Aexploited, A.controlled AS Acontrolled,
+        B.allegiance AS Ballegiance, B.exploited AS Bexploited, B.controlled AS Bcontrolled
+      FROM
+        (
+        SELECT
+          systems.name AS systemname, bases.name AS basename, commodityPrices.baseId, systemId, distance, landingPadSize, x, y, z,
+          commodityId, exportPrice, supply, importPrice, demand, commodities.name AS commodityname, average, lastUpdated,
+          allegiance, exploited, controlled
+        FROM
+          commodities,
+          commodityPrices,
+          bases,
+          baseInfo,
+          systems
+        WHERE
+          commodityPrices.commodityId=:commodityId
+          AND
+          --average>:minprofit*6
+          --AND
+          commodityPrices.lastUpdated>:lastUpdated
+          AND
+          commodityPrices.commodityId=commodities.id
+          AND
+          commodityPrices.baseId=bases.id
+          AND
+          bases.systemId=systems.id
+          AND
+          baseInfo.baseId=bases.id
+        ) AS A,
+        (
+        SELECT
+          systems.name AS systemname, bases.name AS basename, prohibitedCommodities.baseId, bases.systemId, distance, landingPadSize, x, y, z,
+          prohibitedCommodities.commodityId, 0 AS exportPrice, 0 AS supply, 0 AS demand, commodities.name AS commodityname, average, legal.lastUpdated AS lastUpdated,
+          CASE
+            WHEN systems.exploited=9 OR systems.controlled=9 THEN legal.importPrice*1.1 -- Power black market boost
+            ELSE legal.importPrice
+          END AS importPrice,
+          allegiance, exploited, controlled
+        FROM
+          commodities,
+          prohibitedCommodities,
+          bases,
+          baseInfo,
+          systems,
+          (
+            SELECT
+              systemId, commodityId, importPrice, lastUpdated
+            FROM
+              commodities,
+              commodityPrices,
+              bases,
+              systems
+            WHERE
+              commodityPrices.commodityId=commodities.id
+              AND
+              commodityPrices.baseId=bases.id
+              AND
+              bases.systemId=systems.id
+            GROUP BY systemId, commodityId
+          ) AS legal
+        WHERE
+          baseInfo.blackMarket=1
+          AND
+          prohibitedCommodities.commodityId=commodities.id
+          AND
+          prohibitedCommodities.baseId=bases.id
+          AND
+          bases.systemId=systems.id
+          AND
+          baseInfo.baseId=bases.id
+          AND
+          legal.systemId=systems.id
+          AND
+          legal.commodityId=commodities.id
+        ) AS B
+      WHERE
+        A.commodityId=B.commodityId
+        AND
+        A.exportPrice BETWEEN 1 AND A.average
+        AND
+        profit > :minprofit
+      """
+
+      #querystring="CREATE TABLE tradecache_bm AS "+ querystring+" "
+      querystring="""
+      INSERT OR REPLACE INTO tradecache
+      """+ querystring+" "
+
+      querystart=time.time()
+      #cur.execute("DROP TABLE IF EXISTS tradecache_bm")
+      cur.execute(querystring,queryvals)
+      self.conn.commit()
+      querytime=time.time()-querystart
+
+      print("cacheBlackmarketProfits, "+str(cur.rowcount)+" values, "+str("%.2f"%querytime)+" seconds")
+
+      return True
 
   def getTradeExports(self,queryvals):
     with self.lock:
