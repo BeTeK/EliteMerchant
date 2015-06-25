@@ -22,7 +22,7 @@ class Base:
       return None
 
   def getLandingPadSize(self):
-    return landingPadSize
+    return self.landingPadSize
 
   def getDistance(self):
     return self.distance
