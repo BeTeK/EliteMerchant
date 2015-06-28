@@ -191,7 +191,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
           print('Target system not set')
           return
         targetSystemStations=self.targetSystem.getStations()
-        targetSystemStations.sort(key=lambda o: o.getDistance()) # sort by distance
+        targetSystemStations.sort(key=lambda o: o.getDistance() if o.getDistance() is not None else 99999999) # sort by distance
         targetSystemStations=[o.getName() for o in targetSystemStations]
         self.targetStationCombo.clear()
         self.targetStationCombo.addItems( ['ANY'] )
