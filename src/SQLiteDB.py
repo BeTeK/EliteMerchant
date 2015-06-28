@@ -21,6 +21,7 @@ class SQLiteDB(EliteDB.EliteDB):
     self.filename = filename
     self.forceInit = forceInit
     self.commodityCache = {}
+    self.queryCache = {}
     self.lock = threading.RLock()
     self.dbEmpty=False # set this to true if db load fails for whatever reason and we need to force download
     self.databaseversion=3
@@ -71,6 +72,9 @@ class SQLiteDB(EliteDB.EliteDB):
   def __exit__(self, type, value, traceback):
     if self.conn is not None:
       self.conn.close()
+
+  def invalidateCache(self):
+      self.queryCache={}
 
   def vacuum(self):
     with self.lock:
@@ -344,6 +348,8 @@ class SQLiteDB(EliteDB.EliteDB):
 
       self.conn.commit()
 
+      self.invalidateCache()
+
       cur.execute('SELECT id,name FROM commodities')
       return [self._rowToDict(o) for o in cur.fetchall()]
 
@@ -380,6 +386,7 @@ class SQLiteDB(EliteDB.EliteDB):
 
       self.conn.commit()
 
+
   def importCommodityPrices(self,marketlist):
     with self.lock:
       cur = self.conn.cursor()
@@ -393,6 +400,8 @@ class SQLiteDB(EliteDB.EliteDB):
       WHERE baseId=:baseId AND commodityId=:commodityId AND lastUpdated<:lastUpdated
       """, marketlist)
       self.conn.commit()
+
+      self.invalidateCache()
 
   def deleteProhibitedCommodities(self):
     with self.lock:
@@ -653,6 +662,10 @@ class SQLiteDB(EliteDB.EliteDB):
       queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
       queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
 
+      cachestring="getTradeProfits_"+str(queryvals['jumprange'])+"_"+str(queryvals['landingPadSize'])+"_"+str(queryvals['maxdistance'] )
+      if cachestring in self.queryCache:
+        print("getTradeProfits, "+str(len(self.queryCache[cachestring]))+" values, fetched from query cache")
+        return self.queryCache[cachestring]
 
       querystring="""
       WITH systemwindow AS (
@@ -738,6 +751,9 @@ class SQLiteDB(EliteDB.EliteDB):
       rows=[self._rowToDict(o) for o in result]
       for row in rows:
         row['profitPh']=row['profit']/row['hours']
+
+      self.queryCache[cachestring]=rows # save cache
+
       return rows
 
   def getBlackmarketProfits(self,queryvals):
@@ -752,6 +768,10 @@ class SQLiteDB(EliteDB.EliteDB):
       queryvals['lastUpdated'] = int( time.time() - (60*60*24* queryvals['lastUpdated'] ))
       queryvals['jumprange'] = 'jumprange' in queryvals and queryvals['jumprange'] or 16
 
+      cachestring="getBlackmarketProfits_"+str(queryvals['jumprange'])+"_"+str(queryvals['landingPadSize'])+"_"+str(queryvals['maxdistance'] )
+      if cachestring in self.queryCache:
+        print("getBlackmarketProfits, "+str(len(self.queryCache[cachestring]))+" values, fetched from query cache")
+        return self.queryCache[cachestring]
 
       querystring="""
       SELECT
@@ -879,6 +899,9 @@ class SQLiteDB(EliteDB.EliteDB):
       rows=[self._rowToDict(o) for o in result]
       for row in rows:
         row['profitPh']=row['profit']/row['hours']
+
+      self.queryCache[cachestring]=rows # save cache
+
       return rows
 
   def getTradeExports(self,queryvals):
