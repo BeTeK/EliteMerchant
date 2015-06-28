@@ -507,8 +507,6 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                       return QtGui.QBrush(QtGui.QColor(200,200,255))
                     return QtGui.QBrush(QtGui.QColor(255,255,230))
                 if columnorder[section] in ["AexportPrice"]:
-                    if int(data['Asupply']<100):
-                      return QtGui.QBrush(QtGui.QColor(255,0,0))
                     r,g,b=self.mw.AgeToColor(data['AlastUpdated'])
                     return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["BimportPrice"]:

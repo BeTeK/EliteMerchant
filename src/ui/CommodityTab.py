@@ -56,10 +56,16 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
         return "search_tab__{0}_{1}".format(name, self.tabName)
 
     def _restoreSearchStatus(self):
-        self.currentSystemCombo.setCurrentText(Options.get(self._optName("current_system"), "Sol"))
+
         self.maxDistanceSpinBox.setValue(int(Options.get(self._optName("maximum_distance"), "200")))
         self.importComboBox.setCurrentIndex(int(Options.get(self._optName("importexport"), "0")))
         self.commodityCombobox.setCurrentIndex(int(Options.get(self._optName("commodity"), "0")))
+        systemName=Options.get(self._optName("current_system"), "Sol")
+        systems = self.db.getSystemByName(systemName)
+        if len(systems) == 0:
+            return
+        self.currentSystemCombo.setCurrentText(systemName)
+        self.currentSystem = systems[0]
 
     def _saveSearchStatus(self):
         Options.set(self._optName("current_system"), self.currentSystemCombo.currentText())
@@ -69,10 +75,10 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
 
     def _setCurrentSystemToTab(self):
         systemName = self.analyzer.getCurrentStatus()["System"]
-        self.currentSystemCombo.setCurrentText(systemName)
         systems = self.db.getSystemByName(systemName)
         if len(systems) == 0:
             return
+        self.currentSystemCombo.setCurrentText(systemName)
         self.currentSystem = systems[0]
         self.model.refeshData()
 
@@ -109,8 +115,6 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
 
         print("Done!")
 
-            #self.searchBtn.setText('Search')
-
     class TableModel(QtCore.QAbstractTableModel):
         def __init__(self, parent, mw):
             super().__init__(parent)
@@ -122,9 +126,11 @@ class CommodityTab(QtWidgets.QWidget, ui.CommodityTabUI.Ui_Dialog, ui.TabAbstrac
                     "basename",
                     "importPrice",
                     "importPavg",
+                    "demand",
                     "commodityname",
                     "exportPrice",
                     "exportPavg",
+                    "supply",
                     #"averagedeviation"
                 ]
             self.columnorder=[
