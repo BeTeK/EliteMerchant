@@ -255,4 +255,12 @@ def importDownloaded(db):
 
   db.vacuum()
 
+  db.cacheClear()
+  print("Building trade network")
+
+  db.cacheTradeProfits(dict())
+  db.cacheBlackmarketProfits(dict())
+
+  db.vacuum()
+
   print("eddb import complete")

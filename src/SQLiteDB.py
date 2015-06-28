@@ -23,7 +23,7 @@ class SQLiteDB(EliteDB.EliteDB):
     self.commodityCache = {}
     self.lock = threading.RLock()
     self.dbEmpty=False # set this to true if db load fails for whatever reason and we need to force download
-    self.databaseversion=4
+    self.databaseversion=5
 
 
   def __enter__(self):
@@ -337,48 +337,15 @@ class SQLiteDB(EliteDB.EliteDB):
     CREATE TABLE tradecache (
         "profit" INTEGER,
         "SystemDistance" REAL,
-        "commodityname" TEXT,
         "commodityId" INTEGER,
-        "average" INTEGER,
         "blackmarket" BIT,
-        "Asystemname" TEXT,
-        "Abasename" TEXT,
         "AbaseId" INTEGER,
-        "AsystemId" INTEGER,
-        "Adistance" REAL,
-        "AlandingPadSize" TINYINT,
-        "AexportPrice" INTEGER,
-        "Asupply" INTEGER,
-        "AlastUpdated" INTEGER,
-        "Aallegiance" TINYINT,
-        "Aexploited" TINYINT,
-        "Acontrolled" TINYINT,
-        "Ax" REAL,
-        "Ay" REAL,
-        "Az" REAL,
-        "Bsystemname" TEXT,
-        "Bbasename" TEXT,
         "BbaseId" INTEGER,
-        "BsystemId" INTEGER,
-        "Bdistance" REAL,
-        "BlandingPadSize" TINYINT,
-        "BimportPrice" INTEGER,
-        "Bdemand" INTEGER,
-        "BlastUpdated" INTEGER,
-        "Ballegiance" TINYINT,
-        "Bexploited" TINYINT,
-        "Bcontrolled" TINYINT,
-        "Bx" REAL,
-        "By" REAL,
-        "Bz" REAL,
         UNIQUE (AbaseId,BbaseId,commodityId)
         )
     """)
-
-    cur.execute("""CREATE INDEX "tradesAsystemnameIndex" on tradecache (Asystemname ASC)""")
-    cur.execute("""CREATE INDEX "tradesBsystemnameIndex" on tradecache (Bsystemname ASC)""")
-    cur.execute("""CREATE INDEX "tradesAbasenameIndex" on tradecache (Abasename ASC)""")
-    cur.execute("""CREATE INDEX "tradesBbasenameIndex" on tradecache (Bbasename ASC)""")
+    cur.execute("""CREATE INDEX "tradesAbaseIdIndex" on tradecache (AbaseId ASC)""")
+    cur.execute("""CREATE INDEX "tradesBbaseIdIndex" on tradecache (BbaseId ASC)""")
     cur.execute("""CREATE INDEX "tradesSystemDistanceIndex" on tradecache (SystemDistance ASC)""")
 
 
@@ -958,9 +925,8 @@ class SQLiteDB(EliteDB.EliteDB):
         baseInfo,
         systems
       WHERE
-        --average>:minprofit*6
-        --AND
-        commodityPrices.commodityId=:commodityId
+        --commodityPrices.commodityId=:commodityId
+        average>:minprofit*6
         AND
         commodityPrices.lastUpdated>:lastUpdated
         AND
@@ -975,18 +941,10 @@ class SQLiteDB(EliteDB.EliteDB):
       SELECT
         B.importPrice-A.exportPrice AS profit,
         Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) AS SystemDistance,
-        A.commodityname AS commodityname,
         A.commodityId AS commodityId,
-        A.average AS average,
-        A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
-        A.exportPrice AS AexportPrice, A.supply AS Asupply, A.lastUpdated AS AlastUpdated,
-        A.x AS Ax, A.y AS Ay, A.z AS Az,
-        B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
-        B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
-        B.x AS Bx, B.y AS By, B.z AS Bz,
         0 AS blackmarket,
-        A.allegiance AS Aallegiance, A.exploited AS Aexploited, A.controlled AS Acontrolled,
-        B.allegiance AS Ballegiance, B.exploited AS Bexploited, B.controlled AS Bcontrolled
+        A.baseId AS AbaseId,
+        B.baseId AS BbaseId
       FROM
         systemwindow AS A,
         systemwindow AS B
@@ -1024,18 +982,10 @@ class SQLiteDB(EliteDB.EliteDB):
       SELECT
         B.importPrice-A.exportPrice AS profit,
         Distance3D( A.x, A.y, A.z, B.x, B.y, B.z) AS SystemDistance,
-        A.commodityname AS commodityname,
         A.commodityId AS commodityId,
-        A.average AS average,
-        A.systemname AS Asystemname, A.basename AS Abasename, A.baseId AS AbaseId, A.systemId AS AsystemId, A.distance AS Adistance, A.landingPadSize AS AlandingPadSize,
-        A.exportPrice AS AexportPrice, A.supply AS Asupply, A.lastUpdated AS AlastUpdated,
-        A.x AS Ax, A.y AS Ay, A.z AS Az,
-        B.systemname AS Bsystemname, B.basename AS Bbasename, B.baseId AS BbaseId, B.systemId AS BsystemId, B.distance AS Bdistance, B.landingPadSize AS BlandingPadSize,
-        B.importPrice AS BimportPrice, B.demand AS Bdemand, B.lastUpdated AS BlastUpdated,
-        B.x AS Bx, B.y AS By, B.z AS Bz,
         1 AS blackmarket,
-        A.allegiance AS Aallegiance, A.exploited AS Aexploited, A.controlled AS Acontrolled,
-        B.allegiance AS Ballegiance, B.exploited AS Bexploited, B.controlled AS Bcontrolled
+        A.baseId AS AbaseId,
+        B.baseId AS BbaseId
       FROM
         (
         SELECT
@@ -1049,10 +999,9 @@ class SQLiteDB(EliteDB.EliteDB):
           baseInfo,
           systems
         WHERE
-          commodityPrices.commodityId=:commodityId
+          --commodityPrices.commodityId=:commodityId
+          average>:minprofit*6
           AND
-          --average>:minprofit*6
-          --AND
           commodityPrices.lastUpdated>:lastUpdated
           AND
           commodityPrices.commodityId=commodities.id
