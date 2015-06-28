@@ -114,7 +114,7 @@ def importDownloaded(db):
 
   # -- commodities --
 
-  print("improting eddb commodities")
+  print("importing eddb commodities")
   commoditiesdata = readJSON("commodities.json")
   if commoditiesdata is None:
     print("parsing commodities.json failed")
@@ -139,26 +139,26 @@ def importDownloaded(db):
 
   # -- systems --
 
-  print("improting eddb systems")
+  print("importing eddb systems")
   systemsdata = readJSON("systems.json")
   if systemsdata is None:
     print("parsing systems.json failed")
     return False
 
+  allegiance={
+    None:None,
+    "Empire":3,
+    "Federation":2,
+    "Alliance":1
+  }
   for system in systemsdata:
-    if system['allegiance'] is not None:
-      if system['allegiance']=='Empire':
-        system['allegiance']=3
-      elif system['allegiance']=='Federation':
-        system['allegiance']=2
-      elif system['allegiance']=='Alliance':
-        system['allegiance']=1
-      else:
-        system['allegiance']=0
+    if system['allegiance'] in allegiance:
+      system['allegiance']=allegiance[system['allegiance']]
     else:
-      system['allegiance']=None
+      system['allegiance']=0
 
     system['controlled']=None
+    system['exploited']=None
 
 
   # insert into db and retrieve new ids
@@ -176,7 +176,7 @@ def importDownloaded(db):
 
   # -- stations --
 
-  print("improting eddb stations")
+  print("importing eddb stations")
   stationsdata = readJSON("stations.json")
   if stationsdata is None:
     print("parsing stations.json failed")
@@ -198,7 +198,7 @@ def importDownloaded(db):
 
   # -- station metadata --
 
-  print("improting eddb station metadata")
+  print("importing eddb station metadata")
 
   padsize={
     None:None,
@@ -216,7 +216,7 @@ def importDownloaded(db):
 
   # -- station market data --
 
-  print("improting eddb market data")
+  print("importing eddb market data")
 
   # limit data age - allow twice the age for desperate routes
   #validityhorizon=float( time.time() - (60*60*24* int(Options.get("Market-valid-days", 7) *2 ) ))
@@ -247,7 +247,7 @@ def importDownloaded(db):
 
   db.importCommodityPrices(marketdata)
 
-  print("improting eddb black market data")
+  print("importing eddb black market data")
 
   db.deleteProhibitedCommodities() # these may change a lot if station changes owner - better to nuke on update
 

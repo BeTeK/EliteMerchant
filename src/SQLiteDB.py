@@ -195,6 +195,26 @@ class SQLiteDB(EliteDB.EliteDB):
 
       return [self._dictToPriceData(self._rowToDict(i)) for i in cur.fetchall()]
 
+  def getCommoditiesMaxProfit(self):
+    with self.lock:
+      cur = self.conn.cursor()
+      cur.execute("""
+        SELECT
+        A.commodityId AS id,
+        B.importPrice - A.exportPrice AS profit
+        FROM
+        (
+        SELECT commodityId, MIN(exportPrice) AS exportPrice FROM commodityPrices WHERE exportPrice>0 GROUP BY commodityId
+        ) AS A,
+        (
+        SELECT commodityId, MAX(importPrice) AS importPrice FROM commodityPrices GROUP BY commodityId
+        ) AS B
+        WHERE
+        A.commodityId=B.commodityId
+      """)
+
+      return [self._rowToDict(i) for i in cur.fetchall()]
+
   def _dictToPriceData(self, data):
     return CommodityPrice.CommodityPrice(self, data["id"], data["commodityId"], data["importPrice"], data["exportPrice"], data["demand"], datetime.date.fromtimestamp(data['lastUpdated']), data["baseId"], data["supply"])
   
@@ -287,8 +307,9 @@ class SQLiteDB(EliteDB.EliteDB):
     UNIQUE (baseId, commodityId)
     )""")
     cur.execute("""CREATE INDEX "commodityPricesIdIndex" on commodityPrices (id ASC)""")
-    cur.execute("""CREATE INDEX "commodityPricesCommoditIdIndex" on commodityPrices (commodityId ASC)""")
+    cur.execute("""CREATE INDEX "commodityPricesCommodityIdIndex" on commodityPrices (commodityId ASC)""")
     cur.execute("""CREATE INDEX "commodityPricesBaseIdIndex" on commodityPrices (baseId ASC)""")
+    cur.execute("""CREATE INDEX "commoditylastUpdatedIndex" on commodityPrices (lastUpdated ASC)""")
 
     cur.execute("""CREATE TABLE "prohibitedCommodities" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

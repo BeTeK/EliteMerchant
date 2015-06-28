@@ -12,6 +12,9 @@ class Commodity:
   def getId(self):
     return self.id
 
+  def getAverage(self):
+    return self.average
+
   def __str__(self):
     return self.__repr__()
 
