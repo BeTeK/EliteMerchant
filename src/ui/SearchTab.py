@@ -386,9 +386,11 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     "_curdist",
                     "Asystemname",
                     "Abasename",
+                    "Asupply",
                     "AexportPrice",
                     "commodityname",
                     "BimportPrice",
+                    #"Bdemand",
                     "Bsystemname",
                     "Bbasename",
                     #"DistanceSq",
@@ -400,9 +402,11 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
             basictradetable_target=[
                     "Asystemname",
                     "Abasename",
+                    "Asupply",
                     "AexportPrice",
                     "commodityname",
                     "BimportPrice",
+                    #"Bdemand",
                     "Bsystemname",
                     "Bbasename",
                     #"DistanceSq",
@@ -412,23 +416,6 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     "profitPh",
                     "_targetdist"
                 ]
-            twowaytradetable=[
-                    "_curdist",
-                    "Asystemname",
-                    "Abasename",
-                    "commodityname",
-                    "profit",
-                    "_Bcurdist",
-                    "Bsystemname",
-                    "Bbasename",
-                    "Ccommodityname",
-                    "Cprofit",
-                    #"DistanceSq",
-                    "SystemDistance",
-                    "totalprofit",
-                    "profitPh"
-                ]
-
             self.columnorder=dict({
                 'station_exports':basictradetable,
                 'system_exports':basictradetable,
@@ -463,7 +450,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
             # roles:    http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
 
-            if role== QtCore.Qt.DecorationRole: # icons
+            ########### ICONS ##################
+
+            if role== QtCore.Qt.DecorationRole:
                 if "celltype" not in data:
                   if columnorder[section] in ["Asystemname"]:
                     if data['Acontrolled'] is not None or data['Aexploited'] is not None:
@@ -475,11 +464,14 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     if data['blackmarket']==1:
                       return QtGui.QPixmap("img/illegal.png")#.scaled(30,30)
 
-            if role == QtCore.Qt.TextColorRole: # text color
+            ########### TEXT COLOR ###########
+
+            if role == QtCore.Qt.TextColorRole:
                 if "celltype" not in data:
                   if columnorder[section] in ["AexportPrice"]:
                     if int(data['AlastUpdated'])<time.time()-60*60*24*int(Options.get('Market-valid-days',7)):
                       return QtGui.QBrush(QtGui.QColor(255,255,0))
+                  if columnorder[section] in ["Asupply"]:
                     if int(data['Asupply']<100):
                       return QtGui.QBrush(QtGui.QColor(255,255,0))
                   if columnorder[section] in ["BimportPrice"]:
@@ -490,7 +482,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                       return QtGui.QBrush(QtGui.QColor(250,250,250))
 
 
-            if role == QtCore.Qt.BackgroundRole: # background colors
+            ########### BACKGROUND COLOR ##########
+
+            if role == QtCore.Qt.BackgroundRole:
                 if "celltype" in data:
                     if data["celltype"]=='emptyrow':
                         return QtGui.QBrush(QtGui.QColor(255,255,255))
@@ -520,6 +514,13 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 if columnorder[section] in ["BimportPrice"]:
                     r,g,b=self.mw.AgeToColor(data['BlastUpdated'])
                     return QtGui.QBrush(QtGui.QColor(r,g,b))
+                if columnorder[section] in ["Asupply"]:
+                    b=(data['Asupply'])/5000
+                    g=b*2
+                    g=max(min(1,g),0)*255
+                    b=max(min(1,b),0)*255
+                    r=255
+                    return QtGui.QBrush(QtGui.QColor(r,g,b))
                 if columnorder[section] in ["profit","Cprofit","totalprofit"]:
                     return QtGui.QBrush(QtGui.QColor(255,230,255))
                 if columnorder[section] in ["commodityname"]:
@@ -528,7 +529,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
                 return QtGui.QBrush(QtGui.QColor(255,255,255)) # everything else is white
 
-            if role == QtCore.Qt.ToolTipRole: # tooltips
+            ############ TOOLTIPS ###############
+
+            if role == QtCore.Qt.ToolTipRole:
 
                 if "averageprofit" in data: # this is a graph search
                     if columnorder[section] == "profit":
@@ -676,7 +679,9 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 else:
                     return None
 
-            if role == QtCore.Qt.DisplayRole: # visible text data
+            ################# VISIBLE DATA ##################
+
+            if role == QtCore.Qt.DisplayRole:
                 if section >=len(columnorder):
                         return None
 
@@ -779,6 +784,10 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     field="Minutes travel"
                 elif columnorder[section] == "profitPh":
                     field="Profit Cr/h"
+                elif columnorder[section] == "Asupply":
+                    field="Supply"
+                elif columnorder[section] == "Bdemand":
+                    field="Demand"
                 else:
                     return None
 
