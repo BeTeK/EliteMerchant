@@ -546,7 +546,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     if columnorder[section] == "profit":
                         ret="Loop average profit: "+str(data["averageprofit"])\
                             +"\nLoop max profit: "+str(data["loopmaxprofit"])\
-                            +"\nLoop min profit: "+str(data["loopmaxprofit"])
+                            +"\nLoop min profit: "+str(data["loopminprofit"])
                         if "celltype" not in data:
                             ret+= "\nBuy for "+str(data["AexportPrice"])\
                                 +"\nSell for "+str(data["BimportPrice"])\
@@ -555,7 +555,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                     if columnorder[section] == "profitPh":
                         ret="Loop average profit: "+str(data["averageprofit"])\
                             +"\nLoop max profit: "+str(data["loopmaxprofit"])\
-                            +"\nLoop min profit: "+str(data["loopmaxprofit"])
+                            +"\nLoop min profit: "+str(data["loopminprofit"])
                         if "celltype" not in data:
                             ret+= "\nBuy for "+str(data["AexportPrice"])\
                                   +"\nSell for "+str(data["BimportPrice"])\
@@ -713,7 +713,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 if "celltype" in data:
                     if data["celltype"] in ['separatorrow']:
                         if columnorder[section]=='profit':
-                            return "Average: "+str(data["averageprofit"])+"cr"
+                            return str(data["loopmaxprofit"])+"cr"
                         elif columnorder[section]=='profitPh':
                             return str(data["totalprofitPh"])+"cr/h"
                         elif columnorder[section] == "hours":
