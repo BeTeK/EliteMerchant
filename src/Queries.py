@@ -684,7 +684,7 @@ def queryProfitGraphTarget(db,queryparams):
   def distance3d(x,y,z,i,j,k):
     return ((x-i)**2+(y-j)**2+(z-k)**2)**.5
 
-  #x,y,z=queryparams['x'],queryparams['y'],queryparams['z']
+  x,y,z=queryparams['x'],queryparams['y'],queryparams['z']
   x2,y2,z2=queryparams['x2'],queryparams['y2'],queryparams['z2']
   targetbase=queryparams['targetbase']
   #targetsystem=queryparams['targetsystem']
@@ -705,6 +705,9 @@ def queryProfitGraphTarget(db,queryparams):
     way["targetdistance"]=distance3d(x2,y2,z2,way["Bx"],way["By"],way["Bz"])
     if targetbase is not None and way["Bbasename"]==targetbase and way["targetdistance"]<1:
       way["targetdistance"]=-1000
+
+  totaltargetdistance=distance3d(x,y,z,x2,y2,z2) # prune out systems farther away
+  oneway=[way for way in oneway if way['targetdistance']<= totaltargetdistance]
 
   mintotalprofitPh=[profitpotential] # using array index to get around function scope issues
 
