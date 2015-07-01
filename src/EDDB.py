@@ -8,6 +8,7 @@ import sys
 import gzip
 from io import BytesIO
 import datetime
+import Powers
 
 eddbUrls={
   "commodities.json":"http://eddb.io/archive/v3/commodities.json",
@@ -139,11 +140,12 @@ def importDownloaded(db):
 
   # -- systems --
 
-  print("importing eddb systems")
   systemsdata = readJSON("systems.json")
   if systemsdata is None:
     print("parsing systems.json failed")
     return False
+
+  print('resolving system allegiances')
 
   allegiance={
     None:None,
@@ -151,15 +153,51 @@ def importDownloaded(db):
     "Federation":2,
     "Alliance":1
   }
+
+  def distance3d(x,y,z,i,j,k):
+    return ((x-i)**2+(y-j)**2+(z-k)**2)**.5
+
+  controlsystems=dict()
+
+  # reformat faction allegiances, find power control systems
   for system in systemsdata:
     if system['allegiance'] in allegiance:
       system['allegiance']=allegiance[system['allegiance']]
     else:
       system['allegiance']=0
 
-    system['controlled']=None
-    system['exploited']=None
+    # control systems
+    powerid=Powers.nameToVal(system['power_control_faction'])
+    system['controlled']=powerid
+    system['exploited']=powerid
+    if system['power_control_faction'] is not None:
+      if powerid not in controlsystems:
+        controlsystems[powerid]=[]
+      controlsystems[powerid].append(system)
 
+  print( 'The galaxy has' , str(len(list(controlsystems.keys()))) , 'powers' )
+
+  # bake power exploited values
+  for p in controlsystems:
+    print(Powers.valToName(p), 'has', len(controlsystems[p]) , 'control systems')
+    exploited=0
+    for c in controlsystems[p]:
+      powerid=c['controlled']
+      x,y,z=c['x'],c['y'],c['z']
+      for system in systemsdata:
+        # if ours, contested or control system, ignore
+        if system['exploited']==powerid or system['exploited']==-1 or system['controlled'] is not None:
+          continue
+        x2,y2,z2=system['x'],system['y'],system['z']
+        if distance3d(x,y,z,x2,y2,z2) <= 15: # everything within 15ly is exploited
+          if system['exploited'] is not None: # if some other power has it in range, it's contested
+            system['exploited']=-1
+          else:
+            system['exploited']=powerid # else it's ours
+            exploited+=1
+    print(' has',str(exploited),'exploited systems')
+
+  print("importing eddb systems")
 
   # insert into db and retrieve new ids
   importedSystems=db.importSystems(systemsdata)
@@ -170,9 +208,9 @@ def importDownloaded(db):
   # eddb to EliteDB id map
   systems_importmap=dict( (o["id"],importedSystemsMap[o["name"].lower()]) for o in systemsdata )
 
-  # todo: bake exploited systems
-  #print('marking exploited systems for Powerplay')
-  #db.markExploitedSystems()
+  # id to row map
+  systemRowById=dict( (o["id"],o) for o in importedSystems )
+
 
   # -- stations --
 
@@ -186,6 +224,8 @@ def importDownloaded(db):
   for station in stationsdata:
     station["systemId"]=systems_importmap[station["system_id"]]
     station["distance"]=station["distance_to_star"]
+    system=systemRowById[station["systemId"]]
+    Powers.applyPowerPolicy(system['controlled'],system['exploited'],[station])
 
   # insert into db and retrieve new ids
   importedStations=db.importBases(stationsdata)

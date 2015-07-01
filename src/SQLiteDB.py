@@ -356,18 +356,18 @@ class SQLiteDB(EliteDB.EliteDB):
   def importSystems(self,systemlist):
     with self.lock:
       cur = self.conn.cursor()
-      cur.executemany("INSERT OR IGNORE INTO systems(name,x,y,z,allegiance,controlled) VALUES(:name,:x,:y,:z,:allegiance,:controlled)",systemlist)
+      cur.executemany("INSERT OR IGNORE INTO systems(name,x,y,z,allegiance,controlled,exploited) VALUES(:name,:x,:y,:z,:allegiance,:controlled,:exploited)",systemlist)
 
       # update owners
       cur.executemany("""
       UPDATE systems
-      SET allegiance=:allegiance, controlled=controlled
+      SET allegiance=:allegiance, controlled=:controlled, exploited=:exploited
       WHERE name=:name
       """, systemlist)
 
       self.conn.commit()
 
-      cur.execute('SELECT id,name FROM systems')
+      cur.execute('SELECT id,name,allegiance,controlled,exploited FROM systems')
       return [self._rowToDict(o) for o in cur.fetchall()]
 
   def importBases(self,baselist):
@@ -835,7 +835,9 @@ class SQLiteDB(EliteDB.EliteDB):
           systems.name AS systemname, bases.name AS basename, prohibitedCommodities.baseId, bases.systemId, distance, landingPadSize, x, y, z,
           prohibitedCommodities.commodityId, 0 AS exportPrice, 0 AS supply, 0 AS demand, commodities.name AS commodityname, average, legal.lastUpdated AS lastUpdated,
           CASE
-            WHEN systems.exploited=9 OR systems.controlled=9 THEN legal.importPrice*1.1 -- Power black market boost
+            WHEN systems.exploited=8 THEN legal.importPrice*1.1 -- Archon Delaine boost
+            WHEN systems.exploited=10 THEN legal.importPrice*1.1 -- Pranav Antal boost
+            WHEN systems.exploited=5 THEN legal.importPrice*1.05 -- Arissa Lavigny-Duval boost
             ELSE legal.importPrice
           END AS importPrice,
           allegiance, exploited, controlled
@@ -1283,7 +1285,9 @@ class SQLiteDB(EliteDB.EliteDB):
           systems.name AS systemname, bases.name AS basename, prohibitedCommodities.baseId, bases.systemId, distance, landingPadSize, x, y, z,
           prohibitedCommodities.commodityId, 0 AS exportPrice, 0 AS supply, 0 AS demand, commodities.name AS commodityname, average, legal.lastUpdated AS lastUpdated,
           CASE
-            WHEN systems.exploited=9 OR systems.controlled=9 THEN legal.importPrice*1.1 -- Power black market boost
+            WHEN systems.exploited=8 THEN legal.importPrice*1.1 -- Archon Delaine boost
+            WHEN systems.exploited=10 THEN legal.importPrice*1.1 -- Pranav Antal boost
+            WHEN systems.exploited=5 THEN legal.importPrice*1.05 -- Arissa Lavigny-Duval boost
             ELSE legal.importPrice
           END AS importPrice,
           allegiance, exploited, controlled

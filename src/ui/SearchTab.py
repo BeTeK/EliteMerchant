@@ -11,6 +11,7 @@ import SpaceTime
 import time
 import ui.TabAbstract
 import ThreadWorker
+import Powers
 
 class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabAbstract):
 
@@ -452,17 +453,27 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
 
             ########### ICONS ##################
 
-            if role== QtCore.Qt.DecorationRole:
+            if role == QtCore.Qt.DecorationRole:
                 if "celltype" not in data:
                   if columnorder[section] in ["Asystemname"]:
-                    if data['Acontrolled'] is not None or data['Aexploited'] is not None:
-                      return QtGui.QPixmap("img/power_1.png")
+                    powerid=None
+                    if data['Acontrolled'] is not None:
+                      powerid=data['Acontrolled']
+                    if data['Aexploited'] is not None:
+                      powerid=data['Aexploited']
+                    if powerid is not None and powerid != -1:
+                      return QtGui.QPixmap("img/power_"+str(powerid)+".png")
                   if columnorder[section] in ["Bsystemname"]:
-                    if data['Bcontrolled'] is not None or data['Bexploited'] is not None:
-                      return QtGui.QPixmap("img/power_1.png")
+                    powerid=None
+                    if data['Bcontrolled'] is not None:
+                      powerid=data['Bcontrolled']
+                    if data['Bexploited'] is not None:
+                      powerid=data['Bexploited']
+                    if powerid is not None and powerid != -1:
+                      return QtGui.QPixmap("img/power_"+str(powerid)+".png")
                   if columnorder[section] in ["commodityname"]:
                     if data['blackmarket']==1:
-                      return QtGui.QPixmap("img/illegal.png")#.scaled(30,30)
+                      return QtGui.QPixmap("img/illegal.png")
 
             ########### TEXT COLOR ###########
 
@@ -607,6 +618,14 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                         2:'L'
                     }
                     returnstring=""
+
+                    if data['Acontrolled'] is not None:
+                      returnstring+='System controlled by '+Powers.valToName( data['Acontrolled'] ) +'\n'
+                    elif data['Aexploited'] is not None and data['Aexploited'] != -1:
+                      returnstring+='System exploited by '+Powers.valToName( data['Aexploited'] ) +'\n'
+                    elif data['Aexploited'] == -1:
+                      returnstring+='System contested by opposing powers\n'
+
                     if data['Aallegiance'] is  not None and int(data['Aallegiance']) != 0:
                       allegiance={
                         0:'None',
@@ -629,6 +648,14 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                         2:'L'
                     }
                     returnstring=""
+
+                    if data['Bcontrolled'] is not None:
+                      returnstring+='System controlled by '+Powers.valToName( data['Bcontrolled'] ) +'\n'
+                    elif data['Bexploited'] is not None and data['Bexploited'] != -1:
+                      returnstring+='System exploited by '+Powers.valToName( data['Bexploited'] ) +'\n'
+                    elif data['Bexploited'] == -1:
+                      returnstring+='System contested by opposing powers\n'
+
                     if data['Ballegiance'] is  not None and int(data['Ballegiance']) != 0:
                       allegiance={
                         0:'None',
