@@ -48,13 +48,17 @@ The EDCE option waits for the EDCE client to download the latest market data bef
 ### FEATURES
 
 The prominent features of this tool, in contrast to others are:
-- Route profitability calculation as function of distance and time.
-
+- Route profitability calculation as function of distance and time.  
   This means the tool takes your estimated travel time from system to system into account, as well as travel time from the target star to the station.
-- Optional EDCE support to read station market data.
-
+- Optional EDCE support to read station market data.  
   Upon entering a station, the EDCE client is triggered to gather the	data into the local database. Optional uploading to EDDN is also supported. Note that EDCE is in conflict with Frontier Developments wishes on the use of their mobile API. Thus this feature is entirely optional
 	and on everyone's personal judgement to utilize, or not.
+- Black market trades  
+Smuggling routes can now be profitable and shown on a possible trade route.  
+Smuggling trades are marked with black commodity background and a skull icon.  
+NOTE! Black market prices are estimates derived from local legal commodity prices.  
+The resulting price is inaccurate and is only indicative of your final price (probably +-500cr or so).  
+Passive faction bonuses have already been applied to the shown black market price.  
 - Multiple searches in tabs.
 - Fast, high profit routes for all searches with unlimited trade hops.
 - Automatic station exports search.
@@ -73,6 +77,20 @@ The prominent features of this tool, in contrast to others are:
 The tool utilizes the database provided by EDDB. ( http://eddb.io/api )
 
 #####Version history:
+v0.13.150701: Powers, Black market trades
+- Powers and factions  
+Power control and exploited systems are marked with a faction icon (faction name on mouse hover).  
+Factions (Empire, Federation, Alliance) marked by system & station background color.  
+- Black market trades  
+Smuggling routes can now be profitable and shown on a possible trade route.  
+Smuggling trades are marked with black commodity background and a skull icon.  
+NOTE! Black market prices are estimates derived from local legal commodity prices.  
+The resulting price is inaccurate and is only indicative of your final price (probably +-500cr or so).  
+Passive faction bonuses have already been applied to the shown black market price.  
+- Supply now shown better in UI as column and colored red when low.  
+- Basic cache for generic trade search  
+- Numerous bugfixes and small improvements
+
 v0.12.150619: Moved away from windowed queries as they did more harm than good.  
 v0.11.150619: 1.3 fixes and basic features  
 - Added Direct system-to-system / station-to-station trade listing
