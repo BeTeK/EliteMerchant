@@ -342,6 +342,8 @@ class SQLiteDB(EliteDB.EliteDB):
 
 
   def importCommodities(self,commoditylist):
+    if commoditylist is None or len(commoditylist)==0:
+      return
     with self.lock:
       cur = self.conn.cursor()
       cur.executemany("INSERT OR IGNORE INTO commodities(name,average) VALUES(:name,:average)",commoditylist)
@@ -354,6 +356,8 @@ class SQLiteDB(EliteDB.EliteDB):
       return [self._rowToDict(o) for o in cur.fetchall()]
 
   def importSystems(self,systemlist):
+    if systemlist is None or len(systemlist)==0:
+      return
     with self.lock:
       cur = self.conn.cursor()
       cur.executemany("INSERT OR IGNORE INTO systems(name,x,y,z,allegiance,controlled,exploited) VALUES(:name,:x,:y,:z,:allegiance,:controlled,:exploited)",systemlist)
@@ -371,6 +375,8 @@ class SQLiteDB(EliteDB.EliteDB):
       return [self._rowToDict(o) for o in cur.fetchall()]
 
   def importBases(self,baselist):
+    if baselist is None or len(baselist)==0:
+      return
     with self.lock:
       cur = self.conn.cursor()
       cur.executemany("INSERT OR IGNORE INTO bases(name,systemId,distance) VALUES(:name,:systemId,:distance)",baselist)
@@ -388,6 +394,8 @@ class SQLiteDB(EliteDB.EliteDB):
 
 
   def importCommodityPrices(self,marketlist):
+    if marketlist is None or len(marketlist)==0:
+      return
     with self.lock:
       cur = self.conn.cursor()
       # insert if new, skip if old
@@ -410,6 +418,8 @@ class SQLiteDB(EliteDB.EliteDB):
       self.conn.commit()
 
   def importProhibitedCommodities(self,marketlist):
+    if marketlist is None or len(marketlist)==0:
+      return
     with self.lock:
       cur = self.conn.cursor()
 
@@ -417,20 +427,6 @@ class SQLiteDB(EliteDB.EliteDB):
       cur.executemany("INSERT OR IGNORE INTO prohibitedCommodities( commodityId, baseId ) VALUES(:commodityId,:baseId)",marketlist)
 
       self.conn.commit()
-
-  def markExploitedSystems(self): # bake exploited status
-    with self.lock:
-      cur = self.conn.cursor() ## todo: do this
-      cur.execute("""
-      UPDATE systems
-      SET exploited=:power
-      WHERE
-      Distance3D( :x, :y, :z, x, y, z)<=15,
-      """)
-      self.conn.commit()
-
-      cur.execute('SELECT id,name FROM systems')
-      return [self._rowToDict(o) for o in cur.fetchall()]
 
   def getGalaxyExtents(self):
     with self.lock:

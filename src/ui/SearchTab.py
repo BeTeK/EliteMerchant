@@ -713,7 +713,7 @@ class SearchTab(QtWidgets.QWidget, ui.SearchTabUI.Ui_Dialog, ui.TabAbstract.TabA
                 if "celltype" in data:
                     if data["celltype"] in ['separatorrow']:
                         if columnorder[section]=='profit':
-                            return str(data["loopmaxprofit"])+"cr"
+                            return str(int(data["loopmaxprofit"]))+"cr"
                         elif columnorder[section]=='profitPh':
                             return str(data["totalprofitPh"])+"cr/h"
                         elif columnorder[section] == "hours":
