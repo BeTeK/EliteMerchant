@@ -12,9 +12,7 @@ def BaseToBase(ly,shiprange=16.5,stops=1):
   time_stationbusiness=49.6 # time spent trading in station
   time_stationleave=54.7 # time between leaving and fsd
 
-  a=.6
-  b=.22
-  hops=0.5+ly*(a/(shiprange**(a+b)))
+  hops=0.2+(ly/shiprange)*1.35
 
   time_in_fsd=( hops * time_hop ) + ( max(0,(hops-1)) * time_fsdrecharge )
 
