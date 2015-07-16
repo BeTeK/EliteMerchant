@@ -24,7 +24,7 @@ class SQLiteDB(EliteDB.EliteDB):
     self.queryCache = {}
     self.lock = threading.RLock()
     self.dbEmpty=False # set this to true if db load fails for whatever reason and we need to force download
-    self.databaseversion=3
+    self.databaseversion=4
 
 
   def __enter__(self):
@@ -404,7 +404,7 @@ class SQLiteDB(EliteDB.EliteDB):
       # update value if newer than db
       cur.executemany("""
       UPDATE commodityPrices
-      SET importPrice=:importPrice, exportPrice=exportPrice, lastUpdated=:lastUpdated, demand=:demand, supply=:supply
+      SET importPrice=:importPrice, exportPrice=:exportPrice, lastUpdated=:lastUpdated, demand=:demand, supply=:supply
       WHERE baseId=:baseId AND commodityId=:commodityId AND lastUpdated<:lastUpdated
       """, marketlist)
       self.conn.commit()
