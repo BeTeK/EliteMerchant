@@ -77,6 +77,10 @@ Passive faction bonuses have already been applied to the shown black market pric
 The tool utilizes the database provided by EDDB. ( http://eddb.io/api )
 
 #####Version history:
+v0.13.150717: Fixes, Optimization
+- Fixed export prices not updating from EDDB
+- Optimized search - should be a lot faster.
+
 v0.13.150701: Powers, Black market trades
 - Powers and factions  
 Power control and exploited systems are marked with a faction icon (faction name on mouse hover).  
