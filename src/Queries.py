@@ -681,15 +681,16 @@ def queryProfitGraphTarget(db,queryparams):
   profitfailuredepth=1 # don't start evaluating profitability until this deep in the algo
   chokeforcelevel=3 # give up optimizing if we choke this many times
 
+  for way in oneway: # bake target distance
+    way["targetdistance"]=distance3d(x2,y2,z2,way["Bx"],way["By"],way["Bz"])
+    if targetbase is not None and way["Bbasename"]==targetbase and way["targetdistance"]<1:
+      way["targetdistance"]=-1000
   totaltargetdistance=distance3d(x,y,z,x2,y2,z2) # only systems closer than starting system allowed
   oneway=[way for way in oneway if way['targetdistance']<= totaltargetdistance]
 
   profitpotential=0 # calculate profit expectations to base profitmargin on
   for way in oneway:
     profitpotential=max(profitpotential,way["profitPh"])
-    way["targetdistance"]=distance3d(x2,y2,z2,way["Bx"],way["By"],way["Bz"])
-    if targetbase is not None and way["Bbasename"]==targetbase and way["targetdistance"]<1:
-      way["targetdistance"]=-1000
   mintotalprofitPh=[profitpotential] # using array index to get around function scope issues
 
   #creating list of starting stations
