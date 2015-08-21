@@ -1308,6 +1308,7 @@ class SQLiteDB(EliteDB.EliteDB):
               AND
               bases.systemId=systems.id
             GROUP BY systemId, commodityId
+            HAVING lastUpdated=MAX(lastUpdated) -- pick the newest data for this
           ) AS legal
         WHERE
           legal.systemId=systems.id
