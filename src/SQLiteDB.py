@@ -451,11 +451,11 @@ class SQLiteDB(EliteDB.EliteDB):
       cur.execute("""
       SELECT DISTINCT systems.name
       FROM
-      systems,bases,commodityPrices
+      systems,bases --,commodityPrices
       WHERE
       bases.systemId=systems.id -- we only want systems with stations on them
-      AND
-      bases.id=commodityPrices.baseId -- we only want bases with commodities on them
+      --AND
+      --bases.id=commodityPrices.baseId -- we only want bases with commodities on them - actually we want them in case edce finds something
       """)
       result=cur.fetchall()
 
