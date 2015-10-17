@@ -379,7 +379,15 @@ class SQLiteDB(EliteDB.EliteDB):
       return
     with self.lock:
       cur = self.conn.cursor()
-      cur.executemany("INSERT OR IGNORE INTO bases(name,systemId,distance) VALUES(:name,:systemId,:distance)",baselist)
+      cur.executemany("INSERT OR IGNORE INTO bases(name,systemId,distance) VALUES(:name,:systemId,:distance)", baselist)
+
+      cur.executemany("""
+      UPDATE bases
+      SET distance=:distance
+      WHERE systemId=:systemId
+      AND name=:name
+      AND distance!=:distance
+      """, baselist)
 
       self.conn.commit()
       cur.execute('SELECT id,name,systemId FROM bases')
