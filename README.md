@@ -77,6 +77,7 @@ Passive faction bonuses have already been applied to the shown black market pric
 The tool utilizes the database provided by EDDB. ( http://eddb.io/api )
 
 #####Version history:
+v0.14.151027: Updated to EDDB v4 database format
 v0.13.150726: Fixed a regression  
 v0.13.150717: Fixes, Optimization
 - Fixed export prices not updating from EDDB
