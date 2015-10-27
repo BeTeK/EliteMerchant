@@ -1,6 +1,7 @@
 import os
 import os.path
 import json
+import csv
 from urllib import request, parse
 import time
 import Options
@@ -11,15 +12,31 @@ import datetime
 import Powers
 
 eddbUrls={
-  "commodities.json":"http://eddb.io/archive/v3/commodities.json",
-  "systems.json":"http://eddb.io/archive/v3/systems.json",
-  "stations.json":"http://eddb.io/archive/v3/stations.json"
+  "commodities.json":"http://eddb.io/archive/v4/commodities.json",
+  "systems.json":"http://eddb.io/archive/v4/systems.json",
+  "stations.json":"http://eddb.io/archive/v4/stations.json",
+  "listings.csv":"http://eddb.io/archive/v4/listings.csv"
 }
 
 def readJSON(filename):
   try:
     with open(Options.getPath(filename), "r") as file:
       return json.loads(file.read())
+  except Exception as ex:
+    print(ex)
+    return None
+
+def readCSV(filename):
+  try:
+    with open(Options.getPath(filename), "r") as file:
+      fileDialect = csv.Sniffer().sniff(file.read(1024))
+      file.seek(0)
+      #fileDialect.quoting=csv.QUOTE_NONNUMERIC # can't use because header is unquoted - also python csv conf is shit
+      reader = csv.DictReader(file, dialect=fileDialect) # read as dict
+      parsedar=[]
+      for row in reader: # read to array
+        parsedar.append(row)
+      return parsedar
   except Exception as ex:
     print(ex)
     return None
@@ -64,17 +81,17 @@ def downloadFile(url):
         buffer = req.read(block_sz)
         if not buffer:
             break
-        filebuffer+=buffer
+        filebuffer+=str(buffer)
         if time.time()-updateinterval > lastupdate: # console may slow us down so keep update intervals
           lastupdate=time.time()
           sys.stdout.write(formatprogress(len(filebuffer),file_size))
 
-    with open(Options.getPath(file_name), 'wb') as file:
+    with open(Options.getPath(file_name), 'w') as file:
       if meta.get('Content-Encoding') == 'gzip': # gunzip
         #buf = StringIO( filebuffer )
         buf = BytesIO( filebuffer )
         f = gzip.GzipFile(fileobj=buf)
-        filebuffer = f.read()
+        filebuffer = f.read().decode("utf-8")
       file.write(filebuffer)
 
     sys.stdout.write(formatprogress(len(filebuffer),file_size))
@@ -137,7 +154,6 @@ def importDownloaded(db):
   # commodityname to EliteDB id map (for prohibited commodities later on)
   importedCommoditiesByName=dict( (o["name"],importedCommoditiesMap[o["name"].lower()]) for o in commoditiesdata )
 
-
   # -- systems --
 
   systemsdata = readJSON("systems.json")
@@ -157,7 +173,7 @@ def importDownloaded(db):
   def distance3d(x,y,z,i,j,k):
     return ((x-i)**2+(y-j)**2+(z-k)**2)**.5
 
-  controlsystems=dict()
+  powerstats=dict()
 
   # reformat faction allegiances, find power control systems
   for system in systemsdata:
@@ -167,35 +183,29 @@ def importDownloaded(db):
       system['allegiance']=0
 
     # control systems
-    powerid=Powers.nameToVal(system['power_control_faction'])
-    system['controlled']=powerid
-    system['exploited']=powerid
-    if system['power_control_faction'] is not None:
-      if powerid not in controlsystems:
-        controlsystems[powerid]=[]
-      controlsystems[powerid].append(system)
+    system['controlled']=None
+    system['exploited']=None
+    if system['power_state']=='Expansion': # we don't care about expansion
+      continue
+    powerid=Powers.nameToVal(system['power'])
+    if system['power_state']=='Exploited':
+      system['exploited']=powerid
+    if system['power_state']=='Control':
+      system['controlled']=powerid
+      system['exploited']=powerid
+    if system['power_state']=='Contested':
+      system['exploited']=-1
 
-  print( 'The galaxy has' , str(len(list(controlsystems.keys()))) , 'powers' )
+    if system['power'] is not None:
+      if system['power'] not in powerstats:
+        powerstats[system['power']]={
+          'Control':0,
+          'Exploited':0
+        }
+      powerstats[system['power']][system['power_state']]+=1
 
-  # bake power exploited values
-  for p in controlsystems:
-    print(Powers.valToName(p), 'has', len(controlsystems[p]) , 'control systems')
-    exploited=0
-    for c in controlsystems[p]:
-      powerid=c['controlled']
-      x,y,z=c['x'],c['y'],c['z']
-      for system in systemsdata:
-        # if ours, contested or control system, ignore
-        if system['exploited']==powerid or system['exploited']==-1 or system['controlled'] is not None:
-          continue
-        x2,y2,z2=system['x'],system['y'],system['z']
-        if distance3d(x,y,z,x2,y2,z2) <= 15: # everything within 15ly is exploited
-          if system['exploited'] is not None: # if some other power has it in range, it's contested
-            system['exploited']=-1
-          else:
-            system['exploited']=powerid # else it's ours
-            exploited+=1
-    print(' has',str(exploited),'exploited systems')
+  for power in powerstats:
+    print(power +" has "+ str(powerstats[power]['Control']) +" Control systems & "+ str(powerstats[power]['Exploited']) +" Exploited systems")
 
   print("importing eddb systems")
 
@@ -254,7 +264,14 @@ def importDownloaded(db):
 
   db.importBaseInfos(stationsdata)
 
-  # -- station market data --
+  # -- merge market data --
+
+  print("reading eddb listings")
+
+  listingsdata = readCSV("listings.csv")
+  if listingsdata is None:
+    print("parsing listings.csv failed")
+    return False
 
   print("importing eddb market data")
 
@@ -264,19 +281,26 @@ def importDownloaded(db):
 
   marketdata=[]
   prohibiteddata=[]
+
+  for listing in listingsdata:
+    for col in listing:
+      listing[col]=int(listing[col]) # python csv parsing is shit so we do it live
+    listing["station_id"]=stations_importmap[listing["station_id"]]
+    if validityhorizon < listing["collected_at"]: # no old data
+      listing["baseId"]=listing["station_id"] # stationid already remapped
+      listing["commodityId"]=commodities_importmap[listing["commodity_id"]]
+      listing["importPrice"]=listing["sell_price"] # note: eddb works from the perspective of the player - "sell" is import, "buy" is export
+      listing["exportPrice"]=listing["buy_price"]
+      listing["lastUpdated"]=listing["collected_at"]
+      marketdata.append(listing)
+      # todo: remove legals
+      #legalcommodities.append(commodities_importmap[commodity["commodity_id"]]) # keep track for black market
+
+  # -- station market data --
+
   # remap database
   for station in stationsdata:
     legalcommodities=[]
-    for commodity in station["listings"]: # market listings
-      if validityhorizon < commodity["collected_at"]: # no old data
-        commodity["baseId"]=station["id"] # stationid already remapped
-        commodity["commodityId"]=commodities_importmap[commodity["commodity_id"]]
-        commodity["importPrice"]=commodity["sell_price"] # note: eddb works from the perspective of the player - "sell" is import, "buy" is export
-        commodity["exportPrice"]=commodity["buy_price"]
-        commodity["lastUpdated"]=commodity["collected_at"]
-        marketdata.append(commodity)
-        legalcommodities.append(commodities_importmap[commodity["commodity_id"]]) # keep track for black market
-
     if station['has_blackmarket']:
       for contraband in station['prohibited_commodities']: # black market listings
         if importedCommoditiesByName[contraband] not in legalcommodities: # only add if not in legal market
@@ -293,6 +317,6 @@ def importDownloaded(db):
 
   db.importProhibitedCommodities(prohibiteddata)
 
-  db.vacuum()
+  #db.vacuum() # todo: uncomment if skipping this causes slowdown
 
   print("eddb import complete")
